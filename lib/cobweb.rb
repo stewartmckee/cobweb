@@ -11,10 +11,11 @@ class CobWeb
   
   def initialize(options = {})
     @options = options
-    @options[:follow_redirects] = true if @options[:follow_redirects].nil?
-    @options[:redirect_limit] = 10 if @options[:redirect_limit].nil? 
-    @options[:processing_queue] = ContentProcessJob if @options[:processing_queue].nil?
-    @options[:debug] = false unless @options[:debug]
+    @options[:follow_redirects] = true unless @options.has_key?(:follow_redirects)
+    @options[:redirect_limit] = 10 unless @options.has_key?(:redirect_limit)
+    @options[:processing_queue] = ContentProcessJob unless @options.has_key?(:processing_queue)
+    @options[:debug] = false unless @options.has_key?(:debug)
+    @options[:cache] = 300 unless @options.has_key?(:cache)
     
   end
   
@@ -29,7 +30,6 @@ class CobWeb
   
     Resque.enqueue(CrawlJob, request)
   end
-
 
   def get(url, redirect_limit = @options[:redirect_limit])
 
@@ -90,7 +90,6 @@ class CobWeb
         content[:content_body] = response.body
         content[:location] = response["location"]
         content[:headers] = response.to_hash.symbolize_keys
-        
         # parse data for links
         link_parser = ContentLinkParser.new(content[:url], content[:content_body])
         content[:links] = link_parser.link_data
@@ -98,7 +97,7 @@ class CobWeb
         # add content to cache if required
         if @options[:cache]
           redis.set(unique_id, content.to_json)
-          redis.expire unique_id, content_request[:cache].to_i
+          redis.expire unique_id, @options[:cache].to_i
         end
       end
     end
