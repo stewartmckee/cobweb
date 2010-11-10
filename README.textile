@@ -3,7 +3,7 @@ h1. Cobweb v0.0.1
 
 h2. Intro 
 
-Crawler that utilises resque jobs to perform the crawl allowing clustering of crawls. 
+  Crawler that utilises resque jobs to perform the crawl allowing clustering of crawls and redis to perform caching of responses.  It currently requires redis on the same machine but will add options to specify redis server shortly. 
 
 h2. Installation
 
