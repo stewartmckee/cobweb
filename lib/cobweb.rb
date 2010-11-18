@@ -61,7 +61,7 @@ class CobWeb
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end 
       request_time = Time.now.to_f
-      request = Net::HTTP::Get.new(uri.request_uri)
+      request = Net::HTTP::Get.new(uri.to_s)
       response = http.request(request)
   
       if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
@@ -82,12 +82,12 @@ class CobWeb
         # create the content container
         content[:url] = uri.to_s
         content[:status_code] = response.code.to_i
-        content[:content_type] = response.content_type
+        content[:mime_type] = response.content_type
         charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1  ] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
         charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
         content[:character_set] = charset 
-        content[:content_length] = response.content_length
-        content[:content_body] = response.body
+        content[:length] = response.content_length
+        content[:body] = response.body
         content[:location] = response["location"]
         content[:headers] = response.to_hash.symbolize_keys
         # parse data for links
