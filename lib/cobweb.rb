@@ -16,7 +16,6 @@ class CobWeb
     @options[:processing_queue] = ContentProcessJob unless @options.has_key?(:processing_queue)
     @options[:debug] = false unless @options.has_key?(:debug)
     @options[:cache] = 300 unless @options.has_key?(:cache)
-    
   end
   
   def start(base_url)

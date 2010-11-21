@@ -20,7 +20,7 @@ class CrawlJob
       crawl_counter = redis.get("crawl-counter").to_i
       queue_counter = redis.get("queue-counter").to_i
       if crawl_counter <= content_request[:crawl_limit]
-        content = CobWeb.get(content_request)
+        content = CobWeb.new(content_request).get(content_request)
         redis.sadd "crawled", content_request[:url] 
         set_base_url redis, content, content_request[:base_url]
         if queue_counter <= content_request[:crawl_limit]
