@@ -19,11 +19,11 @@ class CrawlJob
       redis.incr "crawl-counter"
       crawl_counter = redis.get("crawl-counter").to_i
       queue_counter = redis.get("queue-counter").to_i
-      if crawl_counter <= content_request[:crawl_limit]
+      if crawl_counter <= content_request[:crawl_limit].to_i
         content = CobWeb.new(content_request).get(content_request[:url])
         redis.sadd "crawled", content_request[:url]
         set_base_url redis, content, content_request[:base_url]
-        if queue_counter <= content_request[:crawl_limit]
+        if queue_counter <= content_request[:crawl_limit].to_i
           ap content[:links]
           content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
             ap link
@@ -42,7 +42,7 @@ class CrawlJob
         end
 
         # enqueue to processing queue
-        Resque.enqueue(const_get(content_request[:processing_queue]), content)
+        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:source_id => content_request[:source_id]}))
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
         puts "Crawled: #{crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{queue_counter}" if content_request[:debug]
 
