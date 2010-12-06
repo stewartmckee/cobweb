@@ -13,9 +13,10 @@ class CobWeb
     @options = options
     @options[:follow_redirects] = true unless @options.has_key?(:follow_redirects)
     @options[:redirect_limit] = 10 unless @options.has_key?(:redirect_limit)
-    @options[:processing_queue] = ContentProcessJob unless @options.has_key?(:processing_queue)
+    @options[:processing_queue] = CobwebProcessJob unless @options.has_key?(:processing_queue)
     @options[:debug] = false unless @options.has_key?(:debug)
     @options[:cache] = 300 unless @options.has_key?(:cache)
+    @options[:timeout] = 10 unless @options.has_key?(:timeout)
   end
   
   def start(base_url)
@@ -59,11 +60,15 @@ class CobWeb
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end 
+      
       request_time = Time.now.to_f
+      http.read_timeout = @options[:timeout].to_i
+      http.open_timeout = @options[:timeout].to_i
+      response = http.start() {|http|
+        response = http.get(uri.request_uri)
+      }
       begin
-        request = Net::HTTP::Get.new(uri.to_s)
-        response = http.request(request)
-  
+        
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
           url = response['location']
