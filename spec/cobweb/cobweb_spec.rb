@@ -36,7 +36,10 @@ describe CobWeb do
       
       @mock_http_client.stub!(:request).with(@mock_http_request).and_return(@mock_http_response)
       @mock_http_client.stub!(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)      
-      @mock_http_client.stub!(:request).with(@mock_http_redirect_request2).and_return(@mock_http_redirect_response2)      
+      @mock_http_client.stub!(:request).with(@mock_http_redirect_request2).and_return(@mock_http_redirect_response2)
+      @mock_http_client.stub!(:read_timeout=).and_return(nil)      
+      @mock_http_client.stub!(:open_timeout=).and_return(nil)      
+      @mock_http_client.stub!(:start).and_return(@mock_http_response)      
       
       @mock_http_response.stub!(:code).and_return(200)
       @mock_http_response.stub!(:content_type).and_return("text/html")
