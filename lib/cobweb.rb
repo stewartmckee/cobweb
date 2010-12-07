@@ -96,7 +96,7 @@ class CobWeb
           content[:location] = response["location"]
           content[:headers] = response.to_hash.symbolize_keys
           # parse data for links
-          link_parser = ContentLinkParser.new(content[:url], content[:content_body])
+          link_parser = ContentLinkParser.new(content[:url], content[:body])
           content[:links] = link_parser.link_data
           
           # add content to cache if required
