@@ -24,12 +24,8 @@ class CrawlJob
         redis.sadd "crawled", content_request[:url]
         set_base_url redis, content, content_request[:base_url]
         if queue_counter <= content_request[:crawl_limit].to_i
-          ap content[:links]
           content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
-            ap link
             unless redis.sismember "crawled", link
-              puts redis.get("base_url")
-              puts "---------------------------------"
               if link.match(Regexp.new("^#{redis.get("base_url")}"))
                 new_request = content_request.clone
                 new_request[:url] = link
