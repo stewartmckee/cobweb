@@ -56,7 +56,7 @@ class CrawlJob
       if content[:status_code] >= 300 and content[:status_code] < 400
         #redirect received for first url
         redis.set("base_url", @absolutize.url(content[:location]).to_s)
-        puts "Warning: base_url given redirects to another location, setting base_url to #{@absolutize.url(content[:location]).to_s}"
+        puts "WARNING: base_url given redirects to another location, setting base_url to #{@absolutize.url(content[:location]).to_s}"
       else
         redis.set("base_url", base_url)
       end
