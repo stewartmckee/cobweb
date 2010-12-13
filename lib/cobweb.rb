@@ -71,48 +71,64 @@ class CobWeb
       response = http.start() {|http|
         response = http.get(uri.request_uri)
       }
-      #begin
+      begin
       
-      if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
-        puts "redirected... " unless @options[:quiet]
-        url = absolutize.url(response['location']).to_s
-        redirect_limit = redirect_limit - 1
-        content = get(url, redirect_limit)
-        content[:url] = uri.to_s
-        content[:redirect_through] = [] if content[:redirect_through].nil?
-        content[:redirect_through].insert(0, url)
-        
-        content[:response_time] = Time.now.to_f - request_time
-      else
-        content[:response_time] = Time.now.to_f - request_time
-        
-        puts "Retrieved." unless @options[:quiet]
-        
-        # create the content container
-        content[:url] = uri.to_s
-        content[:status_code] = response.code.to_i
-        content[:mime_type] = response.content_type
-        charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1  ] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
-        charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
-        content[:character_set] = charset 
-        content[:length] = response.content_length
-        content[:body] = response.body
-        content[:location] = response["location"]
-        content[:headers] = response.to_hash.symbolize_keys
-        # parse data for links
-        link_parser = ContentLinkParser.new(content[:url], content[:body])
-        content[:links] = link_parser.link_data
-        
-        # add content to cache if required
-        if @options[:cache]
-          content[:body] = Base64.encode64(content[:body]) unless content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-          redis.set(unique_id, content.to_json)
-          redis.expire unique_id, @options[:cache].to_i
+        if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
+          puts "redirected... " unless @options[:quiet]
+          url = absolutize.url(response['location']).to_s
+          redirect_limit = redirect_limit - 1
+          content = get(url, redirect_limit)
+          content[:url] = uri.to_s
+          content[:redirect_through] = [] if content[:redirect_through].nil?
+          content[:redirect_through].insert(0, url)
+          
+          content[:response_time] = Time.now.to_f - request_time
+        else
+          content[:response_time] = Time.now.to_f - request_time
+          
+          puts "Retrieved." unless @options[:quiet]
+          
+          # create the content container
+          content[:url] = uri.to_s
+          content[:status_code] = response.code.to_i
+          content[:mime_type] = response.content_type.split(";")[0].strip
+          charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
+          charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
+          content[:character_set] = charset 
+          content[:length] = response.content_length
+          if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+            content[:body] = response.body
+          else 
+            content[:body] = Base64.encode64(content[:body])
+          end
+          content[:location] = response["location"]
+          content[:headers] = response.to_hash.symbolize_keys
+          # parse data for links
+          link_parser = ContentLinkParser.new(content[:url], content[:body])
+          content[:links] = link_parser.link_data
+          
+          # add content to cache if required
+          if @options[:cache]
+            content[:body] = Base64.encode64(content[:body]) unless content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+            redis.set(unique_id, content.to_json)
+            redis.expire unique_id, @options[:cache].to_i
+          end
         end
+      rescue Exception => e
+        puts "ERROR: #{e.message}"        
+        
+        ## generate a blank content
+        content = {}
+        content[:url] = uri.to_s
+        content[:response_time] = Time.now.to_f - request_time
+        content[:status_code] = 0
+        content[:length] = 0
+        content[:body] = ""
+        content[:error] = e.message
+        content[:mime_type] = "internal/serverdown"
+        content[:headers] = {}
+        content[:links] = {}
       end
-      #rescue
-      #  content = {}
-      #end
     end
     content  
   end
