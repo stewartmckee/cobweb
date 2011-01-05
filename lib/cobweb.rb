@@ -147,11 +147,14 @@ class CobWeb
     content = {}
   
     # check if it has already been cached
-    if redis.get(unique_id) and @options[:cache]
+    if (redis.get(unique_id) of redis.get("head-#{unique_id}")) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
-      content[:body] = Base64.decode64(content[:body]) unless content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-
+      if redis.get("head-#{unique_id}")
+        content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
+        content[:body] = Base64.decode64(content[:body]) unless content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+      else
+        content = JSON.parse(redis.get("head-#{unique_id}")).deep_symbolize_keys
+      end
       content
     else
       print "Retrieving #{url }... " unless @options[:quiet]
@@ -163,11 +166,11 @@ class CobWeb
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end 
-  
+      
       request_time = Time.now.to_f
       http.read_timeout = @options[:timeout].to_i
       http.open_timeout = @options[:timeout].to_i
-    
+      
       begin      
         response = http.head(uri.to_s)
         
@@ -179,13 +182,19 @@ class CobWeb
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
-         else
+        else
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
           content[:mime_type] = response.content_type.split(";")[0].strip
           charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
           charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
           content[:character_set] = charset 
+
+          # add content to cache if required
+          if @options[:cache]
+            redis.set("head-#{unique_id}", content.to_json)
+            redis.expire "head-#{unique_id}", @options[:cache].to_i
+          end
         end
       rescue Exception => e
         puts "ERROR: #{e.message}"        
