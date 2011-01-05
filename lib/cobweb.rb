@@ -192,7 +192,7 @@ class CobWeb
 
           # add content to cache if required
           if @options[:cache]
-            puts "Stored in cache [#{head-#{unique_id}}]" if @options[:debug]
+            puts "Stored in cache [head-#{unique_id}]" if @options[:debug]
             redis.set("head-#{unique_id}", content.to_json)
             redis.expire "head-#{unique_id}", @options[:cache].to_i
           else
