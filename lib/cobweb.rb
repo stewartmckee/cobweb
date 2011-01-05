@@ -14,6 +14,7 @@ class CobWeb
     @options[:follow_redirects] = true unless @options.has_key?(:follow_redirects)
     @options[:redirect_limit] = 10 unless @options.has_key?(:redirect_limit)
     @options[:processing_queue] = CobwebProcessJob unless @options.has_key?(:processing_queue)
+    @options[:quiet] = true unless @options.has_key?(:quiet)
     @options[:debug] = false unless @options.has_key?(:debug)
     @options[:cache] = 300 unless @options.has_key?(:cache)
     @options[:timeout] = 10 unless @options.has_key?(:timeout)
@@ -145,7 +146,7 @@ class CobWeb
     redis = NamespacedRedis.new(Redis.new, "cobweb")
     
     content = {}
-  
+    
     # check if it has already been cached
     if (redis.get(unique_id) or redis.get("head-#{unique_id}")) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
@@ -191,12 +192,15 @@ class CobWeb
 
           # add content to cache if required
           if @options[:cache]
+            puts "Stored in cache [#{head-#{unique_id}}]" if @options[:debug]
             redis.set("head-#{unique_id}", content.to_json)
             redis.expire "head-#{unique_id}", @options[:cache].to_i
+          else
+            puts "Not storing in cache as cache disabled" if @options[:debug]
           end
         end
       rescue Exception => e
-        puts "ERROR: #{e.message}"        
+        puts "ERROR: #{e.message}"
         
         ## generate a blank content
         content = {}
