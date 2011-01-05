@@ -49,7 +49,7 @@ class CobWeb
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
       content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
-      content[:body] = Base64.decode64(content[:body]) unless content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+      content[:body] = Base64.decode64(content[:body]) unless content[:body].nil? or content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
 
       content
     else
@@ -109,7 +109,7 @@ class CobWeb
           
           # add content to cache if required
           if @options[:cache]
-            content[:body] = Base64.encode64(content[:body]) unless content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+            content[:body] = Base64.encode64(content[:body]) unless content[:body].nil? or content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
             redis.set(unique_id, content.to_json)
             redis.expire unique_id, @options[:cache].to_i
           end
@@ -149,9 +149,8 @@ class CobWeb
     # check if it has already been cached
     if (redis.get(unique_id) or redis.get("head-#{unique_id}")) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      if redis.get("head-#{unique_id}")
+      if redis.get(unique_id)
         content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
-        content[:body] = Base64.decode64(content[:body]) unless content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
       else
         content = JSON.parse(redis.get("head-#{unique_id}")).deep_symbolize_keys
       end
