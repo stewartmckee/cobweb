@@ -147,7 +147,7 @@ class CobWeb
     content = {}
   
     # check if it has already been cached
-    if (redis.get(unique_id) of redis.get("head-#{unique_id}")) and @options[:cache]
+    if (redis.get(unique_id) or redis.get("head-#{unique_id}")) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
       if redis.get("head-#{unique_id}")
         content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
