@@ -100,7 +100,7 @@ class CobWeb
           if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
             content[:body] = response.body
           else 
-            content[:body] = Base64.encode64(content[:body])
+            content[:body] = Base64.encode64(response.body)
           end
           content[:location] = response["location"]
           content[:headers] = response.to_hash.symbolize_keys
