@@ -68,10 +68,10 @@ class CobWeb
       request_time = Time.now.to_f
       http.read_timeout = @options[:timeout].to_i
       http.open_timeout = @options[:timeout].to_i
-      response = http.start() {|http|
-        response = http.get(uri.request_uri)
-      }
       begin
+        response = http.start() {|http|
+          response = http.get(uri.request_uri)
+        }
       
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
@@ -115,8 +115,8 @@ class CobWeb
             redis.expire unique_id, @options[:cache].to_i
           end
         end
-      rescue Exception => e
-        puts "ERROR: #{e.message}"        
+      rescue SocketError => e
+        puts "ERROR: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -126,7 +126,22 @@ class CobWeb
         content[:length] = 0
         content[:body] = ""
         content[:error] = e.message
-        content[:mime_type] = "internal/serverdown"
+        content[:mime_type] = "error/dnslookup"
+        content[:headers] = {}
+        content[:links] = {}
+      
+      rescue Timeout::Error => e
+        puts "ERROR: #{e.message}"
+        
+        ## generate a blank content
+        content = {}
+        content[:url] = uri.to_s
+        content[:response_time] = Time.now.to_f - request_time
+        content[:status_code] = 0
+        content[:length] = 0
+        content[:body] = ""
+        content[:error] = e.message
+        content[:mime_type] = "error/serverdown"
         content[:headers] = {}
         content[:links] = {}
       end
@@ -189,7 +204,7 @@ class CobWeb
           charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
           charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
           content[:character_set] = charset 
-
+          
           # add content to cache if required
           if @options[:cache]
             puts "Stored in cache [head-#{unique_id}]" if @options[:debug]
@@ -199,7 +214,7 @@ class CobWeb
             puts "Not storing in cache as cache disabled" if @options[:debug]
           end
         end
-      rescue Exception => e
+      rescue SocketError => e
         puts "ERROR: #{e.message}"
         
         ## generate a blank content
@@ -210,7 +225,22 @@ class CobWeb
         content[:length] = 0
         content[:body] = ""
         content[:error] = e.message
-        content[:mime_type] = "internal/serverdown"
+        content[:mime_type] = "error/dnslookup"
+        content[:headers] = {}
+        content[:links] = {}
+      
+      rescue Timeout::Error => e
+        puts "ERROR: #{e.message}"
+        
+        ## generate a blank content
+        content = {}
+        content[:url] = uri.to_s
+        content[:response_time] = Time.now.to_f - request_time
+        content[:status_code] = 0
+        content[:length] = 0
+        content[:body] = ""
+        content[:error] = e.message
+        content[:mime_type] = "error/serverdown"
         content[:headers] = {}
         content[:links] = {}
       end

@@ -43,7 +43,7 @@ class CrawlJob
         puts "Crawled: #{crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{queue_counter}" if content_request[:debug]
 
       else
-        puts "Crawl Limit Exceeded by #{crawl_counter - content_request[:crawl_limit]} objects" if content_request[:debug]
+        puts "Crawl Limit Exceeded by #{crawl_counter - content_request[:crawl_limit].to_i} objects" if content_request[:debug]
       end
     else
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
