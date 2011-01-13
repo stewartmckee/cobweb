@@ -18,6 +18,8 @@ class CobWeb
     @options[:debug] = false unless @options.has_key?(:debug)
     @options[:cache] = 300 unless @options.has_key?(:cache)
     @options[:timeout] = 10 unless @options.has_key?(:timeout)
+    @options[:redis_options] = {} unless @options.has_key?(:redis_options)
+    
   end
   
   def start(base_url)
@@ -42,7 +44,7 @@ class CobWeb
     unique_id = Digest::SHA1.hexdigest(url)
     
     # connect to redis
-    redis = NamespacedRedis.new(Redis.new, "cobweb")
+    redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb")
     
     content = {}
   
@@ -200,10 +202,12 @@ class CobWeb
         else
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
-          content[:mime_type] = response.content_type.split(";")[0].strip
-          charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
-          charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
-          content[:character_set] = charset 
+          unless response.content_type.nil?
+            content[:mime_type] = response.content_type.split(";")[0].strip 
+            charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
+            charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
+            content[:character_set] = charset
+          end 
           
           # add content to cache if required
           if @options[:cache]
