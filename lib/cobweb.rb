@@ -160,7 +160,7 @@ class CobWeb
     unique_id = Digest::SHA1.hexdigest(url)
     
     # connect to redis
-    redis = NamespacedRedis.new(Redis.new, "cobweb")
+    redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb")
     
     content = {}
     
