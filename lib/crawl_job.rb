@@ -9,7 +9,7 @@ class CrawlJob
   def self.perform(content_request)
     # change all hash keys to symbols    
     content_request.deep_symbolize_keys
-    redis = NamespacedRedis.new(Redis.new, "cobweb-#{content_request[:crawl_id]}")
+    redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{content_request[:crawl_id]}")
     @absolutize = Absolutize.new(content_request[:url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
 
     # check we haven't crawled this url before
