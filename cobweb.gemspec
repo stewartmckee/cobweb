@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name              = "cobweb"
-  s.version           = "0.0.4"
+  s.version           = "0.0.5"
   s.author            = "Stewart McKee"
   s.email             = "stewart@rockwellcottage.com"
   s.homepage          = "http://github.com/stewartmckee/cobweb"
@@ -13,6 +13,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('resque')
   s.add_dependency('redis')
   s.add_dependency('absolutize')
-  s.add_dependency('nokogiri')  
+  s.add_dependency('nokogiri')
+  s.add_dependency('addressable')
 
 end

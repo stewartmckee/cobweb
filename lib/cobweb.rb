@@ -1,6 +1,7 @@
-require 'rubygems'
+  require 'rubygems'
 require 'uri'
 require 'resque'
+require "addressable/uri"
 require 'digest/sha1'
 
 Dir[File.dirname(__FILE__) + '/*.rb'].each do |file|
@@ -30,7 +31,7 @@ class CobWeb
     }  
     
     request.merge!(@options)
-  
+    
     Resque.enqueue(CrawlJob, request)
   end
 
@@ -53,19 +54,19 @@ class CobWeb
       puts "Cache hit for #{url}" unless @options[:quiet]
       content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
       content[:body] = Base64.decode64(content[:body]) unless content[:body].nil? or content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-
+      
       content
     else
       # this url is valid for processing so lets get on with it
       print "Retrieving #{url }... " unless @options[:quiet]
-      uri = URI.parse(url)
+      uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
       http = Net::HTTP.new(uri.host, uri.port)
       if uri.scheme == "https"
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end 
+      end
       
       request_time = Time.now.to_f
       http.read_timeout = @options[:timeout].to_i
@@ -74,7 +75,7 @@ class CobWeb
         response = http.start() {|http|
           response = http.get(uri.request_uri)
         }
-      
+        
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
           url = absolutize.url(response['location']).to_s
@@ -175,7 +176,7 @@ class CobWeb
       content
     else
       print "Retrieving #{url }... " unless @options[:quiet]
-      uri = URI.parse(url)
+      uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
       http = Net::HTTP.new(uri.host, uri.port)

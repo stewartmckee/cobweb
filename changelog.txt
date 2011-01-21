@@ -1,0 +1,12 @@
+Change Log
+==========
+
+0.0.5
+  Added Addressable gem to do some of the uri parsing as it does a better job than the standard ruby parser
+
+0.0.4
+  Some large changes have been made, can't remember them all.  If you were using 0.0.3 then some things will break.  Best bet is to read through the documentation to see what has changed. 
+
+0.0.3
+  Started Change log
+
