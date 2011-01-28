@@ -1,9 +1,31 @@
 
-h1. Cobweb v0.0.3
+h1. Cobweb v0.0.6
 
 h2. Intro 
-
-  Crawler that utilises resque jobs to perform the crawl allowing clustering of crawls and redis to perform caching of responses.  It currently requires redis on the same machine but will add options to specify redis server shortly. 
+  
+  CobWeb has two functions.  Firstly it is a http client that allows get and head requests returning a hash of data relating to the requested resource.  The second main function is to utilize this combined with the power of Resque to cluster the crawls allowing you crawl quickly.
+  
+  When running on resque, passing in a Class and queue name it will enqueue all resources to this queue for processing, passing in the hash it has generated.  You then implement the perform method to process the resource for your own application.
+  
+  The data available in the returned hash are:  
+  
+  * :url - url of the resource requested
+  * :status_code - status code of the resource requested
+  * :mime_type - content type of the resource
+  * :character_set - character set of content determined from content type
+  * :length - length of the content returned
+  * :body - content of the resource
+  * :location - location header if returned
+  * :redirect_through - if your following redirects, any redirects are stored here detailing where you were redirected through to get to the final location
+  * :headers - hash or the headers returned
+  * :links - hash or links on the page split in to types
+    ** :links - url's from a tags within the resource
+    ** :images - url's from img tags within the resource
+    ** :related - url's from link tags
+    ** :scripts - url's from script tags
+    ** :styles - url's from within link tags with rel of stylesheet and from url() directives with stylesheets
+    
+  The source for the links can be overridden, contact me for the syntax (don't have time to put it into this documentation, will as soon as i have time!)
 
 h2. Installation
 
@@ -25,6 +47,8 @@ Creates a new crawler object based on a base_url
     ** :debug            - enables debug output (Default: false)
     ** :quiet            - hides default output (Default: false)
     ** :cache            - sets the ttl for caching pages, set to nil to disable caching (Default: 300)
+    ** :timeout          - http timeout for requests (Default: 10)
+    ** :redis_options    - hash containing the initialization options for redis (e.g. {:host => "redis.mydomain.com"}
     
 bq. crawler = CobWeb.new(:follow_redirects => false)
 
