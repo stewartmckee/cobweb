@@ -68,6 +68,14 @@ Simple get that obey's the options supplied in new.
 
 bq. crawler.get("http://www.google.com/")
 
+h4. head(url)
+
+Simple get that obey's the options supplied in new.
+
+  * url - url requested
+
+bq. crawler.head("http://www.google.com/")
+
 
 h2. License
 
