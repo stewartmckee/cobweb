@@ -62,6 +62,9 @@ class CobWeb
       uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
+      if uri.scheme == "https"
+        uri.port = 443
+      end
       http = Net::HTTP.new(uri.host, uri.port)
       if uri.scheme == "https"
         http.use_ssl = true
@@ -178,6 +181,9 @@ class CobWeb
       uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
+      if uri.scheme == "https"
+        uri.port = 443
+      end
       http = Net::HTTP.new(uri.host, uri.port)
       if uri.scheme == "https"
         http.use_ssl = true
