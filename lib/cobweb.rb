@@ -79,7 +79,6 @@ class CobWeb
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
           url = absolutize.url(response['location']).to_s
-          ap redirect_limit
           redirect_limit = redirect_limit - 1
           content = get(url, redirect_limit)
           content[:url] = uri.to_s
@@ -111,12 +110,12 @@ class CobWeb
           link_parser = ContentLinkParser.new(content[:url], content[:body])
           content[:links] = link_parser.link_data
           
-          # add content to cache if required
-          if @options[:cache]
-            content[:body] = Base64.encode64(content[:body]) unless content[:body].nil? or content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-            redis.set(unique_id, content.to_json)
-            redis.expire unique_id, @options[:cache].to_i
-          end
+        end
+        # add content to cache if required
+        if @options[:cache]
+          content[:body] = Base64.encode64(content[:body]) unless content[:body].nil? or content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+          redis.set(unique_id, content.to_json)
+          redis.expire unique_id, @options[:cache].to_i
         end
       rescue SocketError => e
         puts "ERROR: #{e.message}"
