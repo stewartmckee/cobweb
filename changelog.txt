@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.0.7
+  Adding the retrieved url to cache if required even if it is a redirect
+  Added workaround for bug in addressable gem for https addresses
+
 0.0.5
   Added Addressable gem to do some of the uri parsing as it does a better job than the standard ruby parser
 
