@@ -1,14 +1,23 @@
-  require 'rubygems'
+require 'rubygems'
 require 'uri'
 require 'resque'
 require "addressable/uri"
 require 'digest/sha1'
+require 'base64'
 
 Dir[File.dirname(__FILE__) + '/*.rb'].each do |file|
   require [File.dirname(__FILE__), File.basename(file, File.extname(file))].join("/")
 end
 
 class CobWeb
+
+  ## TASKS
+  
+  # redesign to have a resque stack and a single threaded stack
+  # dry the code below, its got a lot of duplication
+  # detect the end of the crawl (queued == 0 ?)
+  # on end of crawl, return statistic hash (could call specified method ?) if single threaded or enqueue to a specified queue the stat hash
+  # investigate using event machine for single threaded crawling
   
   def initialize(options = {})
     @options = options
@@ -31,6 +40,8 @@ class CobWeb
     }  
     
     request.merge!(@options)
+    redis = NamespacedRedis.new(Redis.new(request[:redis_options]), "cobweb-#{request[:crawl_id]}")
+    redis.hset "statistics", "queued_at", DateTime.now
     
     Resque.enqueue(CrawlJob, request)
   end
@@ -62,10 +73,7 @@ class CobWeb
       uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
-      if uri.scheme == "https"
-        uri.port = 443
-      end
-      http = Net::HTTP.new(uri.host, uri.port)
+      http = Net::HTTP.new(uri.host, uri.inferred_port)
       if uri.scheme == "https"
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -181,10 +189,7 @@ class CobWeb
       uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
-      if uri.scheme == "https"
-        uri.port = 443
-      end
-      http = Net::HTTP.new(uri.host, uri.port)
+      http = Net::HTTP.new(uri.host, uri.inferred_port)
       if uri.scheme == "https"
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE

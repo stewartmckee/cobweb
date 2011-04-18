@@ -6,6 +6,25 @@ class CrawlJob
 
   @queue = :cobweb_crawl_job
 
+  ## redis params used
+  #
+  # crawl-counter
+  # crawled
+  # queue-counter
+  # statistics[:average_response_time]
+  # statistics[:maximum_response_time]
+  # statistics[:minimum_response_time]
+  # statistics[:average_length]
+  # statistics[:maximum_length]
+  # statistics[:minimum_length]
+  # statistics[:queued_at]
+  # statistics[:started_at]
+  # statistics]:finished_at]
+  # total_pages
+  # total_assets
+  # statistics[:mime_counts]["mime_type"]
+  # statistics[:status_counts][xxx]
+
   def self.perform(content_request)
     # change all hash keys to symbols    
     content_request.deep_symbolize_keys
@@ -21,6 +40,56 @@ class CrawlJob
       queue_counter = redis.get("queue-counter").to_i
       if crawl_counter <= content_request[:crawl_limit].to_i
         content = CobWeb.new(content_request).get(content_request[:url])
+
+        ## update statistics
+        if redis.hexists "statistics", "average_response_time"
+          redis.hset("statistics", "average_response_time", (((redis.hget("statistics", "average_response_time")*crawl_counter) + content[:response_time]) / crawl_counter + 1))
+        else
+          redis.hset("statistics", "average_response_time", content[:response_time])
+        end
+        redis.hset "statistics", "maximum_response_time", content[:response_time] if content[:response_time] > redis.hget("statistics", "maximum_response_time")
+        redis.hset "statistics", "minimum_response_time", content[:response_time] if content[:response_time] < redis.hget("statistics", "minimum_response_time")
+        if redis.hexists "statistics", "average_length"
+          redis.hset("statistics", "average_length", (((redis.hget("statistics", "average_length")*crawl_counter) + content[:length]) / crawl_counter + 1))
+        else
+          redis.hset("statistics", "average_length", content[:length])
+        end
+        redis.hset "statistics", "maximum_length", content[:length] if content[:length] > redis.hget("statistics", "maximum_length")
+        redis.hset "statistics", "minimum_length", content[:length] if content[:length] < redis.hget("statistics", "minimum_length")
+
+        if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+          redis.incr "total_pages"
+        else
+          redis.incr "total_assets"
+        end
+
+        mime_counts = {}
+        if redis.hexists "statistics", "mime_counts"
+          mime_counts = redis.hget "statistics", "mime_counts"
+          if mime_counts.has_key? content[:mime_type]
+            mime_counts[content[:mime_type]] += 1
+          else
+            mime_counts[content[:mime_type]] = 1
+          end
+        else
+          mime_counts = {content[:mime_type] => 1}
+        end
+        redis.hset "statistics", "mime_counts", mime_counts
+
+        status_counts = {}
+        if redis.hexists "statistics", "status_counts"
+          status_counts = redis.hget "statistics", "status_counts"
+          if status_counts.has_key? content[:status_code]
+            status_counts[content[:status_code]] += 1
+          else
+            status_counts[content[:status_code]] = 1
+          end
+        else
+          status_counts = {content[:status_code] => 1}
+        end
+        redis.hset "statistics", "status_counts", status_counts
+
+
         redis.sadd "crawled", content_request[:url]
         set_base_url redis, content, content_request[:base_url]
         if queue_counter <= content_request[:crawl_limit].to_i
@@ -42,11 +111,27 @@ class CrawlJob
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
         puts "Crawled: #{crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{queue_counter}" if content_request[:debug]
 
+
       else
         puts "Crawl Limit Exceeded by #{crawl_counter - content_request[:crawl_limit].to_i} objects" if content_request[:debug]
       end
     else
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
+    end
+
+    # detect finished state
+
+    if queue_counter == crawl_counter or queue_counter <= content_request[:crawl_limit].to_i
+      # finished
+      puts "FINISHED"
+      stats = redis.hgetall "statistics"
+      stats[:total_pages] = redis.get "total_pages"
+      stats[:total_assets] = redis.get "total_assets"
+      stats[:crawl_counter] = redis.get "crawl_counter"
+      stats[:queue_counter] = redis.get "queue_counter"
+      stats[:crawled] = redis.smembers "crawled"
+      
+      ap stats
     end
   end
 
