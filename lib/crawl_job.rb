@@ -123,7 +123,7 @@ class CrawlJob
 
     # detect finished state
 
-    if queue_counter == crawl_counter or queue_counter <= content_request[:crawl_limit].to_i
+    if queue_counter == crawl_counter or content_request[:crawl_limit].to_i <= queue_counter 
      
       puts "queue_counter: #{queue_counter}"
       puts "crawl_counter: #{crawl_counter}"
