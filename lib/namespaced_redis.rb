@@ -12,6 +12,10 @@ class NamespacedRedis
   def sadd(key, value)
     @redis.sadd namespaced(key), value
   end
+
+  def smembers(key)
+    @redis.smembers namespaced(key)
+  end  
   
   def get(key)
     @redis.get namespaced(key)
@@ -27,6 +31,22 @@ class NamespacedRedis
   
   def set(key, value)
     @redis.set namespaced(key), value
+  end
+  
+  def hget(key, member)
+    @redis.hget namespaced(key), member
+  end
+  
+  def hgetall(key)
+    @redis.hgetall namespaced(key)
+  end
+  
+  def hset(key, member, value)
+    @redis.hset namespaced(key), member, value
+  end
+  
+  def hexists(key, member)
+    @redis.hexists namespaced(key), member
   end
   
   def del(key)
