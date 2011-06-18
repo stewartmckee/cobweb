@@ -24,6 +24,7 @@ class CobWeb
     @options[:follow_redirects] = true unless @options.has_key?(:follow_redirects)
     @options[:redirect_limit] = 10 unless @options.has_key?(:redirect_limit)
     @options[:processing_queue] = CobwebProcessJob unless @options.has_key?(:processing_queue)
+    @options[:crawl_finished_queue] = CrawlFinishedJob unless @options.has_key?(:crawl_finished_queue)
     @options[:quiet] = true unless @options.has_key?(:quiet)
     @options[:debug] = false unless @options.has_key?(:debug)
     @options[:cache] = 300 unless @options.has_key?(:cache)

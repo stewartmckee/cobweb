@@ -131,6 +131,8 @@ class CrawlJob
       stats[:queue_counter] = redis.get "queue_counter"
       stats[:crawled] = redis.smembers "crawled"
       
+      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), stats.merge({:source_id => content_request[:source_id]}))      
+      
       ap stats
     end
   end
