@@ -79,28 +79,30 @@ class CrawlJob
         status_counts = {}
         if redis.hexists "statistics", "status_counts"
           status_counts = JSON.parse(redis.hget("statistics", "status_counts"))
-          if status_counts.has_key? content[:status_code]
-            status_counts[content[:status_code]] += 1
+          if status_counts.has_key? content[:status_code].to_i
+            status_counts[content[:status_code].to_i] += 1
           else
-            status_counts[content[:status_code]] = 1
+            status_counts[content[:status_code].to_i] = 1
           end
         else
-          status_counts = {content[:status_code] => 1}
+          status_counts = {content[:status_code].to_i => 1}
         end
         redis.hset "statistics", "status_counts", status_counts.to_json
 
-
         redis.sadd "crawled", content_request[:url]
         set_base_url redis, content, content_request[:base_url]
-        if queue_counter <= content_request[:crawl_limit].to_i
-          content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
-            unless redis.sismember "crawled", link
-              if link.to_s.match(Regexp.new("^#{redis.get("base_url")}"))
+        content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
+          unless redis.sismember "crawled", link
+            puts "Checking if #{link} matches #{redis.get("base_url")} as internal?" if content_request[:debug]
+            if link.to_s.match(Regexp.new("^#{redis.get("base_url")}"))
+              puts "Matched as #{link} as internal"
+              if queue_counter <= content_request[:crawl_limit].to_i
                 new_request = content_request.clone
                 new_request[:url] = link
                 new_request[:parent] = content_request[:url]
                 Resque.enqueue(CrawlJob, new_request)
                 redis.incr "queue-counter"
+                queue_counter += 1
               end
             end
           end
@@ -122,6 +124,11 @@ class CrawlJob
     # detect finished state
 
     if queue_counter == crawl_counter or queue_counter <= content_request[:crawl_limit].to_i
+     
+      puts "queue_counter: #{queue_counter}"
+      puts "crawl_counter: #{crawl_counter}"
+      puts "crawl_limit: #{content_request[:crawl_limit]}"
+
       # finished
       puts "FINISHED"
       stats = redis.hgetall "statistics"
