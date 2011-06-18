@@ -65,7 +65,7 @@ class CrawlJob
 
         mime_counts = {}
         if redis.hexists "statistics", "mime_counts"
-          mime_counts = redis.hget "statistics", "mime_counts"
+          mime_counts = JSON.parse(redis.hget("statistics", "mime_counts"))
           if mime_counts.has_key? content[:mime_type]
             mime_counts[content[:mime_type]] += 1
           else
@@ -74,11 +74,11 @@ class CrawlJob
         else
           mime_counts = {content[:mime_type] => 1}
         end
-        redis.hset "statistics", "mime_counts", mime_counts
+        redis.hset "statistics", "mime_counts", mime_counts.to_json
 
         status_counts = {}
         if redis.hexists "statistics", "status_counts"
-          status_counts = redis.hget "statistics", "status_counts"
+          status_counts = JSON.parse(redis.hget("statistics", "status_counts"))
           if status_counts.has_key? content[:status_code]
             status_counts[content[:status_code]] += 1
           else
@@ -87,7 +87,7 @@ class CrawlJob
         else
           status_counts = {content[:status_code] => 1}
         end
-        redis.hset "statistics", "status_counts", status_counts
+        redis.hset "statistics", "status_counts", status_counts.to_json
 
 
         redis.sadd "crawled", content_request[:url]
