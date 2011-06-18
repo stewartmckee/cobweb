@@ -47,15 +47,15 @@ class CrawlJob
         else
           redis.hset("statistics", "average_response_time", content[:response_time])
         end
-        redis.hset "statistics", "maximum_response_time", content[:response_time] if content[:response_time] > redis.hget("statistics", "maximum_response_time")
-        redis.hset "statistics", "minimum_response_time", content[:response_time] if content[:response_time] < redis.hget("statistics", "minimum_response_time")
+        redis.hset "statistics", "maximum_response_time", content[:response_time] if redis.hget("statistics", "maximum_response_time").nil? or content[:response_time] > redis.hget("statistics", "maximum_response_time")
+        redis.hset "statistics", "minimum_response_time", content[:response_time] if redis.hget("statistics", "minimum_response_time").nil? or content[:response_time] < redis.hget("statistics", "minimum_response_time")
         if redis.hexists "statistics", "average_length"
           redis.hset("statistics", "average_length", (((redis.hget("statistics", "average_length")*crawl_counter) + content[:length]) / crawl_counter + 1))
         else
           redis.hset("statistics", "average_length", content[:length])
         end
-        redis.hset "statistics", "maximum_length", content[:length] if content[:length] > redis.hget("statistics", "maximum_length")
-        redis.hset "statistics", "minimum_length", content[:length] if content[:length] < redis.hget("statistics", "minimum_length")
+        redis.hset "statistics", "maximum_length", content[:length] if redis.hget("statistics", "maximum_length").nil? or content[:length] > redis.hget("statistics", "maximum_length")
+        redis.hset "statistics", "minimum_length", content[:length] if redis.hget("statistics", "minimum_length").nil? or content[:length] < redis.hget("statistics", "minimum_length")
 
         if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
           redis.incr "total_pages"
