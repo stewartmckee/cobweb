@@ -32,12 +32,13 @@ class CrawlJob
     @absolutize = Absolutize.new(content_request[:url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
 
     # check we haven't crawled this url before
+    crawl_counter = redis.get("crawl-counter").to_i
+    queue_counter = redis.get("queue-counter").to_i
     unless redis.sismember "crawled", content_request[:url]
       
       # increment counter and check we haven't hit our crawl limit
       redis.incr "crawl-counter"
-      crawl_counter = redis.get("crawl-counter").to_i
-      queue_counter = redis.get("queue-counter").to_i
+      crawl_counter += 1
       if crawl_counter <= content_request[:crawl_limit].to_i
         content = CobWeb.new(content_request).get(content_request[:url])
 
