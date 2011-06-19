@@ -90,6 +90,7 @@ class CrawlJob
         end
         redis.hset "statistics", "status_counts", status_counts.to_json
 
+        redis.srem "queued", content_request[:url]
         redis.sadd "crawled", content_request[:url]
         set_base_url redis, content, content_request[:base_url]
         content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
@@ -97,13 +98,16 @@ class CrawlJob
             puts "Checking if #{link} matches #{redis.get("base_url")} as internal?" if content_request[:debug]
             if link.to_s.match(Regexp.new("^#{redis.get("base_url")}"))
               puts "Matched as #{link} as internal"
-              if queue_counter <= content_request[:crawl_limit].to_i
-                new_request = content_request.clone
-                new_request[:url] = link
-                new_request[:parent] = content_request[:url]
-                Resque.enqueue(CrawlJob, new_request)
-                redis.incr "queue-counter"
-                queue_counter += 1
+              unless redis.sismember("crawled", link) or redis.sismember("queued", link)   
+                if queue_counter <= content_request[:crawl_limit].to_i
+                  new_request = content_request.clone
+                  new_request[:url] = link
+                  new_request[:parent] = content_request[:url]
+                  Resque.enqueue(CrawlJob, new_request)
+                  redis.sadd "queued", link
+                  redis.incr "queue-counter"
+                  queue_counter += 1
+                end
               end
             end
           end
@@ -124,7 +128,7 @@ class CrawlJob
 
     # detect finished state
 
-    if queue_counter == crawl_counter or content_request[:crawl_limit].to_i <= queue_counter 
+    if queue_counter == crawl_counter or content_request[:crawl_limit].to_i <= crawl_counter 
      
       puts "queue_counter: #{queue_counter}"
       puts "crawl_counter: #{crawl_counter}"

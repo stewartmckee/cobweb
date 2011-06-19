@@ -12,6 +12,10 @@ class NamespacedRedis
   def sadd(key, value)
     @redis.sadd namespaced(key), value
   end
+  
+  def srem(key, member)
+    @redis.srem namespaced(key), member
+  end
 
   def smembers(key)
     @redis.smembers namespaced(key)
