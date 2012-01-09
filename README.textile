@@ -24,6 +24,7 @@ h2. Intro
     ** :related - url's from link tags
     ** :scripts - url's from script tags
     ** :styles - url's from within link tags with rel of stylesheet and from url() directives with stylesheets
+  * :crawl_id - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
     
   The source for the links can be overridden, contact me for the syntax (don't have time to put it into this documentation, will as soon as i have time!)
 
