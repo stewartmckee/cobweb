@@ -114,7 +114,7 @@ class CrawlJob
         end
 
         # enqueue to processing queue
-        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:source_id => content_request[:source_id]}))
+        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
         puts "Crawled: #{crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{queue_counter}" if content_request[:debug]
 
