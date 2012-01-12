@@ -97,7 +97,7 @@ class CrawlJob
           unless redis.sismember "crawled", link
             puts "Checking if #{link} matches #{redis.get("base_url")} as internal?" if content_request[:debug]
             if link.to_s.match(Regexp.new("^#{redis.get("base_url")}"))
-              puts "Matched as #{link} as internal"
+              puts "Matched as #{link} as internal" if content_request[:debug]
               unless redis.sismember("crawled", link) or redis.sismember("queued", link)   
                 if queue_counter <= content_request[:crawl_limit].to_i
                   new_request = content_request.clone
