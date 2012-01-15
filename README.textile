@@ -78,6 +78,14 @@ Simple get that obey's the options supplied in new.
 bq. crawler.head("http://www.google.com/")
 
 
+h2. Planned Work
+
+These features are what I'd like to see added to cobweb.  If your really interested in any of these features give me a ping, it will give me a good excuse to get them done!
+
+  * remove resque requirement - I'd like the crawler to work independant of resque as a normal standalone crawler
+  * fix crawl finished notification
+  * improve internal link control
+
 h2. License
 
 h3. The MIT License
