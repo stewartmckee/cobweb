@@ -51,8 +51,8 @@ class CobWeb
 
     raise "url cannot be nil" if url.nil?    
     
-    absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
-    
+    absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => true, :force_escaping => false, :remove_anchors => true)
+        
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url)
     
@@ -107,9 +107,11 @@ class CobWeb
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
           content[:mime_type] = response.content_type.split(";")[0].strip
-          charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
-          charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
-          content[:character_set] = charset 
+          if response["Content-Type"].include? ";"
+            charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
+            charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
+            content[:character_set] = charset
+          end
           content[:length] = response.content_length
           if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
             content[:body] = response.body
@@ -216,9 +218,11 @@ class CobWeb
           content[:status_code] = response.code.to_i
           unless response.content_type.nil?
             content[:mime_type] = response.content_type.split(";")[0].strip 
-            charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
-            charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
-            content[:character_set] = charset
+            if response["Content-Type"].include? ";"
+              charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
+              charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
+              content[:character_set] = charset
+            end
           end 
           
           # add content to cache if required
