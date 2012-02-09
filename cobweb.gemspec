@@ -15,5 +15,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('absolutize')
   s.add_dependency('nokogiri')
   s.add_dependency('addressable')
+  s.add_dependency('rspec')
 
 end

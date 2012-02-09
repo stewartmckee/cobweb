@@ -1,5 +1,4 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
-require "ap"
 
 describe CobWeb do
 
@@ -28,6 +27,7 @@ describe CobWeb do
       
       @mock_http_response = mock(Net::HTTPResponse)
       @mock_http_redirect_response = mock(Net::HTTPRedirection)
+      @mock_http_redirect_response2 = mock(Net::HTTPRedirection)
       @mock_http_get = mock(Net::HTTP::Get)
       
       Net::HTTP.stub!(:new).and_return(@mock_http_client)
@@ -172,7 +172,7 @@ describe CobWeb do
 
   describe "without mock" do
     it "should throw invalid url exception for an invalid url" do
-      lambda {@cobweb.get("asdgas asv\"£%\"^%&*%")}.should raise_error URI::InvalidURIError
+      lambda {@cobweb.get('asdgas as%%&*%')}.should raise_error URI::InvalidURIError
     end
     
     it "should throw exception when server is unavailable" #do
