@@ -21,11 +21,8 @@ class CobwebCrawler
     
     @queue << base_url
     
-    while !@queue.empty? && (@options[:crawl_limit] == 0 || @options[:crawl_limit].to_i > crawl_counter)
+    while !@queue.empty? && (@options[:crawl_limit].to_i == 0 || @options[:crawl_limit].to_i > crawl_counter)
       
-      ap @options[:crawl_limit]
-      ap crawl_counter
-
       url = @queue.first
       @options[:url] = url
       unless @crawled.include?(url) || url =~ /\/(.+?)\/\1\/\1/      
