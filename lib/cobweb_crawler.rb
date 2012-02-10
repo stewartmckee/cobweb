@@ -103,11 +103,11 @@ class CobwebCrawler
             
             puts "Crawled: #{crawl_counter} Limit: #{@options[:crawl_limit]} Queued: #{@queue.count}" if @options[:debug]
           
-            yield content if block_given?
+            yield content, @statistic if block_given?
 
           rescue => e
             puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
-            ap e
+            ap e.backtrace
             @queue.delete(url)
           
           end

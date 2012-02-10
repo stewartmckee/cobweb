@@ -43,8 +43,9 @@ describe CobwebCrawler do
 
         crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
         
-        statistics = crawler.crawl("http://www.rockwellcottage.com/") do |content|
+        statistics = crawler.crawl("http://www.rockwellcottage.com/") do |content, statistics|
           ap content[:url]
+          ap statistics[:average_length]
         end
         
         ap statistics

@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name              = "cobweb"
-  s.version           = "0.0.14"
+  s.version           = "0.0.15"
   s.author            = "Stewart McKee"
   s.email             = "stewart@rockwellcottage.com"
   s.homepage          = "http://github.com/stewartmckee/cobweb"
