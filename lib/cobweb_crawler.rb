@@ -10,18 +10,25 @@ class CobwebCrawler
     @cobweb = CobWeb.new(@options)
   end
   
-  def crawl(url)
-    @options[:url] = url
-    @options[:base_url] = url unless @options.has_key? :base_url
+  def crawl(base_url, crawl_options = {}, &block)
+    @options[:base_url] = base_url unless @options.has_key? :base_url
+    
+    @crawl_options = crawl_options
     
     @absolutize = Absolutize.new(@options[:base_url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
     
     crawl_counter = @crawled.count
     
-    unless @crawled.include?(url) || url =~ /\/(.+?)\/\1\/\1/
+    @queue << base_url
+    
+    while !@queue.empty? && (@options[:crawl_limit] == 0 || @options[:crawl_limit].to_i > crawl_counter)
       
-      # increment counter and check we haven't hit our crawl limit
-      if !@options.has_key?(:crawl_limit) || crawl_counter < @options[:crawl_limit].to_i
+      ap @options[:crawl_limit]
+      ap crawl_counter
+
+      url = @queue.first
+      @options[:url] = url
+      unless @crawled.include?(url) || url =~ /\/(.+?)\/\1\/\1/      
         begin
           content = @cobweb.get(@options[:url])
 
@@ -30,16 +37,16 @@ class CobwebCrawler
           else
             @statistic[:average_response_time] = (((@statistic[:average_response_time] * crawl_counter) + content[:response_time].to_f) / (crawl_counter + 1))
           end
-        
+      
           @statistic[:maximum_response_time] = content[:response_time] if @statistic[:maximum_response_time].nil? || @statistic[:maximum_response_time] < content[:response_time]
           @statistic[:minimum_response_time] = content[:response_time] if @statistic[:minimum_response_time].nil? || @statistic[:minimum_response_time] > content[:response_time]
-        
+      
           if @statistic[:average_length]
-            @statistic[:average_length] = (((@statistic[:average_length].to_i*crawl_counter) + content[:length].to_i) / crawl_counter + 1)
+            @statistic[:average_length] = (((@statistic[:average_length].to_i*crawl_counter) + content[:length].to_i) / (crawl_counter + 1))
           else
             @statistic[:average_length] = content[:length].to_i
           end
-        
+      
           @statistic[:maximum_length] = content[:length].to_i if @statistic[:maximum_length].nil? || content[:length].to_i > @statistic[:maximum_length].to_i
           @statistic[:minimum_length] = content[:length].to_i if @statistic[:minimum_length].nil? || content[:length].to_i < @statistic[:minimum_length].to_i
           @statistic[:total_length] = @statistic[:total_length].to_i + content[:length].to_i
@@ -66,7 +73,7 @@ class CobwebCrawler
           @statistic[:mime_counts] = mime_counts
 
           status_counts = {}
-        
+          
           if @statistic.has_key? :status_counts
             status_counts = @statistic[:status_counts]
             if status_counts.has_key? content[:status_code].to_i
@@ -79,32 +86,36 @@ class CobwebCrawler
           end
           @statistic[:status_counts] = status_counts
 
-          @queue.delete(url)
           @crawled << url
+          crawl_counter += 1
+          @queue.delete(url)
           content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
             unless @crawled.include? link
               puts "Checking if #{link} matches #{@options[:base_url]} as internal?" if @options[:debug]
               if link.to_s.match(Regexp.new("^#{@options[:base_url]}"))
                 puts "Matched as #{link} as internal" if @options[:debug]
-                unless @crawled.include? link or @queue.include? link
-                  puts "Added #{link} to queue" if @options[:debug] 
-                  @queue << link
-                  crawl(link)
+                unless @crawled.include? link.to_s or @queue.include? link.to_s
+                  puts "Added #{link.to_s} to queue" if @options[:debug] 
+                  @queue << link.to_s
                 end
               end
             end
           end
-
+          @queue.uniq!
+            
           puts "Crawled: #{crawl_counter} Limit: #{@options[:crawl_limit]} Queued: #{@queue.count}" if @options[:debug]
+          
+          yield content if block_given?
 
-        rescue
+        rescue => e
           puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
+          ap e
+          @queue.delete(url)
+          
         end
       else
-        puts "Crawl Limit Exceeded by #{crawl_counter - @options[:crawl_limit].to_i} objects" if @options[:debug]
+        puts "Already crawled #{@options[:url]}" if @options[:debug]
       end
-    else
-      puts "Already crawled #{@options[:url]}" if @options[:debug]
     end
     @statistic
   end

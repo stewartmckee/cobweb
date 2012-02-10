@@ -26,9 +26,20 @@ describe CobwebCrawler do
     
     describe "crawl" do
       it "should crawl a site" do
-        crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false, :crawl_limit => 10})
+        crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false, :crawl_limit => 5})
         
         statistics = crawler.crawl("http://www.boeing.com/")
+        
+        ap statistics
+        
+      end
+      
+      it "should take a block" do
+        crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false, :crawl_limit => 5})
+        
+        statistics = crawler.crawl("http://www.boeing.com/") do |content|
+          ap content[:url]
+        end
         
         ap statistics
         
