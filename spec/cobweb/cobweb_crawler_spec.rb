@@ -31,7 +31,7 @@ describe CobwebCrawler do
         
         crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
         
-        statistics = crawler.crawl("http://www.rockwellcottage.com/")
+        statistics = crawler.crawl("http://rockwellcottage.heroku.com/")
         
         ap statistics
         
