@@ -56,13 +56,19 @@ class ContentLinkParser
   
   def find_matches(array, selector, attribute)
     if attribute.kind_of? String or attribute.kind_of? Symbol
-      @doc.css(selector).each do |tag|  
-        uri = @absolutize.url(tag[attribute])
-        array << uri.to_s
+      @doc.css(selector).each do |tag|
+        begin
+          uri = @absolutize.url(tag[attribute])
+          array << uri.to_s
+        rescue
+        end
       end
     elsif attribute.instance_of? Regexp
       @doc.css(selector).each do |tag|
-        tag.content.scan(attribute) {|match| array << @absolutize.url(match[0])}
+        begin
+          tag.content.scan(attribute) {|match| array << @absolutize.url(match[0])}
+        rescue
+        end
       end
     end
   end

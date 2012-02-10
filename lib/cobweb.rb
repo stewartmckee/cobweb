@@ -54,7 +54,7 @@ class CobWeb
     absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => true, :force_escaping => false, :remove_anchors => true)
         
     # get the unique id for this request
-    unique_id = Digest::SHA1.hexdigest(url)
+    unique_id = Digest::SHA1.hexdigest(url.to_s)
     
     # connect to redis
     redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb")
@@ -70,23 +70,26 @@ class CobWeb
       content
     else
       # this url is valid for processing so lets get on with it
-      print "Retrieving #{url }... " unless @options[:quiet]
       uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
-      http = Net::HTTP.new(uri.host, uri.inferred_port)
+      unless @http && @http.address == uri.host && @http.port == uri.inferred_port
+        puts "Creating connection to #{uri.host}..."
+        @http = Net::HTTP.new(uri.host, uri.inferred_port)
+      end
       if uri.scheme == "https"
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        @http.use_ssl = true
+        @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
       request_time = Time.now.to_f
-      http.read_timeout = @options[:timeout].to_i
-      http.open_timeout = @options[:timeout].to_i
+      @http.read_timeout = @options[:timeout].to_i
+      @http.open_timeout = @options[:timeout].to_i
       begin
-        response = http.start() {|http|
-          response = http.get(uri.request_uri)
-        }
+        print "Retrieving #{url }... " unless @options[:quiet]
+        request = Net::HTTP::Get.new uri.request_uri
+        
+        response = @http.request request
         
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
