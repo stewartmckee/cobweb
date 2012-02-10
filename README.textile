@@ -1,11 +1,13 @@
 
-h1. Cobweb v0.0.6
+h1. Cobweb v0.0.13
 
 h2. Intro 
   
-  CobWeb has two functions.  Firstly it is a http client that allows get and head requests returning a hash of data relating to the requested resource.  The second main function is to utilize this combined with the power of Resque to cluster the crawls allowing you crawl quickly.
+  CobWeb has three methods of running.  Firstly it is a http client that allows get and head requests returning a hash of data relating to the requested resource.  The second main function is to utilize this combined with the power of Resque to cluster the crawls allowing you crawl quickly.  Lastly you can run the crawler with a block that uses each of the pages found in the crawl.
   
   When running on resque, passing in a Class and queue name it will enqueue all resources to this queue for processing, passing in the hash it has generated.  You then implement the perform method to process the resource for your own application.
+  
+  Documentation for running with a block will come soon..  Check out the CobwebCrawler spec for hints.
   
   The data available in the returned hash are:  
   
