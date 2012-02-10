@@ -7,7 +7,7 @@ class CobwebCrawler
     @queue = []
     @crawled = []
     
-    @cobweb = CobWeb.new(@options)
+    @cobweb = Cobweb.new(@options)
   end
   
   def crawl(base_url, crawl_options = {}, &block)

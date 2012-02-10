@@ -9,7 +9,7 @@ Dir[File.dirname(__FILE__) + '/*.rb'].each do |file|
   require [File.dirname(__FILE__), File.basename(file, File.extname(file))].join("/")
 end
 
-class CobWeb
+class Cobweb
 
   ## TASKS
   

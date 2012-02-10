@@ -40,7 +40,7 @@ class CrawlJob
       redis.incr "crawl-counter"
       crawl_counter += 1
       if crawl_counter <= content_request[:crawl_limit].to_i
-        content = CobWeb.new(content_request).get(content_request[:url])
+        content = Cobweb.new(content_request).get(content_request[:url])
 
         ## update statistics
         if redis.hexists "statistics", "average_response_time"

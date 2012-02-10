@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe CobWeb do
+describe Cobweb do
 
   before(:each) do
   
@@ -15,7 +15,7 @@ describe CobWeb do
                         "Server" => "gws",
                         "X-XSS-Protection" => "1; mode=block"}
 
-    @cobweb = CobWeb.new :quiet => true, :cache => nil
+    @cobweb = Cobweb.new :quiet => true, :cache => nil
   end  
 
   describe "with mock" do
@@ -40,7 +40,9 @@ describe CobWeb do
       @mock_http_client.stub!(:request).with(@mock_http_redirect_request2).and_return(@mock_http_redirect_response2)
       @mock_http_client.stub!(:read_timeout=).and_return(nil)      
       @mock_http_client.stub!(:open_timeout=).and_return(nil)      
-      @mock_http_client.stub!(:start).and_return(@mock_http_response)      
+      @mock_http_client.stub!(:start).and_return(@mock_http_response)
+      @mock_http_client.stub!(:address).and_return("www.baseurl.com")
+      @mock_http_client.stub!(:port).and_return("80 ")
       
       @mock_http_response.stub!(:code).and_return(200)
       @mock_http_response.stub!(:content_type).and_return("text/html")
@@ -69,7 +71,7 @@ describe CobWeb do
     end
     
     it "should generate a cobweb object" do
-      CobWeb.new.should be_an_instance_of CobWeb
+      Cobweb.new.should be_an_instance_of Cobweb
     end
     
     describe "get" do
@@ -130,7 +132,7 @@ describe CobWeb do
         
         before(:each) do
           @base_url = "http://redirect-me.com/redirect.html"
-          @cobweb = CobWeb.new(:follow_redirects => true, :quiet => true, :cache => nil)
+          @cobweb = Cobweb.new(:follow_redirects => true, :quiet => true, :cache => nil)
         end
         
         it "should flow through redirect" #do
@@ -155,8 +157,8 @@ describe CobWeb do
           
         #end
         it "should not follow with redirect disabled" do
-          @cobweb = CobWeb.new(:follow_redirects => false, :cache => nil)
-          @mock_http_client.should_receive(:start).and_return(@mock_http_redirect_response)
+          @cobweb = Cobweb.new(:follow_redirects => false, :cache => nil)
+          @mock_http_client.should_receive(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)
           
           content = @cobweb.get(@base_url)
           content[:url].should == "http://redirect-me.com/redirect.html"
