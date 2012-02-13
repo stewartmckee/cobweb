@@ -51,10 +51,10 @@ class CobwebCrawler
 
             if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
               @statistic[:page_count] = @statistic[:page_count].to_i + 1
-              @statistic[:page_size] = @statistic[:page_count].to_i + content[:length].to_i
+              @statistic[:page_size] = @statistic[:page_size].to_i + content[:length].to_i
             else
               @statistic[:asset_count] = @statistic[:asset_count].to_i + 1
-              @statistic[:asset_size] = @statistic[:asset_count].to_i + content[:length].to_i
+              @statistic[:asset_size] = @statistic[:asset_size].to_i + content[:length].to_i
             end
 
             mime_counts = {}
