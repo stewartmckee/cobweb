@@ -7,6 +7,10 @@ class CobwebCrawler
     @queue = []
     @crawled = []
     
+    @options[:redis_options] = "127.0.0.1" unless @options.has_key? :redis_options
+    
+    @redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{crawl_id}")
+    
     @cobweb = Cobweb.new(@options)
   end
   
@@ -17,12 +21,14 @@ class CobwebCrawler
     
     @absolutize = Absolutize.new(@options[:base_url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
     
-    crawl_counter = @crawled.count
-    
-    @queue << base_url
-    
-    while !@queue.empty? && (@options[:crawl_limit].to_i == 0 || @options[:crawl_limit].to_i > crawl_counter)
-      
+    @redis.sadd "queued", base_url
+    @redis.incr "queue-counter"
+    crawl_counter = @redis.get("crawl-counter").to_i
+    queue_counter = @redis.get("queue-counter").to_i
+
+    while queue_counter>0 && (@options[:crawl_limit].to_i == 0 || @options[:crawl_limit].to_i > crawl_counter)      
+      crawl_counter = @redis.get("crawl-counter").to_i
+      queue_counter = @redis.get("queue-counter").to_i
       thread = Thread.new do
         url = @queue.first
         @options[:url] = url
@@ -84,22 +90,21 @@ class CobwebCrawler
             end
             @statistic[:status_counts] = status_counts
 
-            @crawled << url
-            crawl_counter += 1
-            @queue.delete(url)
+            @redis.srem "queued", content_request[:url]
+            @redis.sadd "crawled", content_request[:url]
             content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
               unless @crawled.include? link
                 puts "Checking if #{link} matches #{@options[:base_url]} as internal?" if @options[:debug]
                 if link.to_s.match(Regexp.new("^#{@options[:base_url]}"))
                   puts "Matched as #{link} as internal" if @options[:debug]
-                  unless @crawled.include? link.to_s or @queue.include? link.to_s
-                    puts "Added #{link.to_s} to queue" if @options[:debug] 
-                    @queue << link.to_s
+                  unless @redis.sismember("crawled", link.to_s) or @redis.sismember("queued", link.to_s)
+                    puts "Added #{link.to_s} to queue" if @options[:debug]
+                    @redis.sadd "queued", link.to_s
+                    @redis.incr "queue-counter"
                   end
                 end
               end
             end
-            @queue.uniq!
             
             puts "Crawled: #{crawl_counter} Limit: #{@options[:crawl_limit]} Queued: #{@queue.count}" if @options[:debug]
           
@@ -108,7 +113,8 @@ class CobwebCrawler
           rescue => e
             puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
             ap e.backtrace
-            @queue.delete(url)
+            @redis.srem "queued", content_request[:url]
+            @redis.sadd "crawled", content_request[:url]
           
           end
         else
