@@ -95,11 +95,13 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           url = absolutize.url(response['location']).to_s
           redirect_limit = redirect_limit - 1
+          raise RedirectError("Loop detected in redirect for - #{url}") if content[:redirect_through].include? url
+          raise RedirectError("Redirect Limit reached")
           content = get(url, redirect_limit)
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
-          
+        
           content[:response_time] = Time.now.to_f - request_time
         else
           content[:response_time] = Time.now.to_f - request_time
@@ -134,6 +136,21 @@ class Cobweb
           redis.set(unique_id, content.to_json)
           redis.expire unique_id, @options[:cache].to_i
         end
+      rescue RedirectLimitError => e
+        puts "ERROR: #{e.message}"
+        
+        ## generate a blank content
+        content = {}
+        content[:url] = uri.to_s
+        content[:response_time] = Time.now.to_f - request_time
+        content[:status_code] = 0
+        content[:length] = 0
+        content[:body] = ""
+        content[:error] = e.message
+        content[:mime_type] = "error/dnslookup"
+        content[:headers] = {}
+        content[:links] = {}
+        
       rescue SocketError => e
         puts "ERROR: #{e.message}"
         
