@@ -1,0 +1,7 @@
+#! /bin/bash
+
+rm cobweb-*.gem
+gem build cobweb.gemspec
+
+gem uninstall cobweb
+gem install cobweb-*.gem
