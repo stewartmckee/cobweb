@@ -8,3 +8,6 @@ gem 'awesome_print'
 gem 'nokogiri'
 gem 'absolutize'
 gem 'addressable'
+
+gem 'sinatra'
+gem 'thin'
