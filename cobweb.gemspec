@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name              = "cobweb"
-  s.version           = "0.0.17"
+  s.version           = "0.0.19"
   s.author            = "Stewart McKee"
   s.email             = "stewart@rockwellcottage.com"
   s.homepage          = "http://github.com/stewartmckee/cobweb"
@@ -19,5 +19,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('awesome_print')
   s.add_dependency('sinatra')
   s.add_dependency('thin')
+  s.add_dependency('haml')
 
 end
