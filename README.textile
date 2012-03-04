@@ -5,10 +5,21 @@ h2. Intro
   
   CobWeb has three methods of running.  Firstly it is a http client that allows get and head requests returning a hash of data relating to the requested resource.  The second main function is to utilize this combined with the power of Resque to cluster the crawls allowing you crawl quickly.  Lastly you can run the crawler with a block that uses each of the pages found in the crawl.
   
+h4. Resque
+
   When running on resque, passing in a Class and queue name it will enqueue all resources to this queue for processing, passing in the hash it has generated.  You then implement the perform method to process the resource for your own application.
   
-  Documentation for running with a block will come soon..  Check out the CobwebCrawler spec for hints.
+h4. Standalone
   
+  CobwebCrawler takes the same options as cobweb itself, so you can use any of the options available for that.  An example is listed below.
+
+bq. crawler = CobwebCrawler.new(:cache => 600);
+bq. stats = crawler.crawl("http://www.pepsico.com")
+
+  While the crawler is running, you can view statistics on http://localhost:4567
+  
+
+h3. Data Returned
   The data available in the returned hash are:  
   
   * :url - url of the resource requested
