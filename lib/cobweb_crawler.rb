@@ -7,7 +7,7 @@ class CobwebCrawler
     @queue = []
     @crawled = []
     
-    @options[:redis_options] = "127.0.0.1" unless @options.has_key? :redis_options
+    @options[:redis_options] = {:host => "127.0.0.1"} unless @options.has_key? :redis_options
     
     @redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{crawl_id}")
     
