@@ -1,7 +1,7 @@
 require 'cobweb'
 
-cobweb = CobwebCrawler.new(:cache => 600);
+crawler = CobwebCrawler.new(:cache => 600);
 
-stats = crawler.crawl("http://www.rockwellcottage.com")
+stats = crawler.crawl("http://www.pepsico.com")
 
 ap stats

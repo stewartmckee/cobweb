@@ -1,0 +1,71 @@
+%h1 Cobweb Statistics
+
+%h4= @status
+
+%table
+  %tr
+    %th Page Count
+    %th Asset Count
+    %th Redirect Count  
+  %tr
+    %td= @statistics[:page_count]
+    %td= @statistics[:asset_count]
+    %td= @statistics[:total_redirects]  
+
+%table
+  %tr
+    %th Total Page Size
+    %th Total Asset Size
+  %tr
+    %td= @statistics[:page_size]
+    %td= @statistics[:asset_size]
+
+%table
+  %tr
+    %th Crawled
+    %th Queued
+  %tr
+    %td= @statistics[:crawl_counter]
+    %td= @statistics[:queue_counter]
+
+
+%table
+  %tr
+    %th{:colspan => 2} Response Times
+  %tr
+    %th Average
+    %td= @statistics[:average_response_time]
+  %tr
+    %th Maximum
+    %td= @statistics[:maximum_response_time]
+  %tr
+    %th Minimum
+    %td= @statistics[:minimum_response_time]
+
+%table
+  %tr
+    %th{:colspan => 2} Content Sizes
+  %tr
+    %th Average
+    %td= @statistics[:average_length]
+  %tr
+    %th Maximum
+    %td= @statistics[:maximum_length]
+  %tr
+    %th Minimum
+    %td= @statistics[:minimum_length]
+  %tr
+    %th Total
+    %td= @statistics[:total_length]
+
+%table
+  - @statistics[:mime_counts].keys.each do |mime_type|
+    %tr
+      %td= mime_type
+      %td= @statistics[:mime_counts][mime_type]
+
+%table
+  - @statistics[:status_counts].keys.each do |status|
+    %tr
+      %td= status
+      %td= @statistics[:status_counts][status]

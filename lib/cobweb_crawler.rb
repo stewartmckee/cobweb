@@ -1,11 +1,10 @@
+require 'digest/md5'
+require 'date'
+require 'ap'
+
 class CobwebCrawler
-  require 'digest/md5'
-  require 'date'
-  require 'ap'
-  require 'sinatra'
   
-  def initialize(options={})    
-    
+  def initialize(options={})
     @options = options
     
     @statistic = {}
@@ -36,12 +35,12 @@ class CobwebCrawler
         crawl_counter = @redis.scard("crawled").to_i
         queue_counter = @redis.scard("queued").to_i
         
-        ap queue_counter   
-
         @options[:url] = url
         unless @redis.sismember("crawled", url.to_s)
           begin
+            Stats.update_status("Requesting #{url}...")
             content = @cobweb.get(url)
+            Stats.update_status("Processing #{url}...")
 
             if @statistic[:average_response_time].nil?
               @statistic[:average_response_time] = content[:response_time].to_f
@@ -72,7 +71,10 @@ class CobwebCrawler
             
             @statistic[:total_redirects] = 0 if @statistic[:total_redirects].nil?
             @statistic[:total_redirects] += content[:redirect_through].count unless content[:redirect_through].nil?
-
+            
+            @statistic[:crawl_counter] = crawl_counter
+            @statistic[:queue_counter] = queue_counter
+            
             mime_counts = {}
             if @statistic.has_key? :mime_counts
               mime_counts = @statistic[:mime_counts]
@@ -121,8 +123,9 @@ class CobwebCrawler
             
             crawl_counter = @redis.scard("crawled").to_i
             queue_counter = @redis.scard("queued").to_i
-            puts "Crawled: #{crawl_counter.to_i} Limit: #{@options[:crawl_limit].to_i} Queued: #{queue_counter.to_i}" if @options[:debug]
-        
+            Stats.update_statistics(@statistic)
+            Stats.update_status("Completed #{url}.")
+            puts "Crawled: #{crawl_counter.to_i} Limit: #{@options[:crawl_limit].to_i} Queued: #{queue_counter.to_i}" if @options[:debug] 
        
             yield content, @statistic if block_given?
 
@@ -139,11 +142,4 @@ class CobwebCrawler
     end
     @statistic
   end
-  
-  ## SINATRA REQUESTS
-
-  get '/' do
-    puts @statistics
-  end
-  
 end

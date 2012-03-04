@@ -1,0 +1,2 @@
+class RedirectError < Exception
+end

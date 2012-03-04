@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'bundler/setup'
 require 'uri'
 require 'resque'
 require "addressable/uri"
@@ -7,9 +8,6 @@ require 'base64'
 
 Dir[File.dirname(__FILE__) + '/*.rb'].each do |file|
   require [File.dirname(__FILE__), File.basename(file, File.extname(file))].join("/")
-end
-
-class RedirectError < Exception
 end
 
 class Cobweb
@@ -304,25 +302,7 @@ class Cobweb
   end
 end
 
-## add symbolize methods to hash
-class Hash
-  def symbolize_keys
-    keys.each do |key|
-      if key.instance_of? String
-        value = self[key]
-        self.delete(key)
-        self[key.to_sym] = value        
-      end
-    end
-    self
-  end  
-  def deep_symbolize_keys
-    symbolize_keys
-    keys.each do |key|
-      if self[key].instance_of? Hash
-        self[key].deep_symbolize_keys
-      end
-    end
-    self
-  end
-end
+
+
+
+

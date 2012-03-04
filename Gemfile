@@ -11,3 +11,4 @@ gem 'addressable'
 
 gem 'sinatra'
 gem 'thin'
+gem 'haml'

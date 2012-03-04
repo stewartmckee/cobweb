@@ -7,6 +7,7 @@ GEM
     daemons (1.1.8)
     diff-lcs (1.1.3)
     eventmachine (0.12.10)
+    haml (3.1.4)
     multi_json (1.0.4)
     nokogiri (1.5.0)
     rack (1.4.1)
@@ -47,6 +48,7 @@ DEPENDENCIES
   absolutize
   addressable
   awesome_print
+  haml
   nokogiri
   redis
   resque
