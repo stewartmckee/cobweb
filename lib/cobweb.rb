@@ -9,6 +9,9 @@ Dir[File.dirname(__FILE__) + '/*.rb'].each do |file|
   require [File.dirname(__FILE__), File.basename(file, File.extname(file))].join("/")
 end
 
+class RedirectError < Exception
+end
+
 class Cobweb
 
   ## TASKS
@@ -65,7 +68,7 @@ class Cobweb
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
       content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
-      content[:body] = Base64.decode64(content[:body]) unless content[:body].nil? or content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+      content[:body] = Base64.decode64(content[:body])
       
       content
     else
@@ -93,10 +96,20 @@ class Cobweb
         
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
+          
+          # get location to redirect to
           url = absolutize.url(response['location']).to_s
+          
+          # decrement redirect limit
           redirect_limit = redirect_limit - 1
-          raise RedirectError("Loop detected in redirect for - #{url}") if content[:redirect_through].include? url
-          raise RedirectError("Redirect Limit reached")
+
+          # raise exception if we're being redirected to somewhere we've been redirected to in this content request          
+          #raise RedirectError("Loop detected in redirect for - #{url}") if content[:redirect_through].include? url
+          
+          # raise exception if redirect limit has reached 0
+          raise RedirectError, "Redirect Limit reached" if redirect_limit == 0
+
+          # get the content from redirect location
           content = get(url, redirect_limit)
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
@@ -132,11 +145,11 @@ class Cobweb
         end
         # add content to cache if required
         if @options[:cache]
-          content[:body] = Base64.encode64(content[:body]) unless content[:body].nil? or content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+          content[:body] = Base64.encode64(content[:body])
           redis.set(unique_id, content.to_json)
           redis.expire unique_id, @options[:cache].to_i
         end
-      rescue RedirectLimitError => e
+      rescue RedirectError => e
         puts "ERROR: #{e.message}"
         
         ## generate a blank content
