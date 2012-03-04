@@ -17,8 +17,16 @@ class NamespacedRedis
     @redis.srem namespaced(key), member
   end
 
+  def spop(key)
+    @redis.spop namespaced(key)
+  end
+
   def smembers(key)
     @redis.smembers namespaced(key)
+  end
+  
+  def scard(key)
+    @redis.scard namespaced(key)
   end  
   
   def get(key)
@@ -27,6 +35,10 @@ class NamespacedRedis
   
   def incr(key)
     @redis.incr namespaced(key)
+  end
+  
+  def decr(key)
+    @redis.decr namespaced(key)
   end
   
   def exist(key)
