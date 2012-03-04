@@ -124,6 +124,7 @@ class Cobweb
           # create the content container
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
+          content[:mime_type] = ""
           content[:mime_type] = response.content_type.split(";")[0].strip unless response.content_type.nil?
           if !response["Content-Type"].nil? && response["Content-Type"].include?(";")
             charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
