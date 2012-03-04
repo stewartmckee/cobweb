@@ -17,7 +17,6 @@ bq. crawler = CobwebCrawler.new(:cache => 600);
 bq. stats = crawler.crawl("http://www.pepsico.com")
 
   While the crawler is running, you can view statistics on http://localhost:4567
-  
 
 h3. Data Returned
   The data available in the returned hash are:  
