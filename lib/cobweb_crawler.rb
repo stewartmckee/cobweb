@@ -1,14 +1,16 @@
 class CobwebCrawler
+  require 'digest/md5'
+  require 'date'
+  require 'ap'
   
   def initialize(options={})
     @options = options
     
     @statistic = {}
-    @queue = []
-    @crawled = []
     
-    @options[:redis_options] = "127.0.0.1" unless @options.has_key? :redis_options
-    
+    @options[:redis_options] = {:host => "127.0.0.1"} unless @options.has_key? :redis_options
+    crawl_id = Digest::MD5.hexdigest(DateTime.now.inspect.to_s)
+  
     @redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{crawl_id}")
     
     @cobweb = Cobweb.new(@options)
@@ -22,19 +24,22 @@ class CobwebCrawler
     @absolutize = Absolutize.new(@options[:base_url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
     
     @redis.sadd "queued", base_url
-    @redis.incr "queue-counter"
-    crawl_counter = @redis.get("crawl-counter").to_i
-    queue_counter = @redis.get("queue-counter").to_i
+    crawl_counter = @redis.scard("crawled").to_i
+    queue_counter = @redis.scard("queued").to_i
 
     while queue_counter>0 && (@options[:crawl_limit].to_i == 0 || @options[:crawl_limit].to_i > crawl_counter)      
-      crawl_counter = @redis.get("crawl-counter").to_i
-      queue_counter = @redis.get("queue-counter").to_i
       thread = Thread.new do
-        url = @queue.first
+
+        url = @redis.spop "queued"
+        crawl_counter = @redis.scard("crawled").to_i
+        queue_counter = @redis.scard("queued").to_i
+        
+        ap queue_counter   
+
         @options[:url] = url
-        unless @crawled.include?(url) || url =~ /\/(.+?)\/\1\/\1/      
+        unless @redis.sismember("crawled", url.to_s)
           begin
-            content = @cobweb.get(@options[:url])
+            content = @cobweb.get(url)
 
             if @statistic[:average_response_time].nil?
               @statistic[:average_response_time] = content[:response_time].to_f
@@ -62,6 +67,9 @@ class CobwebCrawler
               @statistic[:asset_count] = @statistic[:asset_count].to_i + 1
               @statistic[:asset_size] = @statistic[:asset_size].to_i + content[:length].to_i
             end
+            
+            @statistic[:total_redirects] = 0 if @statistic[:total_redirects].nil?
+            @statistic[:total_redirects] += content[:redirect_through].count unless content[:redirect_through].nil?
 
             mime_counts = {}
             if @statistic.has_key? :mime_counts
@@ -90,32 +98,36 @@ class CobwebCrawler
             end
             @statistic[:status_counts] = status_counts
 
-            @redis.srem "queued", content_request[:url]
-            @redis.sadd "crawled", content_request[:url]
-            content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
-              unless @crawled.include? link
+            @redis.sadd "crawled", url.to_s
+            @redis.incr "crawl-counter" 
+            
+            content[:links].keys.map{|key| content[:links][key]}.flatten.each do |content_link|
+              link = content_link.to_s
+              unless @redis.sismember("crawled", link)
                 puts "Checking if #{link} matches #{@options[:base_url]} as internal?" if @options[:debug]
                 if link.to_s.match(Regexp.new("^#{@options[:base_url]}"))
                   puts "Matched as #{link} as internal" if @options[:debug]
-                  unless @redis.sismember("crawled", link.to_s) or @redis.sismember("queued", link.to_s)
+                  unless @redis.sismember("crawled", link) || @redis.sismember("queued", link)
                     puts "Added #{link.to_s} to queue" if @options[:debug]
-                    @redis.sadd "queued", link.to_s
-                    @redis.incr "queue-counter"
+                    @redis.sadd "queued", link
+                    crawl_counter = @redis.scard("crawled").to_i
+                    queue_counter = @redis.scard("queued").to_i
                   end
                 end
               end
             end
             
-            puts "Crawled: #{crawl_counter} Limit: #{@options[:crawl_limit]} Queued: #{@queue.count}" if @options[:debug]
-          
+            crawl_counter = @redis.scard("crawled").to_i
+            queue_counter = @redis.scard("queued").to_i
+            puts "Crawled: #{crawl_counter.to_i} Limit: #{@options[:crawl_limit].to_i} Queued: #{queue_counter.to_i}" if @options[:debug]
+        
+       
             yield content, @statistic if block_given?
 
           rescue => e
             puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
+            ap e
             ap e.backtrace
-            @redis.srem "queued", content_request[:url]
-            @redis.sadd "crawled", content_request[:url]
-          
           end
         else
           puts "Already crawled #{@options[:url]}" if @options[:debug]
