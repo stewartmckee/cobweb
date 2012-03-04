@@ -2,8 +2,10 @@ class CobwebCrawler
   require 'digest/md5'
   require 'date'
   require 'ap'
+  require 'sinatra'
   
-  def initialize(options={})
+  def initialize(options={})    
+    
     @options = options
     
     @statistic = {}
@@ -136,6 +138,12 @@ class CobwebCrawler
       thread.join
     end
     @statistic
+  end
+  
+  ## SINATRA REQUESTS
+
+  get '/' do
+    puts @statistics
   end
   
 end
