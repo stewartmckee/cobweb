@@ -1,6 +1,5 @@
 source 'http://rubygems.org'
 
-gem 'rspec'
 gem 'redis'
 gem 'resque'
 gem 'addressable'
@@ -12,3 +11,8 @@ gem 'addressable'
 gem 'sinatra'
 gem 'thin'
 gem 'haml'
+
+group :test do
+  gem 'rspec'
+  gem 'mock_redis'
+end
