@@ -20,12 +20,15 @@ class Stats < Sinatra::Base
     haml :statistics
   end
   
+  
+  def self.start
+    thread = Thread.new do
+      Stats.run!
+
+      ## we need to manually kill the main thread as sinatra traps the interrupts
+      Thread.main.kill
+    end    
+  end
 end
 
-thread = Thread.new do
-  Stats.run!
-  
-  ## we need to manually kill the main thread as sinatra traps the interrupts
-  Thread.main.kill
-end
 
