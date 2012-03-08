@@ -169,6 +169,68 @@ describe Cobweb do
 
         end
       end
+      
+      describe "with cache" do
+        
+        before(:each) do
+          @cobweb = Cobweb.new :quiet => true, :cache => 200
+        end
+        
+        describe "content object" do
+          it "should return the url" do
+            @cobweb.get(@base_url)[:url].should == @base_url
+            @cobweb.get(@base_url)[:url].should == @base_url
+          end
+          it "should return correct content-type" do
+            @mock_http_response.stub!(:content_type).and_return("image/jpeg")
+            @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
+            @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
+          end
+          it "should return correct status-code" do
+            @mock_http_response.stub!(:code).and_return(404)
+            @cobweb.get(@base_url)[:status_code].should == 404
+            @cobweb.get(@base_url)[:status_code].should == 404
+          end
+          it "should return correct status-code" do
+            @mock_http_response.stub!(:code).and_return(404)
+            @cobweb.get(@base_url)[:status_code].should == 404
+            @cobweb.get(@base_url)[:status_code].should == 404
+          end
+          it "should return correct character_set" do
+            @cobweb.get(@base_url)[:character_set].should == "UTF-8"
+            @cobweb.get(@base_url)[:character_set].should == "UTF-8"
+          end 
+          it "should return correct content_length" do
+            @cobweb.get(@base_url)[:length].should == 1024
+            @cobweb.get(@base_url)[:length].should == 1024
+          end
+          it "should return correct content_body" do
+            @cobweb.get(@base_url)[:body].should == "asdf"
+            @cobweb.get(@base_url)[:body].should == "asdf"
+          end
+          it "should return correct location" do
+            @cobweb.get(@base_url)[:location].should == nil
+            @cobweb.get(@base_url)[:location].should == nil
+
+            @mock_http_response.stub!(:[]).with("location").and_return("http://google.com/")
+            @cobweb.get(@base_url)[:location].should == "http://google.com/"
+            @cobweb.get(@base_url)[:location].should == "http://google.com/"
+          end
+          it "should return correct headers" do
+            @cobweb.get(@base_url)[:headers].should == @default_headers
+            @cobweb.get(@base_url)[:headers].should == @default_headers
+          end
+          it "should return correct a hash of links" do
+            @cobweb.get(@base_url)[:links].should be_an_instance_of Hash
+            @cobweb.get(@base_url)[:links].should be_an_instance_of Hash
+          end 
+          it "should return the response time for the url" do
+            @cobweb.get(@base_url)[:response_time].should be_an_instance_of Float 
+            @cobweb.get(@base_url)[:response_time].should be_an_instance_of Float 
+          end
+        end
+        
+      end
     end  
   end  
 
