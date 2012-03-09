@@ -10,7 +10,6 @@ Dir[File.dirname(__FILE__) + '/*.rb'].each do |file|
 end
 
 class Cobweb
-
   ## TASKS
   
   # redesign to have a resque stack and a single threaded stack
@@ -57,17 +56,12 @@ class Cobweb
     redirect_limit = options[:redirect_limit]
     
     # connect to redis
-    ap options
     if options.has_key? :crawl_id
       redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}-#{options[:crawl_id]}")
     else
       redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}")
     end
     
-    ap "===== HEAD NAMESPACE ====="
-    ap redis.namespace
-    ap "===== HEAD NAMESPACE ====="
-
     content = {}
   
     # check if it has already been cached
@@ -217,10 +211,6 @@ class Cobweb
       redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}")
     end
     
-    ap "===== HEAD NAMESPACE ====="
-    ap redis.namespace
-    ap "===== HEAD NAMESPACE ====="
-
     content = {}
     
     # check if it has already been cached
