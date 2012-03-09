@@ -29,11 +29,14 @@ class CrawlJob
     # change all hash keys to symbols    
     content_request.deep_symbolize_keys
     redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{VERSION}-#{content_request[:crawl_id]}")
+    
     ap redis.namespace
+    
     @absolutize = Absolutize.new(content_request[:url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
 
     # check we haven't crawled this url before
     crawl_counter = redis.get("crawl-counter").to_i
+    ap "#{content_request[:url]} - Crawled: #{crawl_counter}"
     queue_counter = redis.get("queue-counter").to_i
     unless redis.sismember "crawled", content_request[:url]
       
@@ -95,6 +98,7 @@ class CrawlJob
         redis.sadd "crawled", content_request[:url]
         set_base_url redis, content, content_request[:base_url]
         content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
+          link = link.to_s
           unless redis.sismember "crawled", link
             puts "Checking if #{link} matches #{redis.get("base_url")} as internal?" if content_request[:debug]
             if link.to_s.match(Regexp.new("^#{redis.get("base_url")}"))
@@ -129,7 +133,7 @@ class CrawlJob
 
     # detect finished state
 
-    if queue_counter == crawl_counter or content_request[:crawl_limit].to_i <= crawl_counter 
+    if queue_counter == crawl_counter or content_request[:crawl_limit].to_i <= crawl_counter
      
       puts "queue_counter: #{queue_counter}"
       puts "crawl_counter: #{crawl_counter}"
