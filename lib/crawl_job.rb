@@ -28,15 +28,12 @@ class CrawlJob
   def self.perform(content_request)
     # change all hash keys to symbols    
     content_request.deep_symbolize_keys
-    redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{VERSION}-#{content_request[:crawl_id]}")
-    
-    ap redis.namespace
+    redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     
     @absolutize = Absolutize.new(content_request[:url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
 
     # check we haven't crawled this url before
     crawl_counter = redis.get("crawl-counter").to_i
-    ap "#{content_request[:url]} - Crawled: #{crawl_counter}"
     queue_counter = redis.get("queue-counter").to_i
     unless redis.sismember "crawled", content_request[:url]
       

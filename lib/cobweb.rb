@@ -18,6 +18,10 @@ class Cobweb
   # on end of crawl, return statistic hash (could call specified method ?) if single threaded or enqueue to a specified queue the stat hash
   # investigate using event machine for single threaded crawling
   
+  def self.version
+    "0.0.22"
+  end
+  
   def initialize(options = {})
     @options = options
     @options[:follow_redirects] = true unless @options.has_key?(:follow_redirects)
@@ -39,7 +43,7 @@ class Cobweb
     }  
     
     request.merge!(@options)
-    @redis = NamespacedRedis.new(Redis.new(request[:redis_options]), "cobweb-#{VERSION}-#{request[:crawl_id]}")
+    @redis = NamespacedRedis.new(Redis.new(request[:redis_options]), "cobweb-#{Cobweb.version}-#{request[:crawl_id]}")
     @redis.hset "statistics", "queued_at", DateTime.now
     
     Resque.enqueue(CrawlJob, request)
@@ -53,13 +57,17 @@ class Cobweb
         
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url.to_s)
-    redirect_limit = options[:redirect_limit].to_i
+    if options.has_key?(:redirect_limit) and !options[:redirect_limit].nil?
+      redirect_limit = options[:redirect_limit].to_i
+    else
+      redirect_limit = 10
+    end
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}-#{options[:crawl_id]}")
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
     else
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}")
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}")
     end
     
     content = {}
@@ -107,7 +115,7 @@ class Cobweb
           raise RedirectError, "Redirect Limit reached" if redirect_limit == 0
 
           # get the content from redirect location
-          content = get(url, options)
+          content = get(url, options.merge(:redirect_limit => redirect_limit))
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
@@ -206,9 +214,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}-#{options[:crawl_id]}")
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
     else
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}")
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}")
     end
     
     content = {}

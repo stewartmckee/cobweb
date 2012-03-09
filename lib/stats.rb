@@ -11,7 +11,6 @@ class Stats < Sinatra::Base
     @@status = status
   end
   
-  ap settings.root
   set :views, settings.root + '/../views'
   
   get '/' do
