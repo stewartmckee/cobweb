@@ -5,8 +5,8 @@ require "addressable/uri"
 require 'digest/sha1'
 require 'base64'
 
-Dir[File.dirname(__FILE__) + '/*.rb'].each do |file|
-  require [File.dirname(__FILE__), File.basename(file, File.extname(file))].join("/")
+Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
+  require file
 end
 
 class Cobweb
@@ -34,7 +34,7 @@ class Cobweb
   def start(base_url)
     raise ":base_url is required" unless base_url
     request = {
-      :crawl_id => Digest::SHA1.hexdigest(Time.now.to_s),
+      :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
       :url => base_url 
     }  
     
@@ -53,7 +53,7 @@ class Cobweb
         
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url.to_s)
-    redirect_limit = options[:redirect_limit]
+    redirect_limit = options[:redirect_limit].to_i
     
     # connect to redis
     if options.has_key? :crawl_id
@@ -107,7 +107,7 @@ class Cobweb
           raise RedirectError, "Redirect Limit reached" if redirect_limit == 0
 
           # get the content from redirect location
-          content = get(url, redirect_limit)
+          content = get(url, options)
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
