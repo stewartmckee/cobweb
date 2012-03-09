@@ -1,6 +1,11 @@
-spec = Gem::Specification.new do |s|
+# -*- encoding: utf-8 -*-
+$:.push File.expand_path("../lib", __FILE__)
+require "cobweb/version"
+
+Gem::Specification.new do |s|
+  
   s.name              = "cobweb"
-  s.version           = "0.0.19"
+  s.version           = VERSION
   s.author            = "Stewart McKee"
   s.email             = "stewart@rockwellcottage.com"
   s.homepage          = "http://github.com/stewartmckee/cobweb"
