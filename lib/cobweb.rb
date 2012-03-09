@@ -29,8 +29,7 @@ class Cobweb
     @options[:debug] = false unless @options.has_key?(:debug)
     @options[:cache] = 300 unless @options.has_key?(:cache)
     @options[:timeout] = 10 unless @options.has_key?(:timeout)
-    @options[:redis_options] = {} unless @options.has_key?(:redis_options)
-    
+    @options[:redis_options] = {} unless @options.has_key?(:redis_options)    
   end
   
   def start(base_url)
@@ -41,33 +40,40 @@ class Cobweb
     }  
     
     request.merge!(@options)
-    redis = NamespacedRedis.new(Redis.new(request[:redis_options]), "cobweb-#{request[:crawl_id]}")
-    redis.hset "statistics", "queued_at", DateTime.now
+    @redis = NamespacedRedis.new(Redis.new(request[:redis_options]), "cobweb-#{VERSION}-#{request[:crawl_id]}")
+    @redis.hset "statistics", "queued_at", DateTime.now
     
     Resque.enqueue(CrawlJob, request)
   end
 
-  def get(url, redirect_limit = @options[:redirect_limit])
+  def get(url, options = @options)
 
-    raise "url cannot be nil" if url.nil?    
+    raise "url cannot be nil" if url.nil?
     
     absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => true, :force_escaping => false, :remove_anchors => true)
         
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url.to_s)
+    redirect_limit = options[:redirect_limit]
     
     # connect to redis
-    redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb")
+    ap options
+    if options.has_key? :crawl_id
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}-#{options[:crawl_id]}")
+    else
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}")
+    end
     
+    ap "===== HEAD NAMESPACE ====="
+    ap redis.namespace
+    ap "===== HEAD NAMESPACE ====="
+
     content = {}
   
     # check if it has already been cached
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
-      content[:body] = Base64.decode64(content[:body])
-      
-      content
+      content = Marshal.load(redis.get(unique_id)).deep_symbolize_keys
     else
       # this url is valid for processing so lets get on with it
       uri = Addressable::URI.parse(url.strip)
@@ -143,8 +149,7 @@ class Cobweb
         end
         # add content to cache if required
         if @options[:cache]
-          content[:body] = Base64.encode64(content[:body])
-          redis.set(unique_id, content.to_json)
+          redis.set(unique_id, Marshal.dump(content))
           redis.expire unique_id, @options[:cache].to_i
         end
       rescue RedirectError => e
@@ -196,28 +201,32 @@ class Cobweb
     content  
   end
   
-  def head(url, redirect_limit = @options[:redirect_limit])
+  def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
     
     absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
     
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url)
+    redirect_limit = options[:redirect_limit]
     
     # connect to redis
-    redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb")
+    if options.has_key? :crawl_id
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}-#{options[:crawl_id]}")
+    else
+      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{VERSION}")
+    end
     
+    ap "===== HEAD NAMESPACE ====="
+    ap redis.namespace
+    ap "===== HEAD NAMESPACE ====="
+
     content = {}
     
     # check if it has already been cached
-    if (redis.get(unique_id) or redis.get("head-#{unique_id}")) and @options[:cache]
+    if redis.get("head-#{unique_id}") and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      if redis.get(unique_id)
-        content = JSON.parse(redis.get(unique_id)).deep_symbolize_keys
-      else
-        content = JSON.parse(redis.get("head-#{unique_id}")).deep_symbolize_keys
-      end
-      content
+      Marshal.load(redis.get("head-#{unique_id}")).deep_symbolize_keys
     else
       print "Retrieving #{url }... " unless @options[:quiet]
       uri = Addressable::URI.parse(url.strip)
@@ -259,7 +268,7 @@ class Cobweb
           # add content to cache if required
           if @options[:cache]
             puts "Stored in cache [head-#{unique_id}]" if @options[:debug]
-            redis.set("head-#{unique_id}", content.to_json)
+            redis.set("head-#{unique_id}", Marshal.dump(content))
             redis.expire "head-#{unique_id}", @options[:cache].to_i
           else
             puts "Not storing in cache as cache disabled" if @options[:debug]
