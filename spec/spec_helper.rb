@@ -7,6 +7,7 @@ RSpec.configure do |config|
     #ap redis_mock
     #redis_mock.stub(:new).and_return(MockRedis.new)
     
+    Redis.new.flushdb
   }
 
 end
