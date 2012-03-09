@@ -233,17 +233,4 @@ describe Cobweb do
       end
     end  
   end  
-
-  describe "without mock" do
-    
-    it "should throw exception when server is unavailable" #do
-    #  lambda {@cobweb.get({:url => "http://www.oasdjgoisadjgoisdiog.com"})}.should raise_error URI::InvalidURIError
-    #end
-    
-    it "should return a valid content hash when url doesn't exist on a live server" do
-      status_code = @cobweb.get("http://test.com/laskdjflsdajf")[:status_code]
-      status_code.should == 404
-    end
-    
-  end
 end 
