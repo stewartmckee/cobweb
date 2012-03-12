@@ -75,7 +75,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = Marshal.load(redis.get(unique_id)).deep_symbolize_keys
+      content = HashHelper.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
       # this url is valid for processing so lets get on with it
       uri = Addressable::URI.parse(url.strip)
@@ -96,7 +96,7 @@ class Cobweb
       begin
         print "Retrieving #{url }... " unless @options[:quiet]
         request = Net::HTTP::Get.new uri.request_uri
-        
+
         response = @http.request request
         
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
@@ -125,7 +125,7 @@ class Cobweb
           content[:response_time] = Time.now.to_f - request_time
           
           puts "Retrieved." unless @options[:quiet]
-          
+
           # create the content container
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
@@ -138,12 +138,16 @@ class Cobweb
           end
           content[:length] = response.content_length
           if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-            content[:body] = response.body
-          else 
+            if response["Content-Encoding"]=="gzip"
+              content[:body] = Zlib::GzipReader.new(StringIO.new(response.body)).read
+            else
+              content[:body] = response.body
+            end
+          else
             content[:body] = Base64.encode64(response.body)
           end
           content[:location] = response["location"]
-          content[:headers] = response.to_hash.symbolize_keys
+          content[:headers] = HashHelper.symbolize_keys(response.to_hash)
           # parse data for links
           link_parser = ContentLinkParser.new(content[:url], content[:body])
           content[:links] = link_parser.link_data
@@ -170,7 +174,7 @@ class Cobweb
         content[:links] = {}
         
       rescue SocketError => e
-        puts "ERROR: #{e.message}"
+        puts "ERROR: SocketError#{e.message}"
         
         ## generate a blank content
         content = {}
@@ -185,7 +189,7 @@ class Cobweb
         content[:links] = {}
       
       rescue Timeout::Error => e
-        puts "ERROR: #{e.message}"
+        puts "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -207,10 +211,11 @@ class Cobweb
     raise "url cannot be nil" if url.nil?    
     
     absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
-    
+
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url)
-    redirect_limit = options[:redirect_limit]
+
+    redirect_limit = options[:redirect_limit] ||@options[:redirect_limit] ||10
     
     # connect to redis
     if options.has_key? :crawl_id
@@ -224,7 +229,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get("head-#{unique_id}") and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      Marshal.load(redis.get("head-#{unique_id}")).deep_symbolize_keys
+      content = HashHelper.deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
     else
       print "Retrieving #{url }... " unless @options[:quiet]
       uri = Addressable::URI.parse(url.strip)
@@ -247,7 +252,9 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           url = absolutize.url(response['location']).to_s
           redirect_limit = redirect_limit - 1
-          content = head(url, redirect_limit)
+          options = options.clone
+          options[:redirect_limit]=redirect_limit
+          content = head(url, options)
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
