@@ -4,7 +4,7 @@ class CobwebProcessJob
   @queue = :cobweb_process_job
 
   def self.perform(content)
-    content.symbolize_keys 
+    content = HashHelper.symbolize_keys(content)
     puts "Dummy Processing for #{content[:url]}"
 
     #ap content.keys
