@@ -96,7 +96,7 @@ class Cobweb
       begin
         print "Retrieving #{url }... " unless @options[:quiet]
         request = Net::HTTP::Get.new uri.request_uri
-        
+
         response = @http.request request
         
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
@@ -125,7 +125,7 @@ class Cobweb
           content[:response_time] = Time.now.to_f - request_time
           
           puts "Retrieved." unless @options[:quiet]
-          
+
           # create the content container
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
@@ -138,8 +138,12 @@ class Cobweb
           end
           content[:length] = response.content_length
           if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-            content[:body] = response.body
-          else 
+            if response["Content-Encoding"]=="gzip"
+              content[:body] = Zlib::GzipReader.new(StringIO.new(response.body)).read
+            else
+              content[:body] = response.body
+            end
+          else
             content[:body] = Base64.encode64(response.body)
           end
           content[:location] = response["location"]
@@ -170,7 +174,7 @@ class Cobweb
         content[:links] = {}
         
       rescue SocketError => e
-        puts "ERROR: #{e.message}"
+        puts "ERROR: SocketError#{e.message}"
         
         ## generate a blank content
         content = {}
@@ -185,7 +189,7 @@ class Cobweb
         content[:links] = {}
       
       rescue Timeout::Error => e
-        puts "ERROR: #{e.message}"
+        puts "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
         content = {}
