@@ -211,10 +211,11 @@ class Cobweb
     raise "url cannot be nil" if url.nil?    
     
     absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
-    
+
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url)
-    redirect_limit = options[:redirect_limit]
+
+    redirect_limit = options[:redirect_limit] ||@options[:redirect_limit] ||10
     
     # connect to redis
     if options.has_key? :crawl_id
@@ -251,7 +252,9 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           url = absolutize.url(response['location']).to_s
           redirect_limit = redirect_limit - 1
-          content = head(url, redirect_limit)
+          options = options.clone
+          options[:redirect_limit]=redirect_limit
+          content = head(url, options)
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
