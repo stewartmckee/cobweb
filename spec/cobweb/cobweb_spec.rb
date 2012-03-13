@@ -74,6 +74,25 @@ describe Cobweb do
       Cobweb.new.should be_an_instance_of Cobweb
     end
     
+    it "should setup with defaults" do
+      cobweb = Cobweb.new
+      
+      options = cobweb.instance_eval("@options")
+      ap options
+      
+      options[:follow_redirects].should == true
+      options[:redirect_limit].should == 10
+      options[:processing_queue].should == CobwebProcessJob
+      options[:crawl_finished_queue].should == CobwebFinishedJob
+      options[:quiet].should == true
+      options[:debug].should == false
+      options[:cache].should == 300
+      options[:timeout].should == 10
+      options[:redis_options].should == {}
+      options[:internal_urls].should == []
+      
+    end
+    
     describe "get" do
       it "should return a hash with default values" do
         @cobweb.get(@base_url).should be_an_instance_of Hash

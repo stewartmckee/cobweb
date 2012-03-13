@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files  = ["README.textile"]
   s.add_dependency('resque')
   s.add_dependency('redis')
-  s.add_dependency('absolutize')
   s.add_dependency('nokogiri')
   s.add_dependency('addressable')
   s.add_dependency('rspec')
@@ -25,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency('sinatra')
   s.add_dependency('thin')
   s.add_dependency('haml')
-
+  s.add_dependency('hashie')
 end

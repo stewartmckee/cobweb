@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+0.0.23
+  Added internal_urls to the start options.  It allows you to limit what is within a site for the crawl, its an array and * is wildcard.
+
+0.0.13 (or there abouts)
+  Changed CobWeb to Cobweb in line with conventions
+
 0.0.7
   Adding the retrieved url to cache if required even if it is a redirect
   Added workaround for bug in addressable gem for https addresses

@@ -22,17 +22,29 @@ class Cobweb
     "0.0.22"
   end
   
+  def method_missing(method_sym, *arguments, &block)
+    if method_sym.to_s =~ /^default_(.*)_to$/
+      tag_name = method_sym.to_s.split("_")[1..-2].join("_").to_sym
+      @options[tag_name] = arguments[0] unless @options.has_key?(tag_name)
+    else
+      super
+    end
+  end
+  
   def initialize(options = {})
     @options = options
-    @options[:follow_redirects] = true unless @options.has_key?(:follow_redirects)
-    @options[:redirect_limit] = 10 unless @options.has_key?(:redirect_limit)
-    @options[:processing_queue] = CobwebProcessJob unless @options.has_key?(:processing_queue)
-    @options[:crawl_finished_queue] = CobwebFinishedJob unless @options.has_key?(:crawl_finished_queue)
-    @options[:quiet] = true unless @options.has_key?(:quiet)
-    @options[:debug] = false unless @options.has_key?(:debug)
-    @options[:cache] = 300 unless @options.has_key?(:cache)
-    @options[:timeout] = 10 unless @options.has_key?(:timeout)
-    @options[:redis_options] = {} unless @options.has_key?(:redis_options)    
+    
+    default_follow_redirects_to     true
+    default_redirect_limit_to       10
+    default_processing_queue_to     CobwebProcessJob
+    default_crawl_finished_queue_to CobwebFinishedJob
+    default_quiet_to                true
+    default_debug_to                false
+    default_cache_to                300
+    default_timeout_to              10
+    default_redis_options_to        Hash.new
+    default_internal_urls_to        []
+    
   end
   
   def start(base_url)
@@ -42,9 +54,20 @@ class Cobweb
       :url => base_url 
     }  
     
+    if @options[:internal_urls].empty?
+      uri = Addressable::URI.parse(base_url)
+      @options[:internal_urls] << [uri.scheme, "://", uri.host, "/*"].join
+    end
+    
     request.merge!(@options)
     @redis = NamespacedRedis.new(Redis.new(request[:redis_options]), "cobweb-#{Cobweb.version}-#{request[:crawl_id]}")
     @redis.hset "statistics", "queued_at", DateTime.now
+    @redis.set("crawl-counter", 0)
+    @redis.set("queue-counter", 1)
+    
+    
+    # add internal_urls into redis
+    @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
     
     Resque.enqueue(CrawlJob, request)
   end
@@ -70,7 +93,7 @@ class Cobweb
       redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}")
     end
     
-    content = {}
+    content = {:base_url => url}
   
     # check if it has already been cached
     if redis.get(unique_id) and @options[:cache]
@@ -210,7 +233,11 @@ class Cobweb
     
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url)
-    redirect_limit = options[:redirect_limit]
+    if options.has_key?(:redirect_limit) and !options[:redirect_limit].nil?
+      redirect_limit = options[:redirect_limit].to_i
+    else
+      redirect_limit = 10
+    end
     
     # connect to redis
     if options.has_key? :crawl_id
@@ -247,7 +274,7 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           url = absolutize.url(response['location']).to_s
           redirect_limit = redirect_limit - 1
-          content = head(url, redirect_limit)
+          content = head(url, options)
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)

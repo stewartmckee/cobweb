@@ -1,6 +1,6 @@
 ## add symbolize methods to hash
-class Hash
-  def symbolize_keys
+class HashUtil
+  def self.symbolize_keys
     keys.each do |key|
       if key.instance_of? String
         value = self[key]
@@ -10,13 +10,13 @@ class Hash
     end
     self
   end  
-  def deep_symbolize_keys
-    symbolize_keys
-    keys.each do |key|
-      if self[key].instance_of? Hash
-        self[key].deep_symbolize_keys
+  def self.deep_symbolize_keys(h)
+    h.symbolize_keys
+    h.keys.each do |key|
+      if h[key].instance_of? Hash
+        h[key].deep_symbolize_keys
       end
     end
-    self
+    h
   end
 end

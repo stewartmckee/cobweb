@@ -6,163 +6,148 @@ class CrawlJob
 
   @queue = :cobweb_crawl_job
 
-  ## redis params used
-  #
-  # crawl-counter
-  # crawled
-  # queue-counter
-  # statistics[:average_response_time]
-  # statistics[:maximum_response_time]
-  # statistics[:minimum_response_time]
-  # statistics[:average_length]
-  # statistics[:maximum_length]
-  # statistics[:minimum_length]
-  # statistics[:queued_at]
-  # statistics[:started_at]
-  # statistics]:finished_at]
-  # total_pages
-  # total_assets
-  # statistics[:mime_counts]["mime_type"]
-  # statistics[:status_counts][xxx]
-
   def self.perform(content_request)
-    # change all hash keys to symbols    
-    content_request.deep_symbolize_keys
-    redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
+    
+    # change all hash keys to symbols
+    content_request = content_request.deep_symbolize_keys
+    
+    @redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     
     @absolutize = Absolutize.new(content_request[:url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
-
+    @debug = content_request[:debug]
+    
+    refresh_counters
+    
     # check we haven't crawled this url before
-    crawl_counter = redis.get("crawl-counter").to_i
-    queue_counter = redis.get("queue-counter").to_i
-    unless redis.sismember "crawled", content_request[:url]
+    unless @redis.sismember "crawled", content_request[:url]
       
-      # increment counter and check we haven't hit our crawl limit
-      redis.incr "crawl-counter"
-      crawl_counter += 1
-      if crawl_counter <= content_request[:crawl_limit].to_i
+      # if there is no limit or we're still under it lets get the url
+      if content_request[:crawl_limit].nil? or @crawl_counter <= content_request[:crawl_limit].to_i
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
-
+        
         ## update statistics
-        if redis.hexists "statistics", "average_response_time"
-          redis.hset("statistics", "average_response_time", (((redis.hget("statistics", "average_response_time").to_f*crawl_counter) + content[:response_time].to_f) / crawl_counter + 1))
-        else
-          redis.hset("statistics", "average_response_time", content[:response_time].to_f)
-        end
-        redis.hset "statistics", "maximum_response_time", content[:response_time].to_f if redis.hget("statistics", "maximum_response_time").nil? or content[:response_time].to_f > redis.hget("statistics", "maximum_response_time").to_f
-        redis.hset "statistics", "minimum_response_time", content[:response_time].to_f if redis.hget("statistics", "minimum_response_time").nil? or content[:response_time].to_f < redis.hget("statistics", "minimum_response_time").to_f
-        if redis.hexists "statistics", "average_length"
-          redis.hset("statistics", "average_length", (((redis.hget("statistics", "average_length").to_i*crawl_counter) + content[:length].to_i) / crawl_counter + 1))
-        else
-          redis.hset("statistics", "average_length", content[:length].to_i)
-        end
-        redis.hset "statistics", "maximum_length", content[:length].to_i if redis.hget("statistics", "maximum_length").nil? or content[:length].to_i > redis.hget("statistics", "maximum_length").to_i
-        redis.hset "statistics", "minimum_length", content[:length].to_i if redis.hget("statistics", "minimum_length").nil? or content[:length].to_i < redis.hget("statistics", "minimum_length").to_i
+        Stats.set_statistics_in_redis(@redis, content)
+        
+        # set the base url if this is the first page
+        set_base_url @redis, content
+        
+        internal_links = all_links_from_content(content).map{|link| link.to_s}
+        
+        # reject the link if we've crawled it or queued it
+        internal_links.reject!{|link| @redis.sismember("crawled", link)}
+        internal_links.reject!{|link| @redis.sismember("queued", link)}
+        
+        # select the link if its internal
+        internal_links.select!{|link| internal_link?(link)}
 
-        if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-          redis.incr "total_pages"
-        else
-          redis.incr "total_assets"
+        internal_links.each do |link|
+          enqueue_content(content_request, link)        
         end
 
-        mime_counts = {}
-        if redis.hexists "statistics", "mime_counts"
-          mime_counts = JSON.parse(redis.hget("statistics", "mime_counts"))
-          if mime_counts.has_key? content[:mime_type]
-            mime_counts[content[:mime_type]] += 1
-          else
-            mime_counts[content[:mime_type]] = 1
-          end
-        else
-          mime_counts = {content[:mime_type] => 1}
-        end
-        redis.hset "statistics", "mime_counts", mime_counts.to_json
-
-        status_counts = {}
-        if redis.hexists "statistics", "status_counts"
-          status_counts = JSON.parse(redis.hget("statistics", "status_counts"))
-          if status_counts.has_key? content[:status_code].to_i
-            status_counts[content[:status_code].to_i] += 1
-          else
-            status_counts[content[:status_code].to_i] = 1
-          end
-        else
-          status_counts = {content[:status_code].to_i => 1}
-        end
-        redis.hset "statistics", "status_counts", status_counts.to_json
-
-        redis.srem "queued", content_request[:url]
-        redis.sadd "crawled", content_request[:url]
-        set_base_url redis, content, content_request[:base_url]
-        content[:links].keys.map{|key| content[:links][key]}.flatten.each do |link|
-          link = link.to_s
-          unless redis.sismember "crawled", link
-            puts "Checking if #{link} matches #{redis.get("base_url")} as internal?" if content_request[:debug]
-            if link.to_s.match(Regexp.new("^#{redis.get("base_url")}"))
-              puts "Matched as #{link} as internal" if content_request[:debug]
-              unless redis.sismember("crawled", link) or redis.sismember("queued", link)   
-                if queue_counter <= content_request[:crawl_limit].to_i
-                  new_request = content_request.clone
-                  new_request[:url] = link
-                  new_request[:parent] = content_request[:url]
-                  Resque.enqueue(CrawlJob, new_request)
-                  redis.sadd "queued", link
-                  redis.incr "queue-counter"
-                  queue_counter += 1
-                end
-              end
-            end
-          end
-        end
+        # now that we're done, lets update the queues
+        @redis.srem "queued", content_request[:url]
+        decrement_queue_counter
+        @redis.sadd "crawled", content_request[:url]
+        increment_crawl_counter
 
         # enqueue to processing queue
         Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
-        puts "Crawled: #{crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{queue_counter}" if content_request[:debug]
-
-
+        puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if content_request[:debug]
+        
       else
-        puts "Crawl Limit Exceeded by #{crawl_counter - content_request[:crawl_limit].to_i} objects" if content_request[:debug]
+        puts "Crawl Limit Exceeded by #{@crawl_counter - content_request[:crawl_limit].to_i} objects" if content_request[:debug]
       end
     else
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
 
-    # detect finished state
-
-    if queue_counter == crawl_counter or content_request[:crawl_limit].to_i <= crawl_counter
+    # if the'res nothing left queued or the crawled limit has been reached
+    if @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
      
-      puts "queue_counter: #{queue_counter}"
-      puts "crawl_counter: #{crawl_counter}"
-      puts "crawl_limit: #{content_request[:crawl_limit]}"
+      puts "queue_counter: #{@queue_counter}"
+      puts "crawl_counter: #{@crawl_counter}"
+      puts "crawl_limit: #{@content_request[:crawl_limit]}"
 
       # finished
       puts "FINISHED"
-      stats = redis.hgetall "statistics"
-      stats[:total_pages] = redis.get "total_pages"
-      stats[:total_assets] = redis.get "total_assets"
-      stats[:crawl_counter] = redis.get "crawl_counter"
-      stats[:queue_counter] = redis.get "queue_counter"
-      stats[:crawled] = redis.smembers "crawled"
+      stats = @redis.hgetall "statistics"
+      stats[:total_pages] = @redis.get "total_pages"
+      stats[:total_assets] = @redis.get "total_assets"
+      stats[:crawl_counter] = @redis.get "crawl_counter"
+      stats[:queue_counter] = @redis.get "queue_counter"
+      stats[:crawled] = @redis.smembers "crawled"
       
-      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), stats.merge({:source_id => content_request[:source_id]}))      
+      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), stats.merge({:crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))            
       
-      ap stats
     end
   end
 
   private
-  def self.set_base_url(redis, content, base_url)
+  def self.set_base_url(redis, content)
+    puts "checking for base_url"
     if redis.get("base_url").nil?
-      if content[:status_code] >= 300 and content[:status_code] < 400
-        #redirect received for first url
-        redis.set("base_url", @absolutize.url(content[:location]).to_s)
-        puts "WARNING: base_url given redirects to another location, setting base_url to #{@absolutize.url(content[:location]).to_s}"
-      else
-        redis.set("base_url", base_url)
+      puts "base_url doesn't exist"
+      unless content[:redirect_through].empty?
+        puts "first url was a redirect"
+        uri = Addressable::URI.parse(content[:redirect_through].last)
+        puts "adding #{[uri.scheme, "://", uri.host, "/*"].join} to internal_urls"
+        redis.sadd("internal_urls", [uri.scheme, "://", uri.host, "/*"].join)
+      end
+      puts "setting base_url to #{content[:url]}"
+      redis.set("base_url", content[:url])
+    end
+    puts "complete set_base_url"
+  end
+  
+  def self.internal_link?(link)
+    puts "Checking for internal link for: #{link}" if @debug
+    @internal_patterns ||= @redis.smembers("internal_urls").map{|pattern| Regexp.new("^#{pattern.gsub("*", ".*?")}")}
+    valid_link = true
+    @internal_patterns.each do |pattern|
+      puts "Matching against #{pattern.source}" if @debug
+      if link.match(pattern)
+        puts "Matched as internal" if @debug
+        return true
       end
     end
+    puts "Didn't match any pattern so marked as not internal" if @debug
+    false
   end
 
+  def self.all_links_from_content(content)
+    content[:links].keys.map{|key| content[:links][key]}.flatten
+  end
   
+  def self.enqueue_content(content_request, link)
+    new_request = content_request.clone
+    new_request[:url] = link
+    new_request[:parent] = content_request[:url]
+    Resque.enqueue(CrawlJob, new_request)
+    @redis.sadd "queued", link
+    increment_queue_counter
+  end
+  
+  def self.increment_queue_counter
+    @redis.incr "queue-counter"
+    refresh_counters
+  end
+  def self.increment_crawl_counter
+    @redis.incr "crawl-counter"
+    refresh_counters
+  end
+  def self.decrement_queue_counter
+    @redis.decr "queue-counter"
+    refresh_counters
+  end
+  def self.refresh_counters
+    @crawl_counter = @redis.get("crawl-counter").to_i
+    @queue_counter = @redis.get("queue-counter").to_i
+  end
+  def self.reset_counters
+    @redis.set("crawl-counter", @redis.smembers("crawled").count)
+    @redis.set("queue-counter", @redis.smembers("queued").count)
+    @crawl_counter = @redis.get("crawl-counter").to_i
+    @queue_counter = @redis.get("queue-counter").to_i
+  end
 end
