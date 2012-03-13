@@ -19,7 +19,7 @@ class Cobweb
   # investigate using event machine for single threaded crawling
   
   def self.version
-    "0.0.22"
+    "0.0.24"
   end
   
   def method_missing(method_sym, *arguments, &block)
@@ -34,16 +34,17 @@ class Cobweb
   def initialize(options = {})
     @options = options
     
-    default_follow_redirects_to     true
-    default_redirect_limit_to       10
-    default_processing_queue_to     CobwebProcessJob
-    default_crawl_finished_queue_to CobwebFinishedJob
-    default_quiet_to                true
-    default_debug_to                false
-    default_cache_to                300
-    default_timeout_to              10
-    default_redis_options_to        Hash.new
-    default_internal_urls_to        []
+    default_follow_redirects_to               true
+    default_redirect_limit_to                 10
+    default_processing_queue_to               CobwebProcessJob
+    default_crawl_finished_queue_to           CobwebFinishedJob
+    default_quiet_to                          true
+    default_debug_to                          false
+    default_cache_to                          300
+    default_timeout_to                        10
+    default_redis_options_to                  Hash.new
+    default_internal_urls_to                  []
+    default_first_page_redirect_internal_to   true
     
   end
   
@@ -98,7 +99,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = HashHelper.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
+      content = Marshal.load(redis.get(unique_id)).deep_symbolize_keys
     else
       # this url is valid for processing so lets get on with it
       uri = Addressable::URI.parse(url.strip)
@@ -170,7 +171,7 @@ class Cobweb
             content[:body] = Base64.encode64(response.body)
           end
           content[:location] = response["location"]
-          content[:headers] = HashHelper.symbolize_keys(response.to_hash)
+          content[:headers] = response.to_hash.deep_symbolize_keys
           # parse data for links
           link_parser = ContentLinkParser.new(content[:url], content[:body])
           content[:links] = link_parser.link_data
@@ -255,7 +256,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get("head-#{unique_id}") and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = HashHelper.deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
+      content = Marshal.load(redis.get("head-#{unique_id}")).deep_symbolize_keys
     else
       print "Retrieving #{url }... " unless @options[:quiet]
       uri = Addressable::URI.parse(url.strip)

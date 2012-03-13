@@ -15,9 +15,6 @@ class Stats < Sinatra::Base
     crawl_counter = redis.get("crawl-counter").to_i
     queue_counter = redis.get("queue-counter").to_i
     
-    ap crawl_counter
-    ap queue_counter
-
     if redis.hexists "statistics", "average_response_time"
       redis.hset("statistics", "average_response_time", (((redis.hget("statistics", "average_response_time").to_f*crawl_counter) + content[:response_time].to_f) / (crawl_counter + 1)))
     else
