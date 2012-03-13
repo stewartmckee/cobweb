@@ -19,7 +19,7 @@ class Cobweb
   # investigate using event machine for single threaded crawling
   
   def self.version
-    "0.0.25"
+    "0.0.26"
   end
   
   def method_missing(method_sym, *arguments, &block)
