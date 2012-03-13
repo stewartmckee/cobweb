@@ -61,9 +61,9 @@ Creates a new crawler object based on a base_url
     ** :quiet                         - hides default output (Default: false)
     ** :cache                         - sets the ttl for caching pages, set to nil to disable caching (Default: 300)
     ** :timeout                       - http timeout for requests (Default: 10)
-    ** :redis_options                 - hash containing the initialization options for redis (e.g. {:host => "redis.mydomain.com"}
-    ** :internal_urls                 - array of strings representing internal url forms for your site (eg: ['http://test.com/*', 'http://blog.test.com/*', 'http://externaltest.com/*'])
-    ** :first_page_redirect_internal  - if true and the first page crawled is a redirect, it will add the final destination of redirects to the internal_urls (e.g. http://www.test.com gets redirected to http://test.com)
+    ** :redis_options                 - hash containing the initialization options for redis (e.g. {:host => "redis.mydomain.com"}) (Default: {})
+    ** :internal_urls                 - array of strings representing internal url forms for your site (eg: ['http://test.com/*', 'http://blog.test.com/*', 'http://externaltest.com/*']) (Default: [], although your first url's scheme, host and domain are added)
+    ** :first_page_redirect_internal  - if true and the first page crawled is a redirect, it will add the final destination of redirects to the internal_urls (e.g. http://www.test.com gets redirected to http://test.com) (Default: true)
     
 bq. crawler = CobWeb.new(:follow_redirects => false)
 
