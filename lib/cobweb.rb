@@ -77,8 +77,6 @@ class Cobweb
 
     raise "url cannot be nil" if url.nil?
     
-    absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => true, :force_escaping => false, :remove_anchors => true)
-        
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url.to_s)
     if options.has_key?(:redirect_limit) and !options[:redirect_limit].nil?
@@ -127,7 +125,7 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           
           # get location to redirect to
-          url = absolutize.url(response['location']).to_s
+          url = Addressable::URI.parse(response['location']).to_s
           
           # decrement redirect limit
           redirect_limit = redirect_limit - 1
@@ -234,8 +232,6 @@ class Cobweb
   def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
     
-    absolutize = Absolutize.new(url, :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
-
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url)
     if options.has_key?(:redirect_limit) and !options[:redirect_limit].nil?
@@ -277,7 +273,7 @@ class Cobweb
         
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
-          url = absolutize.url(response['location']).to_s
+          url = Addressable::URI.parse(response['location']).to_s
           redirect_limit = redirect_limit - 1
           options = options.clone
           options[:redirect_limit]=redirect_limit

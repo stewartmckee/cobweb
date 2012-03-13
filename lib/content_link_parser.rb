@@ -12,7 +12,6 @@ class ContentLinkParser
     if @doc.at("base[href]")
       base_url = @doc.at("base[href]").attr("href").to_s
     end
-    @absolutize = Absolutize.new(base_url, :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
 
     @options[:tags] = {}
     @options[:tags][:links] = [["a[href]", "href"], ["frame[src]", "src"], ["meta[@http-equiv=\"refresh\"]", "content"], ["link[href]:not([rel])", "href"], ["area[href]", "href"]]
@@ -57,15 +56,14 @@ class ContentLinkParser
     if attribute.kind_of? String or attribute.kind_of? Symbol
       @doc.css(selector).each do |tag|
         begin
-          uri = @absolutize.url(tag[attribute])
-          array << uri.to_s
+          array << Addressable::URI.parse(tag[attribute]).to_s
         rescue
         end
       end
     elsif attribute.instance_of? Regexp
       @doc.css(selector).each do |tag|
         begin
-          tag.content.scan(attribute) {|match| array << @absolutize.url(match[0])}
+          tag.content.scan(attribute) {|match| array << Addressable::URI.parse(match[0]).to_s}
         rescue
         end
       end

@@ -13,7 +13,6 @@ class CrawlJob
     
     @redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     
-    @absolutize = Absolutize.new(content_request[:url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
     @debug = content_request[:debug]
     
     refresh_counters

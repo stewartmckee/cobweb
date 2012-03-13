@@ -2,11 +2,9 @@ source 'http://rubygems.org'
 
 gem 'redis'
 gem 'resque'
-gem 'absolutize'
 gem 'addressable'
 gem 'awesome_print'
 gem 'nokogiri'
-gem 'absolutize'
 gem 'addressable'
 
 gem 'sinatra'

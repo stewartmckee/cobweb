@@ -19,7 +19,6 @@ Gem::Specification.new do |s|
   s.add_dependency('resque')
   s.add_dependency('redis')
   s.add_dependency('nokogiri')
-  s.add_dependency('absolutize')
   s.add_dependency('addressable')
   s.add_dependency('rspec')
   s.add_dependency('awesome_print')

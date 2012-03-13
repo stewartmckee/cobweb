@@ -22,8 +22,6 @@ class CobwebCrawler
     
     @crawl_options = crawl_options
     
-    @absolutize = Absolutize.new(@options[:base_url], :output_debug => false, :raise_exceptions => false, :force_escaping => false, :remove_anchors => true)
-    
     @redis.sadd "queued", base_url
     crawl_counter = @redis.scard("crawled").to_i
     queue_counter = @redis.scard("queued").to_i
