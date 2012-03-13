@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.0.23
+0.0.24
   Added internal_urls to the start options.  It allows you to limit what is within a site for the crawl, its an array and * is wildcard.
 
 0.0.13 (or there abouts)

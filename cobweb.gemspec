@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.email             = "stewart@rockwellcottage.com"
   s.homepage          = "http://github.com/stewartmckee/cobweb"
   s.platform          = Gem::Platform::RUBY
+  s.description       = "Web Crawler that uses resque background job engine to allow you to cluster your crawl."
   s.summary           = "Web Crawler that uses resque background job engine to allow you to cluster your crawl."
   s.files             = Dir["{spec,lib,views}/**/*"].delete_if { |f| f =~ /(rdoc)$/i }
   s.require_path      = "lib"
