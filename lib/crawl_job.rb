@@ -20,6 +20,10 @@ class CrawlJob
     
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
+      @redis.srem "queued", content_request[:url]
+      decrement_queue_counter
+      @redis.sadd "crawled", content_request[:url]
+      increment_crawl_counter
       
       # if there is no limit or we're still under it lets get the url
       if content_request[:crawl_limit].nil? or @crawl_counter <= content_request[:crawl_limit].to_i
@@ -44,16 +48,31 @@ class CrawlJob
           enqueue_content(content_request, link)        
         end
 
-        # now that we're done, lets update the queues
-        @redis.srem "queued", content_request[:url]
-        decrement_queue_counter
-        @redis.sadd "crawled", content_request[:url]
-        increment_crawl_counter
-
         # enqueue to processing queue
-        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
+        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
         puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if content_request[:debug]
+
+
+        # if the'res nothing left queued or the crawled limit has been reached
+        if @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
+
+          puts "queue_counter: #{@queue_counter}"
+          puts "crawl_counter: #{@crawl_counter}"
+          puts "crawl_limit: #{content_request[:crawl_limit]}"
+
+          # finished
+          puts "FINISHED"
+          stats = @redis.hgetall "statistics"
+          stats[:total_pages] = @redis.get("total_pages").to_i
+          stats[:total_assets] = @redis.get("total_assets").to_i
+          stats[:crawl_counter] = @crawl_counter
+          stats[:queue_counter] = @queue_counter
+          stats[:crawled] = @redis.smembers "crawled"
+
+          Resque.enqueue(const_get(content_request[:crawl_finished_queue]), stats.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))            
+
+        end
         
       else
         puts "Crawl Limit Exceeded by #{@crawl_counter - content_request[:crawl_limit].to_i} objects" if content_request[:debug]
@@ -62,25 +81,6 @@ class CrawlJob
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
 
-    # if the'res nothing left queued or the crawled limit has been reached
-    if @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
-     
-      puts "queue_counter: #{@queue_counter}"
-      puts "crawl_counter: #{@crawl_counter}"
-      puts "crawl_limit: #{content_request[:crawl_limit]}"
-
-      # finished
-      puts "FINISHED"
-      stats = @redis.hgetall "statistics"
-      stats[:total_pages] = @redis.get "total_pages"
-      stats[:total_assets] = @redis.get "total_assets"
-      stats[:crawl_counter] = @redis.get "crawl_counter"
-      stats[:queue_counter] = @redis.get "queue_counter"
-      stats[:crawled] = @redis.smembers "crawled"
-      
-      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), stats.merge({:crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))            
-      
-    end
   end
 
   private
