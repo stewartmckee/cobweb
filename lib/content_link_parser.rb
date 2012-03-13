@@ -2,7 +2,6 @@
 class ContentLinkParser
 
   require "nokogiri"
-  require "absolutize"
 
   def initialize(url, content, options = {})
     @options = options

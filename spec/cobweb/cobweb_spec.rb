@@ -160,7 +160,7 @@ describe Cobweb do
           #@mock_http_client.should_receive(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)
           #
           #content = @cobweb.get(@base_url)
-          #content.should be_an_instance_of Hash
+          #content.should be_an_instance_of HashHelper
           #ap content
           #content[:url].should == "http://redirect-me.com/redirect.html"
           #content[:redirect_through].length.should == 2
