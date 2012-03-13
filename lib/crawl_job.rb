@@ -29,7 +29,7 @@ class CrawlJob
         Stats.set_statistics_in_redis(@redis, content)
         
         # set the base url if this is the first page
-        set_base_url @redis, content
+        set_base_url @redis, content, content_request
         
         internal_links = all_links_from_content(content).map{|link| link.to_s}
         
@@ -67,7 +67,7 @@ class CrawlJob
      
       puts "queue_counter: #{@queue_counter}"
       puts "crawl_counter: #{@crawl_counter}"
-      puts "crawl_limit: #{@content_request[:crawl_limit]}"
+      puts "crawl_limit: #{content_request[:crawl_limit]}"
 
       # finished
       puts "FINISHED"
@@ -84,20 +84,15 @@ class CrawlJob
   end
 
   private
-  def self.set_base_url(redis, content)
-    puts "checking for base_url"
+  def self.set_base_url(redis, content, content_request)
     if redis.get("base_url").nil?
-      puts "base_url doesn't exist"
-      unless content[:redirect_through].empty?
-        puts "first url was a redirect"
+      ap content
+      unless content[:redirect_through].empty? || !content_request[:first_page_redirect_internal]
         uri = Addressable::URI.parse(content[:redirect_through].last)
-        puts "adding #{[uri.scheme, "://", uri.host, "/*"].join} to internal_urls"
         redis.sadd("internal_urls", [uri.scheme, "://", uri.host, "/*"].join)
       end
-      puts "setting base_url to #{content[:url]}"
       redis.set("base_url", content[:url])
     end
-    puts "complete set_base_url"
   end
   
   def self.internal_link?(link)
