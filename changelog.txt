@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.27
+  Fixed bug in set_base_url
+
 0.0.24
   Added internal_urls to the start options.  It allows you to limit what is within a site for the crawl, its an array and * is wildcard.
 
