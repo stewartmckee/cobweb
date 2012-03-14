@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.28
+h1. Cobweb v0.0.29
 
 h2. Intro 
   
@@ -37,7 +37,8 @@ h3. Data Returned
     ** :scripts - url's from script tags
     ** :styles - url's from within link tags with rel of stylesheet and from url() directives with stylesheets
   * :crawl_id - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
-    
+  * :internal_urls - an array of urls with * wildcards that represent urls internal to the site (ie pages within the same domain)
+  
   The source for the links can be overridden, contact me for the syntax (don't have time to put it into this documentation, will as soon as i have time!)
 
 h2. Installation

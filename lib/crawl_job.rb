@@ -48,7 +48,7 @@ class CrawlJob
         end
 
         # enqueue to processing queue
-        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
+        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:internal_urls => internal_patterns, :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
         puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if content_request[:debug]
 
@@ -89,10 +89,9 @@ class CrawlJob
   end
   
   def self.internal_link?(link)
-    puts "Checking for internal link for: #{link}" if @debug
-    @internal_patterns ||= @redis.smembers("internal_urls").map{|pattern| Regexp.new("^#{pattern.gsub("*", ".*?")}")}
+    puts "Checking internal link for: #{link}" if @debug
     valid_link = true
-    @internal_patterns.each do |pattern|
+    internal_patterns.map{|pattern| Regexp.new("^#{pattern.gsub("*", ".*?")}")}.each do |pattern|
       puts "Matching against #{pattern.source}" if @debug
       if link.match(pattern)
         puts "Matched as internal" if @debug
@@ -102,9 +101,17 @@ class CrawlJob
     puts "Didn't match any pattern so marked as not internal" if @debug
     false
   end
+  
+  def self.internal_patterns
+    @internal_patterns ||= @redis.smembers("internal_urls")
+  end
 
   def self.all_links_from_content(content)
-    content[:links].keys.map{|key| content[:links][key]}.flatten
+    links = content[:links].keys.map{|key| content[:links][key]}.flatten
+    links.reject!{|link| link.starts_with?("javascript:")}
+    links = links.map{|link| Addressable::URI.join(content[:url], link)}
+    links.select!{|link| link.scheme == "http" || link.scheme == "https"}
+    links
   end
   
   def self.enqueue_content(content_request, link)
