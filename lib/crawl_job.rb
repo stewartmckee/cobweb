@@ -85,7 +85,7 @@ class CrawlJob
   private
   def self.set_base_url(redis, content, content_request)
     if redis.get("base_url").nil?
-      unless content[:redirect_through].empty? || !content_request[:first_page_redirect_internal]
+      unless content[:redirect_through].nil? || content[:redirect_through].empty? || !content_request[:first_page_redirect_internal]
         uri = Addressable::URI.parse(content[:redirect_through].last)
         redis.sadd("internal_urls", [uri.scheme, "://", uri.host, "/*"].join)
       end
