@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.28
+  Removed debug on crawl finishing
+
 0.0.27
   Fixed bug in set_base_url
 
