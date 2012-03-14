@@ -56,12 +56,7 @@ class CrawlJob
         # if the'res nothing left queued or the crawled limit has been reached
         if @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
 
-          puts "queue_counter: #{@queue_counter}"
-          puts "crawl_counter: #{@crawl_counter}"
-          puts "crawl_limit: #{content_request[:crawl_limit]}"
-
           # finished
-          puts "FINISHED"
           stats = @redis.hgetall "statistics"
           stats[:total_pages] = @redis.get("total_pages").to_i
           stats[:total_assets] = @redis.get("total_assets").to_i
