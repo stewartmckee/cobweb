@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.30
+  Fixed bug causing problems where the redirected location was relative
+
 0.0.29
   Including internal_urls in content hash as crawler may detect a redirect on the first page
 
