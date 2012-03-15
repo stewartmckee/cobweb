@@ -19,7 +19,7 @@ class Cobweb
   # investigate using event machine for single threaded crawling
   
   def self.version
-    "0.0.30"
+    "0.0.31"
   end
   
   def method_missing(method_sym, *arguments, &block)
@@ -103,8 +103,6 @@ class Cobweb
       uri = Addressable::URI.parse(url.strip)
       
       # retrieve data
-      ap uri.host
-      ap uri.inferred_port
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." unless @options[:quiet]
         @http = Net::HTTP.new(uri.host, uri.inferred_port)
@@ -114,7 +112,6 @@ class Cobweb
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
-      ap uri.request_uri
       request_time = Time.now.to_f
       @http.read_timeout = @options[:timeout].to_i
       @http.open_timeout = @options[:timeout].to_i
@@ -128,9 +125,7 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           
           # get location to redirect to
-          ap "redirecting to #{response['location']}"
           url = Addressable::URI.join(uri, response['location']).to_s
-          ap url
           
           # decrement redirect limit
           redirect_limit = redirect_limit - 1

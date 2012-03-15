@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.31
+  Removed debug
+
 0.0.30
   Fixed bug causing problems where the redirected location was relative
 
