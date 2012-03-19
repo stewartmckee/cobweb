@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.32
+  Added enqueue counter to update for info on how many items have been queued for processing
+
 0.0.31
   Removed debug
 

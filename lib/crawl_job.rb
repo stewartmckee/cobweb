@@ -25,7 +25,8 @@ class CrawlJob
       increment_crawl_counter
       
       # if there is no limit or we're still under it lets get the url
-      if content_request[:crawl_limit].nil? or @crawl_counter <= content_request[:crawl_limit].to_i
+      if within_crawl_limits?(content_request[:crawl_limit])
+
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         
         ## update statistics
@@ -44,14 +45,20 @@ class CrawlJob
         internal_links.select!{|link| internal_link?(link)}
 
         internal_links.each do |link|
-          enqueue_content(content_request, link)        
+          enqueue_content(content_request, link) if within_queue_limits?(content_request[:crawl_limit])
         end
 
         # enqueue to processing queue
         Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:internal_urls => internal_patterns, :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
         puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if content_request[:debug]
-
+        
+        #if the enqueue counter has been requested update that
+        if content_request.has_key? :enqueue_counter_key                                                                                  
+          enqueue_redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), content_request[:enqueue_counter_namespace].to_s)
+          current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
+          enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
+        end
 
         # if the'res nothing left queued or the crawled limit has been reached
         if @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
@@ -78,6 +85,15 @@ class CrawlJob
   end
 
   private
+  
+  def self.within_crawl_limits?(crawl_limit)
+    crawl_limit.nil? or @crawl_counter <= crawl_limit.to_i
+  end
+  
+  def self.within_queue_limits?(crawl_limit)
+    within_crawl_limits?(crawl_limit) and (crawl_limit.nil? or @queue_counter <= crawl_limit.to_i)
+  end
+  
   def self.set_base_url(redis, content, content_request)
     if redis.get("base_url").nil?
       unless content[:redirect_through].nil? || content[:redirect_through].empty? || !content_request[:first_page_redirect_internal]
