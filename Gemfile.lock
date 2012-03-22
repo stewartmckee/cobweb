@@ -57,5 +57,6 @@ DEPENDENCIES
   redis
   resque
   rspec
+  rspec-core
   sinatra
   thin

@@ -12,7 +12,6 @@ gem 'sinatra'
 gem 'thin'
 gem 'haml'
 
-group :test do
-  gem 'rspec'
-  gem 'mock_redis'
-end
+gem 'rspec'
+gem 'rspec-core'
+gem 'mock_redis'
