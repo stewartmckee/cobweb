@@ -3,12 +3,8 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe Cobweb do
 
   before(:each) do
-  
     @base_url = "http://www.baseurl.com/"
-  
     @cobweb = Cobweb.new :quiet => true, :cache => nil
-
-    
   end
   
   it "should generate a cobweb object" do
