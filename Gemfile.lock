@@ -7,6 +7,7 @@ GEM
     diff-lcs (1.1.3)
     eventmachine (0.12.10)
     haml (3.1.4)
+    json (1.6.5)
     mock_redis (0.4.0)
     multi_json (1.0.4)
     nokogiri (1.5.0)
@@ -49,6 +50,7 @@ DEPENDENCIES
   addressable
   awesome_print
   haml
+  json
   mock_redis
   nokogiri
   rake

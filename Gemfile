@@ -7,7 +7,7 @@ gem 'addressable'
 gem 'awesome_print'
 gem 'nokogiri'
 gem 'addressable'
-
+gem 'json'
 gem 'sinatra'
 gem 'thin'
 gem 'haml'
