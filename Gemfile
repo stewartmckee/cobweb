@@ -9,7 +9,6 @@ gem 'nokogiri'
 gem 'addressable'
 gem 'json'
 gem 'sinatra'
-gem 'thin'
 gem 'haml'
 
 gem 'rspec'
