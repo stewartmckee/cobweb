@@ -1,5 +1,6 @@
 source 'http://rubygems.org'
 
+gem 'rake'
 gem 'redis'
 gem 'resque'
 gem 'addressable'
