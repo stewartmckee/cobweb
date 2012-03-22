@@ -97,7 +97,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = Marshal.load(redis.get(unique_id)).deep_symbolize_keys
+      content = deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
       # this url is valid for processing so lets get on with it
       uri = Addressable::URI.parse(url.strip)
@@ -169,7 +169,7 @@ class Cobweb
             content[:body] = Base64.encode64(response.body)
           end
           content[:location] = response["location"]
-          content[:headers] = response.to_hash.deep_symbolize_keys
+          content[:headers] = deep_symbolize_keys(response.to_hash)
           # parse data for links
           link_parser = ContentLinkParser.new(content[:url], content[:body])
           content[:links] = link_parser.link_data
@@ -252,7 +252,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get("head-#{unique_id}") and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = Marshal.load(redis.get("head-#{unique_id}")).deep_symbolize_keys
+      content = deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
     else
       print "Retrieving #{url }... " unless @options[:quiet]
       uri = Addressable::URI.parse(url.strip)
@@ -336,9 +336,17 @@ class Cobweb
       content
     end
   end
+  
+  def deep_symbolize_keys(hash)
+    hash.keys.each do |key|
+      value = hash[key]
+      hash.delete(key)
+      hash[key.to_sym] = value
+      if hash[key.to_sym].instance_of? Hash
+        hash[key.to_sym] = deep_symbolize_keys(hash[key.to_sym])
+      end
+    end
+    hash
+  end
+  
 end
-
-
-
-
-

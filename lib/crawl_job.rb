@@ -35,19 +35,21 @@ class CrawlJob
         # set the base url if this is the first page
         set_base_url @redis, content, content_request
         
-        internal_links = all_links_from_content(content).map{|link| link.to_s}
+        if within_queue_limits?(content_request[:crawl_limit])
+          internal_links = all_links_from_content(content).map{|link| link.to_s}
         
-        # reject the link if we've crawled it or queued it
-        internal_links.reject!{|link| @redis.sismember("crawled", link)}
-        internal_links.reject!{|link| @redis.sismember("queued", link)}
+          # reject the link if we've crawled it or queued it
+          internal_links.reject!{|link| @redis.sismember("crawled", link)}
+          internal_links.reject!{|link| @redis.sismember("queued", link)}
         
-        # select the link if its internal
-        internal_links.select!{|link| internal_link?(link)}
+          # select the link if its internal
+          internal_links.select!{|link| internal_link?(link)}
 
-        internal_links.each do |link|
-          enqueue_content(content_request, link) if within_queue_limits?(content_request[:crawl_limit])
+          internal_links.each do |link|
+            enqueue_content(content_request, link) if within_queue_limits?(content_request[:crawl_limit])
+          end
         end
-
+        
         # enqueue to processing queue
         Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:internal_urls => internal_patterns, :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
         puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
@@ -74,11 +76,10 @@ class CrawlJob
           Resque.enqueue(const_get(content_request[:crawl_finished_queue]), stats.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))            
 
         end
-        
-      else
-        puts "Crawl Limit Exceeded by #{@crawl_counter - content_request[:crawl_limit].to_i} objects" if content_request[:debug]
       end
     else
+      @redis.srem "queued", content_request[:url]
+      decrement_queue_counter
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
 
@@ -87,11 +88,11 @@ class CrawlJob
   private
   
   def self.within_crawl_limits?(crawl_limit)
-    crawl_limit.nil? or @crawl_counter <= crawl_limit.to_i
+    crawl_limit.nil? or @crawl_counter < crawl_limit.to_i
   end
   
   def self.within_queue_limits?(crawl_limit)
-    within_crawl_limits?(crawl_limit) and (crawl_limit.nil? or @queue_counter <= crawl_limit.to_i)
+    within_crawl_limits?(crawl_limit) and (crawl_limit.nil? or (@queue_counter + @crawl_counter) < crawl_limit.to_i)
   end
   
   def self.set_base_url(redis, content, content_request)

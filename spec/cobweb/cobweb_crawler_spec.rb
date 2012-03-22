@@ -17,41 +17,40 @@ describe CobwebCrawler do
 
   end  
 
-  describe "with mock" do
-
-    
-    it "should generate a cobweb_crawler object" do
-      CobwebCrawler.new.should be_an_instance_of CobwebCrawler
+  
+  it "should generate a cobweb_crawler object" do
+    CobwebCrawler.new.should be_an_instance_of CobwebCrawler
+  end
+  
+  describe "crawl" do
+    it "should crawl a site" do
+      
+      # temporary tests to run crawler - proper specs to follow.. honest
+      
+      crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
+      
+      statistics = crawler.crawl("http://rockwellcottage.heroku.com/")
+      
+      statistics.should_not be_nil
+      statistics.should be_an_instance_of Hash
+      
     end
     
-    describe "crawl" do
-      it "should crawl a site" do
-        
-        # temporary tests to run crawler - proper specs to follow.. honest
-        
-        crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
-        
-        statistics = crawler.crawl("http://rockwellcottage.heroku.com/")
-        
-        ap statistics
-        
+    it "should take a block" do
+
+      # temporary tests to run crawler - proper specs to follow.. honest
+
+      crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
+      
+      statistics = crawler.crawl("http://www.rockwellcottage.com/") do |content, statistics|
+        content[:url].should_not be_nil
+        statistics[:average_length].should_not be_nil
       end
       
-      it "should take a block" do
-
-        # temporary tests to run crawler - proper specs to follow.. honest
-
-        crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
-        
-        statistics = crawler.crawl("http://www.rockwellcottage.com/") do |content, statistics|
-          ap content[:url]
-          ap statistics[:average_length]
-        end
-        
-        ap statistics
-        
-      end
-    end  
+      statistics.should_not be_nil
+      statistics.should be_an_instance_of Hash
+      
+    end
   end  
 
 end 
