@@ -18,7 +18,10 @@ class ContentLinkParser
     @options[:tags][:images] = [["img[src]", "src"]]
     @options[:tags][:related] = [["link[rel]", "href"]]
     @options[:tags][:scripts] = [["script[src]", "src"]]
-    @options[:tags][:styles] = [["link[rel='stylesheet'][href]", "href"], ["style[@type^='text/css']", /url\("?(.*?)"?\)/]]    
+    @options[:tags][:styles] = [["link[rel='stylesheet'][href]", "href"], ["style[@type^='text/css']", lambda{|array,tag|
+      first_regex =/url\((['"]?)(.*?)\1\)/
+      tag.content.scan(first_regex) {|match| array << Addressable::URI.parse(match[1]).to_s}
+    }]]
     
     #clear the default tags if required
     @options[:tags] = {} if @options[:ignore_default_tags]
@@ -64,6 +67,13 @@ class ContentLinkParser
       @doc.css(selector).each do |tag|
         begin
           tag.content.scan(attribute) {|match| array << Addressable::URI.parse(match[0]).to_s}
+        rescue
+        end
+      end
+    elsif attribute.instance_of? Proc
+      @doc.css(selector).each do |tag|
+        begin
+          attribute.call(array, tag)
         rescue
         end
       end
