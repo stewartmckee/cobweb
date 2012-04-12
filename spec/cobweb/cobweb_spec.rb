@@ -133,7 +133,8 @@ describe Cobweb do
     describe "with cache" do
       
       before(:each) do
-        @cobweb = Cobweb.new :quiet => false, :debug => true, :cache => 1
+        @cobweb = Cobweb.new :quiet => true, :cache => 1
+        Redis.new.flushdb
       end
       
       describe "content object" do

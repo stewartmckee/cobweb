@@ -4,9 +4,9 @@ require 'mock_redis'
 RSpec.configure do |config|
   config.before(:each) {
     redis_mock = double("redis")
-    redis_mock.stub(:new).and_return(MockRedis.new)
+    redis_mock.stub(:new).and_return(@redis_mock_object)
     
-    #Redis.new.flushdb
+    #redis_mock.flushdb
     
     
     @default_headers = {"Cache-Control" => "private, max-age=0",
