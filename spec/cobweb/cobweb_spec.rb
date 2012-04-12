@@ -117,7 +117,7 @@ describe Cobweb do
         
       #end
       it "should not follow with redirect disabled" do
-        @cobweb = Cobweb.new(:follow_redirects => false, :cache => nil)
+        @cobweb = Cobweb.new(:follow_redirects => false, :cache => 3)
         @mock_http_client.should_receive(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)
         
         content = @cobweb.get(@base_url)
@@ -133,7 +133,7 @@ describe Cobweb do
     describe "with cache" do
       
       before(:each) do
-        @cobweb = Cobweb.new :quiet => true, :cache => 200
+        @cobweb = Cobweb.new :quiet => false, :debug => true, :cache => 1
       end
       
       describe "content object" do
@@ -169,8 +169,8 @@ describe Cobweb do
           @cobweb.get(@base_url)[:body].should == "asdf"
         end
         it "should return correct headers" do
-          @cobweb.get(@base_url)[:headers].should == @default_headers
-          @cobweb.get(@base_url)[:headers].should == @default_headers
+          @cobweb.get(@base_url)[:headers].should == @symbolized_default_headers
+          @cobweb.get(@base_url)[:headers].should == @symbolized_default_headers
         end
         it "should return correct a hash of links" do
           @cobweb.get(@base_url)[:links].should be_an_instance_of Hash

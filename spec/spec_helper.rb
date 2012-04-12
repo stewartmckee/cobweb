@@ -3,11 +3,10 @@ require 'mock_redis'
 
 RSpec.configure do |config|
   config.before(:each) {
-    #redis_mock = double("redis")
-    #ap redis_mock
-    #redis_mock.stub(:new).and_return(MockRedis.new)
+    redis_mock = double("redis")
+    redis_mock.stub(:new).and_return(MockRedis.new)
     
-    Redis.new.flushdb
+    #Redis.new.flushdb
     
     
     @default_headers = {"Cache-Control" => "private, max-age=0",
@@ -18,6 +17,15 @@ RSpec.configure do |config|
                         "Transfer-Encoding" => "chunked",
                         "Server" => "gws",
                         "X-XSS-Protection" => "1; mode=block"}
+
+    @symbolized_default_headers = {:"Cache-Control" => "private, max-age=0",
+                        :"Date" => "Wed, 10 Nov 2010 09:06:17 GMT",
+                        :"Expires" => "-1",
+                        :"Content-Type" => "text/html; charset=UTF-8",
+                        :"Content-Encoding" => "",
+                        :"Transfer-Encoding" => "chunked",
+                        :"Server" => "gws",
+                        :"X-XSS-Protection" => "1; mode=block"}
 
     @mock_http_client = mock(Net::HTTP)
     @mock_http_request = mock(Net::HTTPRequest)
