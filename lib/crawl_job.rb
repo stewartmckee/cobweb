@@ -126,11 +126,12 @@ class CrawlJob
   def self.all_links_from_content(content)
     links = content[:links].keys.map{|key| content[:links][key]}.flatten
     links.reject!{|link| link.starts_with?("javascript:")}
-    links = links.map{|link| Addressable::URI.join(content[:url], link)}
+    links = links.map{|link| UriHelper.join_no_fragment(content[:url], link) }
     links.select!{|link| link.scheme == "http" || link.scheme == "https"}
+    links.uniq
     links
   end
-  
+
   def self.enqueue_content(content_request, link)
     new_request = content_request.clone
     new_request[:url] = link
