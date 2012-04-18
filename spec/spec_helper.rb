@@ -41,7 +41,9 @@ RSpec.configure do |config|
     Net::HTTP::Get.stub!(:new).and_return(@mock_http_request)
     Net::HTTP::Get.stub!(:new).with("/redirect.html").and_return(@mock_http_redirect_request)
     Net::HTTP::Get.stub!(:new).with("/redirect2.html").and_return(@mock_http_redirect_request2)
-    
+
+    Net::HTTP::Head.stub!(:new).and_return(@mock_http_request)
+
     @mock_http_client.stub!(:request).with(@mock_http_request).and_return(@mock_http_response)
     @mock_http_client.stub!(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)      
     @mock_http_client.stub!(:request).with(@mock_http_redirect_request2).and_return(@mock_http_redirect_response2)
