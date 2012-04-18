@@ -4,6 +4,7 @@ require 'resque'
 require "addressable/uri"
 require 'digest/sha1'
 require 'base64'
+require 'namespaced_redis'
 
 Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
   require file
@@ -61,7 +62,7 @@ class Cobweb
     end
     
     request.merge!(@options)
-    @redis = NamespacedRedis.new(Redis.new(request[:redis_options]), "cobweb-#{Cobweb.version}-#{request[:crawl_id]}")
+    @redis = NamespacedRedis.new(request[:redis_options], "cobweb-#{Cobweb.version}-#{request[:crawl_id]}")
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
     @redis.set("queue-counter", 1)
@@ -87,9 +88,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
+      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
     else
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}")
+      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
     end
     
     content = {:base_url => url}
@@ -242,9 +243,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
+      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
     else
-      redis = NamespacedRedis.new(Redis.new(@options[:redis_options]), "cobweb-#{Cobweb.version}")
+      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
     end
     
     content = {}

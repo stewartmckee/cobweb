@@ -3,6 +3,7 @@ class CrawlJob
   require "net/https"  
   require "uri"
   require "redis"
+  require 'namespaced_redis'
 
   @queue = :cobweb_crawl_job
 
@@ -11,7 +12,7 @@ class CrawlJob
     # change all hash keys to symbols
     content_request = content_request.deep_symbolize_keys
     
-    @redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
+    @redis = NamespacedRedis.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     
     @debug = content_request[:debug]
     
@@ -57,7 +58,7 @@ class CrawlJob
         
         #if the enqueue counter has been requested update that
         if content_request.has_key? :enqueue_counter_key                                                                                  
-          enqueue_redis = NamespacedRedis.new(Redis.new(content_request[:redis_options]), content_request[:enqueue_counter_namespace].to_s)
+          enqueue_redis = NamespacedRedis.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
           current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
           enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
         end

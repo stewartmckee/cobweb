@@ -10,6 +10,7 @@ gem 'addressable'
 gem 'json'
 gem 'sinatra'
 gem 'haml'
+gem 'namespaced_redis'
 
 gem 'rspec'
 gem 'rspec-core'
