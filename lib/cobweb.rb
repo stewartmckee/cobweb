@@ -75,9 +75,11 @@ class Cobweb
   end
 
   def get(url, options = @options)
-
     raise "url cannot be nil" if url.nil?
-    
+    uri = Addressable::URI.parse(url)
+    uri.fragment=nil
+    url = uri.to_s
+
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url.to_s)
     if options.has_key?(:redirect_limit) and !options[:redirect_limit].nil?
@@ -101,8 +103,8 @@ class Cobweb
       content = deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
       # this url is valid for processing so lets get on with it
-      uri = Addressable::URI.parse(url.strip)
-      
+      #TODO the @http here is different from in head.  Should it be? - in head we are using a method-scoped variable.
+
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." unless @options[:quiet]
@@ -126,7 +128,7 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           
           # get location to redirect to
-          url = Addressable::URI.join(uri, response['location']).to_s
+          url = UriHelper.join_no_fragment(uri, response['location'])
           
           # decrement redirect limit
           redirect_limit = redirect_limit - 1
@@ -232,7 +234,10 @@ class Cobweb
   
   def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
-    
+    uri = Addressable::URI.parse(url.strip)
+    uri.fragment=nil
+    url = uri.to_s
+
     # get the unique id for this request
     unique_id = Digest::SHA1.hexdigest(url)
     if options.has_key?(:redirect_limit) and !options[:redirect_limit].nil?
@@ -256,8 +261,7 @@ class Cobweb
       content = deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
     else
       print "Retrieving #{url }... " unless @options[:quiet]
-      uri = Addressable::URI.parse(url.strip)
-      
+
       # retrieve data
       http = Net::HTTP.new(uri.host, uri.inferred_port)
       if uri.scheme == "https"
@@ -270,11 +274,12 @@ class Cobweb
       http.open_timeout = @options[:timeout].to_i
       
       begin      
-        response = http.head(uri.to_s)
-        
+        request = Net::HTTP::Head.new uri.request_uri
+        response = http.request request
+
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
-          url = Addressable::URI.parse(response['location']).to_s
+          url = UriHelper.join_no_fragment(uri, response['location'])
           redirect_limit = redirect_limit - 1
           options = options.clone
           options[:redirect_limit]=redirect_limit
