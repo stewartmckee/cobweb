@@ -234,7 +234,7 @@ class Cobweb
   
   def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
-    uri = Addressable::URI.parse(url.strip)
+    uri = Addressable::URI.parse(url)
     uri.fragment=nil
     url = uri.to_s
 
