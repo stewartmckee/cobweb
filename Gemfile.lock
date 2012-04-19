@@ -8,7 +8,8 @@ GEM
     json (1.6.5)
     mock_redis (0.4.0)
     multi_json (1.0.4)
-    namespaced_redis (0.0.1)
+    namespaced_redis (0.0.2)
+      redis
     nokogiri (1.5.0)
     rack (1.4.1)
     rack-protection (1.2.0)

@@ -1,7 +1,7 @@
 require 'digest/md5'
 require 'date'
 require 'ap'
-require 'namespaced_redis'
+#require 'namespaced_redis'
 
 class CobwebCrawler
   
@@ -12,7 +12,7 @@ class CobwebCrawler
     
     @options[:redis_options] = {:host => "127.0.0.1"} unless @options.has_key? :redis_options
     crawl_id = Digest::MD5.hexdigest(DateTime.now.inspect.to_s)
-  
+    
     @redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{crawl_id}")
     
     @cobweb = Cobweb.new(@options)
