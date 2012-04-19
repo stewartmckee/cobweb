@@ -20,7 +20,7 @@ class Cobweb
   # investigate using event machine for single threaded crawling
   
   def self.version
-    "0.0.34"
+    "0.0.35"
   end
   
   def method_missing(method_sym, *arguments, &block)
@@ -234,7 +234,7 @@ class Cobweb
   
   def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
-    uri = Addressable::URI.parse(url.strip)
+    uri = Addressable::URI.parse(url)
     uri.fragment=nil
     url = uri.to_s
 
