@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.0.36
+  pulled merge request for seeing errors on a redirect
+
+0.0.35
+
 0.0.34
   Updated to use namespaced_redis gem
   pulled merge request to remove anchors when making requests
