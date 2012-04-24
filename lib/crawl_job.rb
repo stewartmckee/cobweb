@@ -52,9 +52,7 @@ class CrawlJob
         end
         
         # enqueue to processing queue
-        Resque.enqueue(const_get(content_request[:processing_queue]), content.merge({:internal_urls => internal_patterns, :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]}))
-        puts "#{content_request[:url]} has been sent for processing." if content_request[:debug]
-        puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if content_request[:debug]
+        send_to_processing_queue(content, content_request)
         
         #if the enqueue counter has been requested update that
         if content_request.has_key? :enqueue_counter_key                                                                                  
@@ -63,7 +61,7 @@ class CrawlJob
           enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
         end
 
-        # if the'res nothing left queued or the crawled limit has been reached
+        # if there's nothing left queued or the crawled limit has been reached
         if @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
 
           # finished
@@ -84,6 +82,19 @@ class CrawlJob
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
 
+  end
+
+  def self.send_to_processing_queue(content, content_request)
+    content_to_send = content.merge({:internal_urls => internal_patterns, :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
+    if content_request[:use_encoding_safe_process_job]
+      content_to_send[:body] = Base64.encode64(content[:body])
+      content_to_send[:processing_queue] = content_request[:processing_queue]
+      Resque.enqueue(EncodingSafeProcessJob, content_to_send)
+    else
+      Resque.enqueue(const_get(content_request[:processing_queue]), content_to_send)
+    end
+    puts "#{content_request[:url]} has been sent for processing. use_encoding_safe_process_job: #{content_request[:use_encoding_safe_process_job]}" if content_request[:debug]
+    puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if content_request[:debug]
   end
 
   private
