@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.36
+h1. Cobweb v0.0.37
 
 h2. Intro 
   
