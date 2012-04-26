@@ -5,13 +5,32 @@ class Stats < Sinatra::Base
   
   def self.update_statistics(statistics)
     @@statistics = statistics
+    @@statistics
+  end
+  
+  def self.get_statistics
+    @@statistics ||= {}
   end
   
   def self.update_status(status)
     @@status = status
   end
   
+  def self.set_totals
+    stats = @redis.hgetall "statistics"
+    stats[:total_pages] = @redis.get("total_pages").to_i
+    stats[:total_assets] = @redis.get("total_assets").to_i
+    stats[:crawl_counter] = @crawl_counter
+    stats[:queue_counter] = @queue_counter
+    stats[:crawled] = @redis.smembers "crawled"
+
+    Stats.update_statistics(stats)
+  end
+  
   def self.set_statistics_in_redis(redis, content)
+    
+    @redis = redis
+    
     crawl_counter = redis.get("crawl-counter").to_i
     queue_counter = redis.get("queue-counter").to_i
     
@@ -62,6 +81,7 @@ class Stats < Sinatra::Base
     end
     redis.hset "statistics", "status_counts", status_counts.to_json
     
+    @@statistics = @redis.hgetall "statistics"
   end
   
   set :views, settings.root + '/../views'

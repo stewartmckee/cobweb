@@ -10,8 +10,9 @@ class CrawlJob
   def self.perform(content_request)
     
     # change all hash keys to symbols
-    content_request = content_request.deep_symbolize_keys
+    content_request = self.deep_symbolize_keys(content_request)
     
+    content_request[:redis_options] = {} unless content_request.has_key? :redis_options
     @redis = NamespacedRedis.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     
     @debug = content_request[:debug]
@@ -62,18 +63,12 @@ class CrawlJob
         end
 
         # if there's nothing left queued or the crawled limit has been reached
-        if @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
-
-          # finished
-          stats = @redis.hgetall "statistics"
-          stats[:total_pages] = @redis.get("total_pages").to_i
-          stats[:total_assets] = @redis.get("total_assets").to_i
-          stats[:crawl_counter] = @crawl_counter
-          stats[:queue_counter] = @queue_counter
-          stats[:crawled] = @redis.smembers "crawled"
-
-          Resque.enqueue(const_get(content_request[:crawl_finished_queue]), stats.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))            
-
+        if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
+          if @redis.scard("queued") == 0
+            finished(content_request)
+          end
+        elsif @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
+          finished(content_request)
         end
       end
     else
@@ -82,6 +77,14 @@ class CrawlJob
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
 
+  end
+
+  def self.finished(content_request)
+    # finished
+    
+    Stats.set_totals
+
+    Resque.enqueue(const_get(content_request[:crawl_finished_queue]), Stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))                
   end
 
   def self.send_to_processing_queue(content, content_request)
@@ -174,5 +177,16 @@ class CrawlJob
     @redis.set("queue-counter", @redis.smembers("queued").count)
     @crawl_counter = @redis.get("crawl-counter").to_i
     @queue_counter = @redis.get("queue-counter").to_i
+  end
+  def self.deep_symbolize_keys(hash)
+    hash.keys.each do |key|
+      value = hash[key]
+      hash.delete(key)
+      hash[key.to_sym] = value
+      if hash[key.to_sym].instance_of? Hash
+        hash[key.to_sym] = self.deep_symbolize_keys(hash[key.to_sym])
+      end
+    end
+    hash
   end
 end
