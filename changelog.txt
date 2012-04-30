@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.0.39
+  added internal links addition to cobweb_crawler
+  added more advanced statistics to sinatra app
+
 0.0.38
   fixed detection of crawl finishing when no crawl_limit has been set
 

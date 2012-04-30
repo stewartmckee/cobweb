@@ -1,71 +1,251 @@
-%h1 Cobweb Statistics
 
-%h4= @status
+.section
+  .big
+    .box
+      .title
+        %h2 Status
+        %span.hide
+      .content
+        = @crawl[:statistics][:current_status]
+  .small
+    .box
+      .title
+        %h2 Queues
+        %span.hide
+      .content
+        %table
+          %thead
+            %tr
+              %th Crawled
+              %th Queued
+          %tbody
+            %tr
+              %td= @crawl[:statistics][:crawl_counter]
+              %td= @crawl[:statistics][:queue_counter]
 
-%table
-  %tr
-    %th Page Count
-    %th Asset Count
-    %th Redirect Count  
-  %tr
-    %td= @statistics[:page_count]
-    %td= @statistics[:asset_count]
-    %td= @statistics[:total_redirects]  
+.section
+  .big
+    .box
+      .title
+        %h2 Pages and Assets
+        %span.hide
+      .content
+        .caption Counts of assets and pages that have been crawled
+        %table.statics{:style => "width : 100%;"}
+          %thead
+            %tr
+              %th
+              %th{:style => "color: #00366f;"} Pages
+              %th{:style => "color: #006ba0;"} Assets
 
-%table
-  %tr
-    %th Total Page Size
-    %th Total Asset Size
-  %tr
-    %td= @statistics[:page_size]
-    %td= @statistics[:asset_size]
+          %tbody
+            - (1..30).each do |minutes|
+              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              %tr
+                %th= minutes
+                %td= @crawl[:pages_count][date]
+                %td= @crawl[:assets_count][date]
+  .small
+    .box
+      .title
+        %h2 Totals
+        %span.hide
+      .content
+        .caption Totals for crawl
+        %table{:style => "width : 100%;"}
+          %thead
+            %tr
+              %th
+              %th{:style => "color: #00366f;"} Pages
+              %th{:style => "color: #006ba0;"} Assets
 
-%table
-  %tr
-    %th Crawled
-    %th Queued
-  %tr
-    %td= @statistics[:crawl_counter]
-    %td= @statistics[:queue_counter]
+          %tbody
+            %tr
+              %th Count
+              %td= @crawl[:statistics][:page_count]
+              %td= @crawl[:statistics][:asset_count]
+            %tr
+              %th Size
+              %td= @crawl[:statistics][:page_size]
+              %td= @crawl[:statistics][:asset_size]
+  
+
+.section
+  .medium
+    .box
+      .title
+        %h2 Status counts
+        %span.hide
+      .content
+        .caption Status codes returned per minute
+        %table.statics{:style => "width : 100%;"}
+          %thead
+            %tr
+              %th
+              %th{:style => "color: #00366f;"} 200
+              %th{:style => "color: #006ba0;"} 300
+              %th{:style => "color: #006ba0;"} 500
+
+          %tbody
+            - (1..30).each do |minutes|
+              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              %tr
+                %th= minutes
+                %td= @crawl[:status_200_count][date]
+                %td= @crawl[:status_300_count][date]
+                %td= @crawl[:status_500_count][date]
 
 
-%table
-  %tr
-    %th{:colspan => 2} Response Times
-  %tr
-    %th Average
-    %td= @statistics[:average_response_time]
-  %tr
-    %th Maximum
-    %td= @statistics[:maximum_response_time]
-  %tr
-    %th Minimum
-    %td= @statistics[:minimum_response_time]
+  .medium
+    .box
+      .title
+        %h2 Mime counts
+        %span.hide
+      .content
+        .caption Mime types processed per minute
+        %table.statics{:style => "width : 100%;"}
+          %thead
+            %tr
+              %th
+              %th{:style => "color: #00366f;"} Text
+              %th{:style => "color: #006ba0;"} Image
+              %th{:style => "color: #006ba0;"} Application
 
-%table
-  %tr
-    %th{:colspan => 2} Content Sizes
-  %tr
-    %th Average
-    %td= @statistics[:average_length]
-  %tr
-    %th Maximum
-    %td= @statistics[:maximum_length]
-  %tr
-    %th Minimum
-    %td= @statistics[:minimum_length]
-  %tr
-    %th Total
-    %td= @statistics[:total_length]
+          %tbody
+            - (1..30).each do |minutes|
+              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              %tr
+                %th= minutes
+                %td= @crawl[:mime_text_count][date]
+                %td= @crawl[:mime_image_count][date]
+                %td= @crawl[:mime_application_count][date]
 
-%table
-  - @statistics[:mime_counts].keys.each do |mime_type|
-    %tr
-      %td= mime_type
-      %td= @statistics[:mime_counts][mime_type]
 
-%table
-  - @statistics[:status_counts].keys.each do |status|
-    %tr
-      %td= status
-      %td= @statistics[:status_counts][status]
+.section
+  .medium
+    .box
+      .title
+        %h2 Status counts
+        %span.hide
+      .content
+        .caption Total status codes returned
+        %table{:style => "width : 100%;"}
+          %thead
+            %tr
+              %th Status code
+              %th Count
+
+          %tbody
+            - @crawl[:statistics][:status_counts].keys.each do |status|
+              - unless status.nil? || status == ""
+                %tr
+                  %td= status
+                  %td= @crawl[:statistics][:status_counts][status]
+
+  .medium
+    .box
+      .title
+        %h2 Mime type counts
+        %span.hide
+      .content
+        .caption Total mime-types returned
+        %table{:style => "width : 100%;"}
+          %thead
+            %tr
+              %th Mime-type
+              %th Count
+
+          %tbody
+            - @crawl[:statistics][:mime_counts].keys.each do |mime_type|
+              %tr
+                %td= mime_type
+                %td= @crawl[:statistics][:mime_counts][mime_type]
+  
+  
+
+
+
+.section
+  .small
+    .box
+      .title
+        %h2 Counts
+        %span.hide
+      .content
+        %table
+          %thead
+            %tr
+              %th Page Count
+              %th Asset Count
+              %th Redirect Count  
+          %tbody
+            %tr
+              %td= @crawl[:statistics][:page_count]
+              %td= @crawl[:statistics][:asset_count]
+              %td= @crawl[:statistics][:total_redirects]  
+
+  .small
+    .box
+      .title
+        %h2 Counts
+        %span.hide
+      .content
+        %table
+          %thead
+            %tr
+              %th Total Page Size
+              %th Total Asset Size
+          %tbody
+            %tr
+              %td= @crawl[:statistics][:page_size]
+              %td= @crawl[:statistics][:asset_size]
+
+
+.section
+  .medium
+    .box
+      .title
+        %h2 Response Times
+        %span.hide
+      .content
+        %table
+          %thead
+            %tr
+              %th
+              %th{:colspan => 2} milliseconds
+          %tbody
+            %tr
+              %th Average
+              %td= @crawl[:statistics][:average_response_time]
+            %tr
+              %th Maximum
+              %td= @crawl[:statistics][:maximum_response_time]
+            %tr
+              %th Minimum
+              %td= @crawl[:statistics][:minimum_response_time]
+
+  .medium
+    .box
+      .title
+        %h2 Content Sizes
+        %span.hide
+      .content
+        %table
+          %thead
+            %tr
+              %th
+              %th{:colspan => 2} Content Sizes
+          %tbody
+            %tr
+              %th Average
+              %td= @crawl[:statistics][:average_length]
+            %tr
+              %th Maximum
+              %td= @crawl[:statistics][:maximum_length]
+            %tr
+              %th Minimum
+              %td= @crawl[:statistics][:minimum_length]
+            %tr
+              %th Total
+              %td= @crawl[:statistics][:total_length]
+

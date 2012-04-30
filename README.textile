@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.38
+h1. Cobweb v0.0.39
 
 h2. Intro 
   
@@ -98,6 +98,8 @@ bq. crawler.head("http://www.google.com/")
 h3. Contributing/Testing
 
   Feel free to contribute small or large bits of code, just please make sure that there are rspec test for the features your submitting.  We also test on travis at http://travis-ci.org/#!/stewartmckee/cobweb if you want to see the state of the project.
+  
+    Continuous integration testing is performed by the excellent Travis: http://travis-ci.org/#!/stewartmckee/cobweb
 
 h2. License
 

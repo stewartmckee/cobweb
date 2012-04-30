@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.platform          = Gem::Platform::RUBY
   s.description       = "Web Crawler that uses resque background job engine to allow you to cluster your crawl."
   s.summary           = "Web Crawler that uses resque background job engine to allow you to cluster your crawl."
-  s.files             = Dir["{spec,lib,views}/**/*"].delete_if { |f| f =~ /(rdoc)$/i }
+  s.files             = Dir["{spec,lib,views,public}/**/*"].delete_if { |f| f =~ /(rdoc)$/i }
   s.require_path      = "lib"
   s.has_rdoc          = false
   s.extra_rdoc_files  = ["README.textile"]
