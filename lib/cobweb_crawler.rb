@@ -15,6 +15,7 @@ class CobwebCrawler
     @options[:crawl_id] = @crawl_id
     
     @redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{@crawl_id}")
+    @options[:internal_urls] = [] if @options[:internal_urls].nil?
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
     @debug = @options[:debug]
     
@@ -28,6 +29,9 @@ class CobwebCrawler
   
   def crawl(base_url, crawl_options = {}, &block)
     @options[:base_url] = base_url unless @options.has_key? :base_url
+    
+    @options[:internal_urls] << base_url if @options[:internal_urls].empty?
+    @redis.sadd("internal_urls", base_url) if @options[:internal_urls].empty?
     
     @crawl_options = crawl_options
     

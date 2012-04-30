@@ -67,6 +67,8 @@ class Cobweb
     @redis.set("crawl-counter", 0)
     @redis.set("queue-counter", 1)
     
+    @stats = Stats.new(request)
+    @stats.start_crawl(request)
     
     # add internal_urls into redis
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
