@@ -14,6 +14,7 @@ class CrawlJob
     
     content_request[:redis_options] = {} unless content_request.has_key? :redis_options
     @redis = NamespacedRedis.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
+    @stats = Stats.new(content_request)
     
     @debug = content_request[:debug]
     
@@ -32,7 +33,7 @@ class CrawlJob
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         
         ## update statistics
-        Stats.set_statistics_in_redis(@redis, content)
+        @stats.update_statistics(content)
         
         # set the base url if this is the first page
         set_base_url @redis, content, content_request
@@ -81,9 +82,7 @@ class CrawlJob
 
   def self.finished(content_request)
     # finished
-    
-    Stats.set_totals
-
+    @stats.end_crawl(content_request)
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), Stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))                
   end
 
