@@ -79,6 +79,7 @@ class Cobweb
   def get(url, options = @options)
     raise "url cannot be nil" if url.nil?
     uri = Addressable::URI.parse(url)
+    uri.normalize!
     uri.fragment=nil
     url = uri.to_s
 
@@ -237,6 +238,7 @@ class Cobweb
   def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
     uri = Addressable::URI.parse(url)
+    uri.normalize!
     uri.fragment=nil
     url = uri.to_s
 
