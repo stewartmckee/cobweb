@@ -46,7 +46,7 @@ class Server < Sinatra::Base
         :crawl_details => HashUtil.deep_symbolize_keys(redis.hgetall("crawl_details")), 
         :minute_totals => HashUtil.deep_symbolize_keys(redis.hgetall("minute_totals")),
         :status_200_count => HashUtil.deep_symbolize_keys(redis.hgetall("status_200_count")),
-        :status_300_count => HashUtil.deep_symbolize_keys(redis.hgetall("status_300_count")),
+        :status_400_count => HashUtil.deep_symbolize_keys(redis.hgetall("status_400_count")),
         :status_500_count => HashUtil.deep_symbolize_keys(redis.hgetall("status_500_count")),
         :mime_text_count => HashUtil.deep_symbolize_keys(redis.hgetall("mime_text_count")),
         :mime_image_count => HashUtil.deep_symbolize_keys(redis.hgetall("mime_image_count")),
@@ -83,5 +83,16 @@ class HashUtil
       end
     end
     hash
+  end
+end
+
+class Numeric
+  def to_human
+    units = %w{B KB MB GB TB}
+    ap self
+    e = 0
+    e = (Math.log(self)/Math.log(1024)).floor unless self==0
+    s = "%.3f" % (to_f / 1024**e)
+    s.sub(/\.?0*$/, units[e])
   end
 end

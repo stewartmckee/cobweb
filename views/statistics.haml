@@ -66,8 +66,8 @@
               %td= @crawl[:statistics][:asset_count]
             %tr
               %th Size
-              %td= @crawl[:statistics][:page_size]
-              %td= @crawl[:statistics][:asset_size]
+              %td= @crawl[:statistics][:page_size].to_i.to_human
+              %td= @crawl[:statistics][:asset_size].to_i.to_human  
   
 
 .section
@@ -83,8 +83,8 @@
             %tr
               %th
               %th{:style => "color: #00366f;"} 200
-              %th{:style => "color: #006ba0;"} 300
-              %th{:style => "color: #006ba0;"} 500
+              %th{:style => "color: #006ba0;"} 400
+              %th{:style => "color: #0486D6;"} 500
 
           %tbody
             - (1..30).each do |minutes|
@@ -92,7 +92,7 @@
               %tr
                 %th= minutes
                 %td= @crawl[:status_200_count][date]
-                %td= @crawl[:status_300_count][date]
+                %td= @crawl[:status_400_count][date]
                 %td= @crawl[:status_500_count][date]
 
 
@@ -109,7 +109,7 @@
               %th
               %th{:style => "color: #00366f;"} Text
               %th{:style => "color: #006ba0;"} Image
-              %th{:style => "color: #006ba0;"} Application
+              %th{:style => "color: #0486D6;"} Application
 
           %tbody
             - (1..30).each do |minutes|
@@ -187,7 +187,7 @@
   .small
     .box
       .title
-        %h2 Counts
+        %h2 Total Sizes
         %span.hide
       .content
         %table
@@ -197,8 +197,8 @@
               %th Total Asset Size
           %tbody
             %tr
-              %td= @crawl[:statistics][:page_size]
-              %td= @crawl[:statistics][:asset_size]
+              %td= @crawl[:statistics][:page_size].to_i.to_human
+              %td= @crawl[:statistics][:asset_size].to_i.to_human
 
 
 .section
@@ -238,14 +238,14 @@
           %tbody
             %tr
               %th Average
-              %td= @crawl[:statistics][:average_length]
+              %td= @crawl[:statistics][:average_length].to_i.to_human
             %tr
               %th Maximum
-              %td= @crawl[:statistics][:maximum_length]
+              %td= @crawl[:statistics][:maximum_length].to_i.to_human
             %tr
               %th Minimum
-              %td= @crawl[:statistics][:minimum_length]
+              %td= @crawl[:statistics][:minimum_length].to_i.to_human
             %tr
               %th Total
-              %td= @crawl[:statistics][:total_length]
+              %td= @crawl[:statistics][:total_length].to_i.to_human
 
