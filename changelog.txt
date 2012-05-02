@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+0.0.41
+  fixed bug showing duplicates in statistics
+
+0.0.40
+  added ability for cobweb_crawler to set crawl_id manually which allows restarting crawls from last position
+
 0.0.39
   added internal links addition to cobweb_crawler
   added more advanced statistics to sinatra app

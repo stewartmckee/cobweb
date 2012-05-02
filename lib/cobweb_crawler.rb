@@ -11,8 +11,12 @@ class CobwebCrawler
     @statistic = {}
     
     @options[:redis_options] = {:host => "127.0.0.1"} unless @options.has_key? :redis_options
-    @crawl_id = Digest::MD5.hexdigest(DateTime.now.inspect.to_s)
-    @options[:crawl_id] = @crawl_id
+    if @options.has_key? :crawl_id
+      @crawl_id = @options[:crawl_id]
+    else
+      @crawl_id = Digest::MD5.hexdigest(DateTime.now.inspect.to_s)
+      @options[:crawl_id] = @crawl_id
+    end
     
     @redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{@crawl_id}")
     @options[:internal_urls] = [] if @options[:internal_urls].nil?
