@@ -163,7 +163,19 @@ class Stats
   end
   
   def get_statistics
-    @redis.hgetall "statistics"
+    
+    @statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
+    if @statistics[:status_counts].nil?
+      @statistics[:status_counts]
+    else
+      @statistics[:status_counts] = JSON.parse(@statistics[:status_counts])
+    end
+    if @statistics[:mime_counts].nil?
+      @statistics[:mime_counts]
+    else
+      @statistics[:mime_counts] = JSON.parse(@statistics[:mime_counts])
+    end
+    @statistics
   end
   
   def update_status(status)

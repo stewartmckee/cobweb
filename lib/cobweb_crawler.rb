@@ -103,7 +103,7 @@ class CobwebCrawler
     ensure
       @stats.end_crawl(@options)
     end
-    @statistic
+    @stats.get_statistics
   end
   
   

@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.42
+  fixed bug with cobweb crawler returning empty hash
+
 0.0.41
   fixed bug showing duplicates in statistics
 
