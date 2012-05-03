@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require 'cobweb'
+require 'cobweb_version'
 
 Gem::Specification.new do |s|
   
   s.name              = "cobweb"
-  s.version           = Cobweb.version
+  s.version           = CobwebVersion.version
   s.author            = "Stewart McKee"
   s.email             = "stewart@rockwellcottage.com"
   s.homepage          = "http://github.com/stewartmckee/cobweb"
