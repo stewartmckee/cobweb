@@ -42,7 +42,7 @@ class CobwebCrawler
     puts "http://localhost:4567/statistics/#{@crawl_id}"
     puts ""
     
-    @redis.sadd "queued", base_url
+    @redis.sadd("queued", base_url) unless @redis.sismember("crawled", base_url) || @redis.sismember("queued", base_url)
     crawl_counter = @redis.scard("crawled").to_i
     queue_counter = @redis.scard("queued").to_i
 
@@ -52,8 +52,6 @@ class CobwebCrawler
         thread = Thread.new do
         
           url = @redis.spop "queued"
-          crawl_counter = @redis.scard("crawled").to_i
-          queue_counter = @redis.scard("queued").to_i
         
           @options[:url] = url
           unless @redis.sismember("crawled", url.to_s)
@@ -79,10 +77,10 @@ class CobwebCrawler
                 puts "Added #{link.to_s} to queue" if @debug
                 @redis.sadd "queued", link
               end
-            
-              crawl_counter = @redis.scard("crawled").to_i
-              queue_counter = @redis.scard("queued").to_i
-
+              
+              crawl_counter = crawl_counter + 1 #@redis.scard("crawled").to_i
+              queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
+              
               @stats.update_statistics(content)
               @stats.update_status("Completed #{url}.")
               puts "Crawled: #{crawl_counter.to_i} Limit: #{@options[:crawl_limit].to_i} Queued: #{queue_counter.to_i}" if @debug 
