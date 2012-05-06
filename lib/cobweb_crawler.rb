@@ -128,7 +128,7 @@ class CobwebCrawler
     links = content[:links].keys.map{|key| content[:links][key]}.flatten
     links.reject!{|link| link.cobweb_starts_with?("javascript:")}
     links = links.map{|link| UriHelper.join_no_fragment(content[:url], link) }
-    links.select!{|link| link.scheme == "http" || link.scheme == "https"}
+    links = links.select{|link| link.scheme == "http" || link.scheme == "https"}
     links.uniq
     links
   end
