@@ -68,11 +68,10 @@ class CobwebCrawler
               # reject the link if we've crawled it or queued it
               internal_links.reject!{|link| @redis.sismember("crawled", link)}
               internal_links.reject!{|link| @redis.sismember("queued", link)}
-            
-
+              
               # select the link if its internal
               internal_links = internal_links.select{|link| internal_link?(link)}
-
+              
               internal_links.each do |link|
                 puts "Added #{link.to_s} to queue" if @debug
                 @redis.sadd "queued", link
@@ -85,7 +84,7 @@ class CobwebCrawler
               @stats.update_statistics(content, crawl_counter, queue_counter)
               @stats.update_status("Completed #{url}.")
               puts "Crawled: #{crawl_counter.to_i} Limit: #{@options[:crawl_limit].to_i} Queued: #{queue_counter.to_i}" if @debug 
-       
+              
               yield content, @stats.get_statistics if block_given?
 
             rescue => e

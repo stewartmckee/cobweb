@@ -1,16 +1,15 @@
 require File.expand_path(File.dirname(__FILE__) + '/../lib/cobweb')
 require 'mock_redis'
 
+ENVIRONMENT = "test"
+
 RSpec.configure do |config|
   config.before(:each) {
-    
-    ENVIRONMENT ||= "test"
-    
+        
     redis_mock = double("redis")
     redis_mock.stub(:new).and_return(@redis_mock_object)
     
     #redis_mock.flushdb
-    
     
     @default_headers = {"Cache-Control" => "private, max-age=0",
                         "Date" => "Wed, 10 Nov 2010 09:06:17 GMT",

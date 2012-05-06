@@ -6,6 +6,7 @@ require [File.dirname(__FILE__), "lib", "cobweb"].join("/")
 task :default => :spec
  
 RSpec::Core::RakeTask.new do |t|
+  ENV['RUBY_ENVIRONMENT'] = "test"
   t.pattern = "./spec/**/*_spec.rb" # don't need this, it's default.
   # Put spec opts in a file named .rspec in root
 end
