@@ -141,7 +141,7 @@ class Cobweb
           cookies = get_cookies(response)
 
           # get the content from redirect location
-          content = get(url, options.merge(:redirect_limit => redirect_limit, cookies: cookies))
+          content = get(url, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
