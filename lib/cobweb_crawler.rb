@@ -71,7 +71,7 @@ class CobwebCrawler
             
 
               # select the link if its internal
-              internal_links.select!{|link| internal_link?(link)}
+              internal_links = internal_links.select{|link| internal_link?(link)}
 
               internal_links.each do |link|
                 puts "Added #{link.to_s} to queue" if @debug
