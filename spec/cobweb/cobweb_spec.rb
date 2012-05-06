@@ -186,22 +186,22 @@ describe Cobweb do
     describe "location setting" do
       it "Get should strip fragments" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/")
+        Net::HTTP::Get.should_receive(:new).with("/", {})
         @cobweb.get("http://www.google.com/#ignore")
       end
       it "head should strip fragments" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Head.should_receive(:new).with("/").and_return(@mock_http_request)
+        Net::HTTP::Head.should_receive(:new).with("/", {}).and_return(@mock_http_request)
         @cobweb.head("http://www.google.com/#ignore")
       end
       it "get should not strip path" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff")
+        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff", {})
         @cobweb.get("http://www.google.com/path/to/stuff#ignore")
       end
       it "get should not strip query string" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff?query_string")
+        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff?query_string", {})
         @cobweb.get("http://www.google.com/path/to/stuff?query_string#ignore")
       end
     end

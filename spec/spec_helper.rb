@@ -39,8 +39,8 @@ RSpec.configure do |config|
     
     Net::HTTP.stub!(:new).and_return(@mock_http_client)
     Net::HTTP::Get.stub!(:new).and_return(@mock_http_request)
-    Net::HTTP::Get.stub!(:new).with("/redirect.html").and_return(@mock_http_redirect_request)
-    Net::HTTP::Get.stub!(:new).with("/redirect2.html").and_return(@mock_http_redirect_request2)
+    Net::HTTP::Get.stub!(:new).with("/redirect.html", {}).and_return(@mock_http_redirect_request)
+    Net::HTTP::Get.stub!(:new).with("/redirect2.html", {}).and_return(@mock_http_redirect_request2)
 
     Net::HTTP::Head.stub!(:new).and_return(@mock_http_request)
 
@@ -60,6 +60,7 @@ RSpec.configure do |config|
     @mock_http_response.stub!(:[]).with("Content-Encoding").and_return(@default_headers["Content-Encoding"])
     @mock_http_response.stub!(:content_length).and_return(1024)
     @mock_http_response.stub!(:body).and_return("asdf")
+    @mock_http_response.stub!(:get_fields).with('set-cookie').and_return(["session=al98axx; expires=Fri, 31-Dec-1999 23:58:23", "query=rubyscript; expires=Fri, 31-Dec-1999 23:58:23"])
     @mock_http_response.stub!(:to_hash).and_return(@default_headers)
     
     @mock_http_redirect_response.stub!(:code).and_return(301)
@@ -69,6 +70,7 @@ RSpec.configure do |config|
     @mock_http_redirect_response.stub!(:[]).with("Content-Encoding").and_return(@default_headers["Content-Encoding"])
     @mock_http_redirect_response.stub!(:content_length).and_return(2048)
     @mock_http_redirect_response.stub!(:body).and_return("redirected body")
+    @mock_http_redirect_response.stub!(:get_fields).with('set-cookie').and_return(["session=al98axx; expires=Fri, 31-Dec-1999 23:58:23", "query=rubyscript; expires=Fri, 31-Dec-1999 23:58:23"])
     @mock_http_redirect_response.stub!(:to_hash).and_return(@default_headers)
     
     @mock_http_redirect_response2.stub!(:code).and_return(301)
@@ -78,6 +80,7 @@ RSpec.configure do |config|
     @mock_http_redirect_response2.stub!(:[]).with("Content-Encoding").and_return(@default_headers["Content-Encoding"])
     @mock_http_redirect_response2.stub!(:content_length).and_return(2048)
     @mock_http_redirect_response2.stub!(:body).and_return("redirected body")
+    @mock_http_redirect_response2.stub!(:get_fields).with('set-cookie').and_return(["session=al98axx; expires=Fri, 31-Dec-1999 23:58:23", "query=rubyscript; expires=Fri, 31-Dec-1999 23:58:23"])
     @mock_http_redirect_response2.stub!(:to_hash).and_return(@default_headers)
   }
 
