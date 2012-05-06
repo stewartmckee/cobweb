@@ -3,6 +3,9 @@ require 'mock_redis'
 
 RSpec.configure do |config|
   config.before(:each) {
+    
+    ENVIRONMENT ||= "test"
+    
     redis_mock = double("redis")
     redis_mock.stub(:new).and_return(@redis_mock_object)
     
