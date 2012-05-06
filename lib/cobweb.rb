@@ -304,7 +304,7 @@ class Cobweb
           raise RedirectError, "Redirect Limit reached" if redirect_limit == 0
           cookies = get_cookies(response)
 
-          content = head(url, options.merge(:redirect_limit => redirect_limit, cookies: cookies))
+          content = head(url, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
