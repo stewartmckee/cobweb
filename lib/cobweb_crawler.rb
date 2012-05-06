@@ -76,12 +76,13 @@ class CobwebCrawler
               internal_links.each do |link|
                 puts "Added #{link.to_s} to queue" if @debug
                 @redis.sadd "queued", link
+                queue_counter += 1
               end
               
               crawl_counter = crawl_counter + 1 #@redis.scard("crawled").to_i
               queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
               
-              @stats.update_statistics(content)
+              @stats.update_statistics(content, crawl_counter, queue_counter)
               @stats.update_status("Completed #{url}.")
               puts "Crawled: #{crawl_counter.to_i} Limit: #{@options[:crawl_limit].to_i} Queued: #{queue_counter.to_i}" if @debug 
        
@@ -125,7 +126,7 @@ class CobwebCrawler
 
   def all_links_from_content(content)
     links = content[:links].keys.map{|key| content[:links][key]}.flatten
-    links.reject!{|link| link.starts_with?("javascript:")}
+    links.reject!{|link| link.cobweb_starts_with?("javascript:")}
     links = links.map{|link| UriHelper.join_no_fragment(content[:url], link) }
     links.select!{|link| link.scheme == "http" || link.scheme == "https"}
     links.uniq
@@ -134,7 +135,7 @@ class CobwebCrawler
 end
 
 class String
-  def starts_with?(val)
+  def cobweb_starts_with?(val)
     if self.length >= val.length
       self[0..val.length-1] == val
     else

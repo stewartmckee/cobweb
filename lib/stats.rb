@@ -21,50 +21,48 @@ class Stats
     @redis.del "crawl_details"
   end
   
-  def update_statistics(content)
+  def update_statistics(content, crawl_counter=@redis.scard("crawled").to_i, queue_counter=@redis.scard("queued").to_i)
     
-    crawl_counter = @redis.scard("crawled").to_i
-    queue_counter = @redis.scard("queued").to_i
+    @statistics = get_statistics
     
-    if @redis.hexists "statistics", "average_response_time"
-      @redis.hset("statistics", "average_response_time", (((@redis.hget("statistics", "average_response_time").to_f*crawl_counter) + content[:response_time].to_f) / (crawl_counter + 1)))
+    if @statistics.has_key? :average_response_time
+      @statistics[:average_response_time] = (((@redis.hget("statistics", "average_response_time").to_f*crawl_counter) + content[:response_time].to_f) / (crawl_counter + 1))
     else
-      @redis.hset("statistics", "average_response_time", content[:response_time].to_f)
+      @statistics[:average_response_time] = content[:response_time].to_f
     end
-    @redis.hset "statistics", "maximum_response_time", content[:response_time].to_f if @redis.hget("statistics", "maximum_response_time").nil? or content[:response_time].to_f > @redis.hget("statistics", "maximum_response_time").to_f
-    @redis.hset "statistics", "minimum_response_time", content[:response_time].to_f if @redis.hget("statistics", "minimum_response_time").nil? or content[:response_time].to_f < @redis.hget("statistics", "minimum_response_time").to_f
-    if @redis.hexists "statistics", "average_length"
-      @redis.hset("statistics", "average_length", (((@redis.hget("statistics", "average_length").to_i*crawl_counter) + content[:length].to_i) / (crawl_counter + 1)))
+    @statistics[:maximum_response_time] = content[:response_time].to_f if @statistics[:maximum_response_time].nil? or content[:response_time].to_f > @statistics[:maximum_response_time].to_f
+    @statistics[:minimum_response_time] = content[:response_time].to_f if @statistics[:minimum_response_time].nil? or content[:response_time].to_f < @statistics[:minimum_response_time].to_f
+    if @statistics.has_key? :average_length
+      @statistics[:average_length] = (((@redis.hget("statistics", "average_length").to_i*crawl_counter) + content[:length].to_i) / (crawl_counter + 1))
     else
-      @redis.hset("statistics", "average_length", content[:length].to_i)
+      @statistics[:average_length] = content[:length].to_i
     end
-    @redis.hset "statistics", "maximum_length", content[:length].to_i if @redis.hget("statistics", "maximum_length").nil? or content[:length].to_i > @redis.hget("statistics", "maximum_length").to_i
-    @redis.hset "statistics", "minimum_length", content[:length].to_i if @redis.hget("statistics", "minimum_length").nil? or content[:length].to_i < @redis.hget("statistics", "minimum_length").to_i
-  
-  
+    @statistics[:maximum_length] = content[:length].to_i if @redis.hget("statistics", "maximum_length").nil? or content[:length].to_i > @statistics[:maximum_length].to_i
+    @statistics[:minimum_length] = content[:length].to_i if @redis.hget("statistics", "minimum_length").nil? or content[:length].to_i < @statistics[:minimum_length].to_i
+    
     if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-      @redis.hset "statistics", "page_count", @redis.hget("statistics", "page_count").to_i + 1
-      @redis.hset "statistics", "page_size", @redis.hget("statistics", "page_size").to_i + content[:length].to_i
+      @statistics[:page_count] = @statistics[:page_count].to_i + 1
+      @statistics[:page_size] = @statistics[:page_size].to_i + content[:length].to_i
       increment_time_stat("pages_count")
     else
-      @redis.hset "statistics", "asset_count", @redis.hget("statistics", "asset_count").to_i + 1
-      @redis.hset "statistics", "asset_size", @redis.hget("statistics", "asset_size").to_i + content[:length].to_i
+      @statistics[:asset_count] = @statistics[:asset_count].to_i + 1
+      @statistics[:asset_size] = @statistics[:asset_size].to_i + content[:length].to_i
       increment_time_stat("assets_count")
     end
     
-    total_redirects = @redis.hget("statistics", "total_redirects").to_i
-    @redis.hset "statistics", "total_redirects", 0 if total_redirects.nil?
-    @redis.hset("statistics", "total_redirects", total_redirects += content[:redirect_through].count) unless content[:redirect_through].nil?
+    total_redirects = @statistics[:total_redirects].to_i
+    @statistics[:total_redirects] = 0 if total_redirects.nil?
+    @statistics[:total_redirects] = total_redirects += content[:redirect_through].count unless content[:redirect_through].nil?
 
-    @redis.hset "statistics", "crawl_counter", crawl_counter
-    @redis.hset "statistics", "queue_counter", queue_counter
+    @statistics[:crawl_counter] = crawl_counter
+    @statistics[:queue_counter] = queue_counter
     
-    total_length = @redis.hget("statistics", "total_length").to_i
-    @redis.hset "statistics", "total_length", total_length + content[:length].to_i
+    total_length = @statistics[:total_length].to_i
+    @statistics[:total_length] = total_length + content[:length].to_i
 
     mime_counts = {}
-    if @redis.hexists "statistics", "mime_counts"
-      mime_counts = JSON.parse(@redis.hget("statistics", "mime_counts"))
+    if @statistics.has_key? :mime_counts
+      mime_counts = @statistics[:mime_counts]
       if mime_counts.has_key? content[:mime_type]
         mime_counts[content[:mime_type]] += 1
       else
@@ -73,30 +71,30 @@ class Stats
     else
       mime_counts = {content[:mime_type] => 1}
     end
-    @redis.hset "statistics", "mime_counts", mime_counts.to_json
+    @statistics[:mime_counts] = mime_counts.to_json
 
     # record mime categories stats
-    if content[:mime_type].starts_with? "text"
+    if content[:mime_type].cobweb_starts_with? "text"
       increment_time_stat("mime_text_count")
-    elsif content[:mime_type].starts_with? "application"
+    elsif content[:mime_type].cobweb_starts_with? "application"
       increment_time_stat("mime_application_count")
-    elsif content[:mime_type].starts_with? "audio"
+    elsif content[:mime_type].cobweb_starts_with? "audio"
       increment_time_stat("mime_audio_count")
-    elsif content[:mime_type].starts_with? "image"
+    elsif content[:mime_type].cobweb_starts_with? "image"
       increment_time_stat("mime_image_count")
-    elsif content[:mime_type].starts_with? "message"
+    elsif content[:mime_type].cobweb_starts_with? "message"
       increment_time_stat("mime_message_count")
-    elsif content[:mime_type].starts_with? "model"
+    elsif content[:mime_type].cobweb_starts_with? "model"
       increment_time_stat("mime_model_count")
-    elsif content[:mime_type].starts_with? "multipart"
+    elsif content[:mime_type].cobweb_starts_with? "multipart"
       increment_time_stat("mime_multipart_count")
-    elsif content[:mime_type].starts_with? "video"
+    elsif content[:mime_type].cobweb_starts_with? "video"
       increment_time_stat("mime_video_count")
     end
     
     status_counts = {}
-    if @redis.hexists "statistics", "status_counts"
-      status_counts = HashUtil.deep_symbolize_keys(JSON.parse(@redis.hget("statistics", "status_counts")))
+    if @statistics.has_key? :status_counts
+      status_counts = @statistics[:status_counts]
       status_code = content[:status_code].to_i.to_s.to_sym
       if status_counts.has_key? status_code
         status_counts[status_code] += 1
@@ -116,13 +114,15 @@ class Stats
       increment_time_stat("status|_500_count")
     end
     
-    @redis.hset "statistics", "status_counts", status_counts.to_json
-    
+    @statistics[:status_counts] = status_counts.to_json
     
     ## time based statistics
     increment_time_stat("minute_totals", "minute", 60)    
     
-    get_statistics
+    redis_command = "@redis.hmset 'statistics', #{@statistics.keys.map{|key| "'#{key}', '#{@statistics[key]}'"}.join(", ")}"
+    instance_eval redis_command
+    
+    @statistics
   end
   
   def record_time_stat(stat_name, value, type="minute", duration=60)

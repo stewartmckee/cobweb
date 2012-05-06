@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.44
+  additional improvements for redis
+  
 0.0.43
   improved performance of redis on large crawls
 
