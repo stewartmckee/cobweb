@@ -83,7 +83,7 @@ class CrawlJob
   def self.finished(content_request)
     # finished
     @stats.end_crawl(content_request)
-    Resque.enqueue(const_get(content_request[:crawl_finished_queue]), Stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))                
+    Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))
   end
 
   def self.send_to_processing_queue(content, content_request)

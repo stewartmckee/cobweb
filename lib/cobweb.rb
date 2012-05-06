@@ -20,7 +20,7 @@ class Cobweb
   # investigate using event machine for single threaded crawling
   
   def self.version
-    "0.0.44"
+    CobwebVersion.version
   end
   
   def method_missing(method_sym, *arguments, &block)
@@ -79,6 +79,7 @@ class Cobweb
   def get(url, options = @options)
     raise "url cannot be nil" if url.nil?
     uri = Addressable::URI.parse(url)
+    uri.normalize!
     uri.fragment=nil
     url = uri.to_s
 
@@ -104,9 +105,6 @@ class Cobweb
       puts "Cache hit for #{url}" unless @options[:quiet]
       content = deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
-      # this url is valid for processing so lets get on with it
-      #TODO the @http here is different from in head.  Should it be? - in head we are using a method-scoped variable.
-
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." unless @options[:quiet]
@@ -122,7 +120,11 @@ class Cobweb
       @http.open_timeout = @options[:timeout].to_i
       begin
         print "Retrieving #{url }... " unless @options[:quiet]
-        request = Net::HTTP::Get.new uri.request_uri
+        request_options={}
+        if options[:cookies]
+          request_options[ 'Cookie']= options[:cookies]
+        end
+        request = Net::HTTP::Get.new uri.request_uri, request_options
 
         response = @http.request request
         
@@ -135,14 +137,11 @@ class Cobweb
           # decrement redirect limit
           redirect_limit = redirect_limit - 1
 
-          # raise exception if we're being redirected to somewhere we've been redirected to in this content request          
-          #raise RedirectError("Loop detected in redirect for - #{url}") if content[:redirect_through].include? url
-          
-          # raise exception if redirect limit has reached 0
           raise RedirectError, "Redirect Limit reached" if redirect_limit == 0
+          cookies = get_cookies(response)
 
           # get the content from redirect location
-          content = get(url, options.merge(:redirect_limit => redirect_limit))
+          content = get(url, options.merge(:redirect_limit => redirect_limit, cookies: cookies))
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
@@ -186,7 +185,7 @@ class Cobweb
           redis.expire unique_id, @options[:cache].to_i
         end
       rescue RedirectError => e
-        puts "ERROR: #{e.message}"
+        puts "ERROR RedirectError: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -201,7 +200,7 @@ class Cobweb
         content[:links] = {}
         
       rescue SocketError => e
-        puts "ERROR: SocketError#{e.message}"
+        puts "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -233,10 +232,20 @@ class Cobweb
     end
     content  
   end
-  
+
+  def get_cookies(response)
+    all_cookies = response.get_fields('set-cookie')
+    cookies_array = Array.new
+    all_cookies.each { |cookie|
+      cookies_array.push(cookie.split('; ')[0])
+    }
+    cookies = cookies_array.join('; ')
+  end
+
   def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
     uri = Addressable::URI.parse(url)
+    uri.normalize!
     uri.fragment=nil
     url = uri.to_s
 
@@ -255,37 +264,47 @@ class Cobweb
       redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
     end
     
-    content = {}
+    content = {:base_url => url}
     
     # check if it has already been cached
     if redis.get("head-#{unique_id}") and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
       content = deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
     else
-      print "Retrieving #{url }... " unless @options[:quiet]
-
       # retrieve data
-      http = Net::HTTP.new(uri.host, uri.inferred_port)
+      unless @http && @http.address == uri.host && @http.port == uri.inferred_port
+        puts "Creating connection to #{uri.host}..." unless @options[:quiet]
+        @http = Net::HTTP.new(uri.host, uri.inferred_port)
+      end
       if uri.scheme == "https"
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end 
+        @http.use_ssl = true
+        @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
       
       request_time = Time.now.to_f
-      http.read_timeout = @options[:timeout].to_i
-      http.open_timeout = @options[:timeout].to_i
-      
-      begin      
-        request = Net::HTTP::Head.new uri.request_uri
-        response = http.request request
+      @http.read_timeout = @options[:timeout].to_i
+      @http.open_timeout = @options[:timeout].to_i
+      begin
+        print "Retrieving #{url }... " unless @options[:quiet]
+        request_options={}
+        if options[:cookies]
+          request_options[ 'Cookie']= options[:cookies]
+        end
+        request = Net::HTTP::Head.new uri.request_uri, request_options
+
+        response = @http.request request
 
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
+
           url = UriHelper.join_no_fragment(uri, response['location'])
+
           redirect_limit = redirect_limit - 1
-          options = options.clone
-          options[:redirect_limit]=redirect_limit
-          content = head(url, options)
+
+          raise RedirectError, "Redirect Limit reached" if redirect_limit == 0
+          cookies = get_cookies(response)
+
+          content = head(url, options.merge(:redirect_limit => redirect_limit, cookies: cookies))
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
@@ -293,7 +312,7 @@ class Cobweb
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
           unless response.content_type.nil?
-            content[:mime_type] = response.content_type.split(";")[0].strip 
+            content[:mime_type] = response.content_type.split(";")[0].strip
             if response["Content-Type"].include? ";"
               charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
               charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
@@ -310,8 +329,23 @@ class Cobweb
             puts "Not storing in cache as cache disabled" if @options[:debug]
           end
         end
+      rescue RedirectError => e
+        puts "ERROR RedirectError: #{e.message}"
+
+        ## generate a blank content
+        content = {}
+        content[:url] = uri.to_s
+        content[:response_time] = Time.now.to_f - request_time
+        content[:status_code] = 0
+        content[:length] = 0
+        content[:body] = ""
+        content[:error] = e.message
+        content[:mime_type] = "error/dnslookup"
+        content[:headers] = {}
+        content[:links] = {}
+
       rescue SocketError => e
-        puts "ERROR: #{e.message}"
+        puts "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -326,7 +360,7 @@ class Cobweb
         content[:links] = {}
       
       rescue Timeout::Error => e
-        puts "ERROR: #{e.message}"
+        puts "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
         content = {}
