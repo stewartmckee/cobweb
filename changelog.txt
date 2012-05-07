@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.46
+  fixed bug in cookies
+
 0.0.45
   moved internal and external link logic into its own class
 

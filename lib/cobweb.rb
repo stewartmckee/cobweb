@@ -235,11 +235,13 @@ class Cobweb
 
   def get_cookies(response)
     all_cookies = response.get_fields('set-cookie')
-    cookies_array = Array.new
-    all_cookies.each { |cookie|
-      cookies_array.push(cookie.split('; ')[0])
-    }
-    cookies = cookies_array.join('; ')
+    unless all_cookies.nil?
+      cookies_array = Array.new
+      all_cookies.each { |cookie|
+        cookies_array.push(cookie.split('; ')[0])
+      }
+      cookies = cookies_array.join('; ')
+    end
   end
 
   def head(url, options = @options)
