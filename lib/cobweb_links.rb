@@ -5,7 +5,8 @@ class CobwebLinks
     @options = options
     
     raise InternalUrlsMissingError, ":internal_urls is required" unless @options.has_key? :internal_urls
-    raise InvalidInternalUrlsError, ":internal_urls must be an array" unless @options[:internal_urls].kind_of? Array
+    raise InvalidUrlsError, ":internal_urls must be an array" unless @options[:internal_urls].kind_of? Array
+    raise InvalidUrlsError, ":external_urls must be an array" unless !@options.has_key?(:external_urls) || @options[:external_urls].kind_of?(Array)
     @options[:external_urls] = [] unless @options.has_key? :external_urls
     @options[:debug] = false unless @options.has_key? :debug
     
@@ -42,6 +43,6 @@ end
 
 class InternalUrlsMissingError < Exception
 end  
-class InvalidInternalUrlsError < Exception
+class InvalidUrlsError < Exception
 end
 

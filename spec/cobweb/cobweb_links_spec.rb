@@ -1,4 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../../lib/cobweb_links')
 
 describe CobwebLinks do
 
@@ -23,16 +24,16 @@ describe CobwebLinks do
   end
 
   it "should raise error with no internal links" do
-    lambda{CobwebLinks.new()}.should raise_error
+    expect {CobwebLinks.new()}.to raise_error(InternalUrlsMissingError)
   end    
   it "should not raise error with missing external links" do
-    lambda{CobwebLinks.new(:internal_urls => ["http://domain_one.com/"])}.should_not raise_error
+    expect {CobwebLinks.new(:internal_urls => ["http://domain_one.com/"])}.to_not raise_error(InternalUrlsMissingError)
   end
   it "should raise error with invalid internal links" do
-    lambda{CobwebLinks.new(:internal_urls => "")}.should raise_error
+    expect {CobwebLinks.new(:internal_urls => "")}.to raise_error(InvalidUrlsError)
   end
   it "should raise error with invalid external links" do
-    lambda{CobwebLinks.new(:internal_urls => [], :external_urls => "")}.should raise_error
+    expect {CobwebLinks.new(:internal_urls => [], :external_urls => "")}.to raise_error(InvalidUrlsError)
   end
     
   
