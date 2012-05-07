@@ -97,7 +97,7 @@ describe ContentLinkParser do
       
       it "should return all http and https links by default" do
         links = @content_parser.all_links
-        links.count.should == 9
+        links.count.should == 11
       end
       
       it "should return only valid_schemes supplied" do
