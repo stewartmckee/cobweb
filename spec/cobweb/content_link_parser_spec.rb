@@ -100,6 +100,12 @@ describe ContentLinkParser do
         links.count.should == 11
       end
       
+      it "should return all http and https links by default" do
+        links = @content_parser.all_links
+        links.should include("http://sample-links.com/script.js")
+        links.should include("http://sample-links.com/stylesheets/punk.css")
+      end
+      
       it "should return only valid_schemes supplied" do
         links = @content_parser.all_links(:valid_schemes => [:https])
         links.count.should == 1
