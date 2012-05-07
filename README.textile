@@ -101,6 +101,20 @@ h3. Contributing/Testing
   
     Continuous integration testing is performed by the excellent Travis: http://travis-ci.org/#!/stewartmckee/cobweb
 
+h2. Todo
+
+  * Tidy up classes with link parsing
+  * Refactoring of code to simplify design
+  * Remove requirement of redis from standalone crawler
+  * Add redis settings to standalone crawler (ie to connect to remote redis)
+  * Add ability to start and stop crawls from web interface
+  * Allow crawler to start as web interface only (ie not run crawls at start)
+  * Fix content encoding issue requiring separate process job
+
+h3. Big changes
+
+  * Refactor into a module and refactor class names to remove cobweb and increase simplicity
+
 h2. License
 
 h3. The MIT License
