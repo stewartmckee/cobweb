@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.45
+  moved internal and external link logic into its own class
+
 0.0.44
   additional improvements for redis
   

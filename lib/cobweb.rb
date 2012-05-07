@@ -56,9 +56,9 @@ class Cobweb
       :url => base_url 
     }  
     
-    if @options[:internal_urls].empty?
+    if @options[:internal_urls].nil? || @options[:internal_urls].empty?
       uri = Addressable::URI.parse(base_url)
-      @options[:internal_urls] << [uri.scheme, "://", uri.host, "/*"].join
+      @options[:internal_urls] = [[uri.scheme, "://", uri.host, "/*"].join]
     end
     
     request.merge!(@options)

@@ -37,9 +37,13 @@ class ContentLinkParser
     data
   end  
   
-  def all_links
+  def all_links(options = {})    
+    options[:valid_schemes] = [:http, :https] unless options.has_key? :valid_schemes
     data = link_data
-    data.keys.map{|key| data[key]}.flatten.uniq
+    data = data.keys.map{|key| data[key]}.flatten.uniq
+    links = data.select{|link| options[:valid_schemes].include? link.split(':')[0].to_sym}
+    links = links.map{|link| UriHelper.join_no_fragment(@url, link).to_s }
+    links
   end
   
   def method_missing(m)

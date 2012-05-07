@@ -62,15 +62,16 @@ class CobwebCrawler
 
               @redis.sadd "crawled", url.to_s
               @redis.incr "crawl-counter" 
-            
-              internal_links = all_links_from_content(content).map{|link| link.to_s}
+              
+              internal_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
 
+              # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
+              cobweb_links = CobwebLinks.new(@options)
+              internal_links = internal_links.select{|link| cobweb_links.internal?(link)}
+              
               # reject the link if we've crawled it or queued it
               internal_links.reject!{|link| @redis.sismember("crawled", link)}
               internal_links.reject!{|link| @redis.sismember("queued", link)}
-              
-              # select the link if its internal
-              internal_links = internal_links.select{|link| internal_link?(link)}
               
               internal_links.each do |link|
                 puts "Added #{link.to_s} to queue" if @debug
@@ -105,33 +106,6 @@ class CobwebCrawler
     @stats.get_statistics
   end
   
-  
-  def internal_link?(link)
-    puts "Checking internal link for: #{link}" if @debug
-    valid_link = true
-    internal_patterns.map{|pattern| Regexp.new("^#{pattern.gsub("*", ".*?")}")}.each do |pattern|
-      puts "Matching against #{pattern.source}" if @debug
-      if link.match(pattern)
-        puts "Matched as internal" if @debug
-        return true
-      end
-    end
-    puts "Didn't match any pattern so marked as not internal" if @debug
-    false
-  end
-  
-  def internal_patterns
-    @internal_patterns ||= @redis.smembers("internal_urls")
-  end
-
-  def all_links_from_content(content)
-    links = content[:links].keys.map{|key| content[:links][key]}.flatten
-    links.reject!{|link| link.cobweb_starts_with?("javascript:")}
-    links = links.map{|link| UriHelper.join_no_fragment(content[:url], link) }
-    links = links.select{|link| link.scheme == "http" || link.scheme == "https"}
-    links.uniq
-    links
-  end
 end
 
 class String

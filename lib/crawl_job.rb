@@ -38,16 +38,17 @@ class CrawlJob
         # set the base url if this is the first page
         set_base_url @redis, content, content_request
         
+        @cobweb_links = CobwebLinks.new(content_request)
         if within_queue_limits?(content_request[:crawl_limit])
-          internal_links = all_links_from_content(content).map{|link| link.to_s}
+          internal_links = ContentLinkParser.new(content_request[:url], content[:body]).all_links(:valid_schemes => [:http, :https])
+
+          # select the link if its internal
+          internal_links.select!{|link| @cobweb_links.internal?(link)}
         
           # reject the link if we've crawled it or queued it
           internal_links.reject!{|link| @redis.sismember("crawled", link)}
           internal_links.reject!{|link| @redis.sismember("queued", link)}
-        
-          # select the link if its internal
-          internal_links.select!{|link| internal_link?(link)}
-
+          
           internal_links.each do |link|
             enqueue_content(content_request, link) if within_queue_limits?(content_request[:crawl_limit])
           end
@@ -87,7 +88,7 @@ class CrawlJob
   end
 
   def self.send_to_processing_queue(content, content_request)
-    content_to_send = content.merge({:internal_urls => internal_patterns, :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
+    content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
     if content_request[:use_encoding_safe_process_job]
       content_to_send[:body] = Base64.encode64(content[:body])
       content_to_send[:processing_queue] = content_request[:processing_queue]
@@ -119,33 +120,6 @@ class CrawlJob
     end
   end
   
-  def self.internal_link?(link)
-    puts "Checking internal link for: #{link}" if @debug
-    valid_link = true
-    internal_patterns.map{|pattern| Regexp.new("^#{pattern.gsub("*", ".*?")}")}.each do |pattern|
-      puts "Matching against #{pattern.source}" if @debug
-      if link.match(pattern)
-        puts "Matched as internal" if @debug
-        return true
-      end
-    end
-    puts "Didn't match any pattern so marked as not internal" if @debug
-    false
-  end
-  
-  def self.internal_patterns
-    @internal_patterns ||= @redis.smembers("internal_urls")
-  end
-
-  def self.all_links_from_content(content)
-    links = content[:links].keys.map{|key| content[:links][key]}.flatten
-    links.reject!{|link| link.starts_with?("javascript:")}
-    links = links.map{|link| UriHelper.join_no_fragment(content[:url], link) }
-    links.select!{|link| link.scheme == "http" || link.scheme == "https"}
-    links.uniq
-    links
-  end
-
   def self.enqueue_content(content_request, link)
     new_request = content_request.clone
     new_request[:url] = link
