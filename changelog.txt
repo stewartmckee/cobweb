@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.47
+  switched to perform join of url before excluding based on scheme
+
 0.0.46
   fixed bug in cookies
 
