@@ -89,7 +89,7 @@ class CobwebCrawler
               yield content, @stats.get_statistics if block_given?
 
             rescue => e
-              raise e if ENVIRONMENT == "test"
+              raise e if defined? ENVIRONMENT && ENVIRONMENT == "test"
               puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
               ap e
               ap e.backtrace

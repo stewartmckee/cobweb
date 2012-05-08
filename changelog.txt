@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.48
+  fixed bug when ENVIRONMENT isn't defined
+
 0.0.47
   switched to perform join of url before excluding based on scheme
 
