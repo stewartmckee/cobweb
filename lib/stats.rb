@@ -119,7 +119,7 @@ class Stats
     ## time based statistics
     increment_time_stat("minute_totals", "minute", 60)    
     
-    redis_command = "@redis.hmset 'statistics', #{@statistics.keys.map{|key| "'#{key}', '#{@statistics[key]}'"}.join(", ")}"
+    redis_command = "@redis.hmset 'statistics', #{@statistics.keys.map{|key| "'#{key}', '#{@statistics[key].to_s.gsub("'","''")}'"}.join(", ")}"
     instance_eval redis_command
     
     @statistics
