@@ -81,7 +81,7 @@ describe CobwebLinks do
       cobweb_links.external?("http://blog.domain_one.com/pageone.html").should be_true
     end
     it "should match external links with querystring parameters" do
-      cobweb_links = CobwebLinks.new(:internal_urls => ["http://www.ford.com/"], :external_urls => ["http://*.ford.com/*?*view=print"], :debug => true)
+      cobweb_links = CobwebLinks.new(:internal_urls => ["http://www.ford.com/"], :external_urls => ["http://*.ford.com/*?*view=print"])
       cobweb_links.external?("http://corporate.ford.com/news-center/press-releases-detail/pr-doug-scott2658-marketing-manager-31039?view=print").should be_true
       cobweb_links.internal?("http://corporate.ford.com/news-center/press-releases-detail/pr-doug-scott2658-marketing-manager-31039?view=print").should be_false
       cobweb_links.external?("http://corporate.ford.com/news-center/view=print/pr-doug-scott2658-marketing-manager-31039").should be_true

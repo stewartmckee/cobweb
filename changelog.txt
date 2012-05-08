@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.50
+  fixed bug in escaping urls for regex
+
 0.0.49
   added escape code to ? in urls for internal and external urls
   added specs for excluding based on querystrings

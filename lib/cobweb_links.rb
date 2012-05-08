@@ -10,8 +10,8 @@ class CobwebLinks
     @options[:external_urls] = [] unless @options.has_key? :external_urls
     @options[:debug] = false unless @options.has_key? :debug
     
-    @internal_patterns = @options[:internal_urls].map{|pattern| Regexp.new("^#{pattern.gsub(".", "\\.").gsub("?", "\\?").gsub("*", ".*?")}")}
-    @external_patterns = @options[:external_urls].map{|pattern| Regexp.new("^#{pattern.gsub(".", "\\.").gsub("?", "\\?").gsub("*", ".*?")}")}
+    @internal_patterns = @options[:internal_urls].map{|pattern| Regexp.new("^#{pattern.cobweb_encode_for_regex([".", "?"]).gsub("*", ".*?")}")}
+    @external_patterns = @options[:external_urls].map{|pattern| Regexp.new("^#{pattern.cobweb_encode_for_regex([".", "?"]).gsub("*", ".*?")}")}
     
   end
   
@@ -44,5 +44,13 @@ end
 class InternalUrlsMissingError < Exception
 end  
 class InvalidUrlsError < Exception
+end
+
+class String
+  def cobweb_encode_for_regex(characters)
+    characters.map{|character| self.gsub!(character, "\\#{character}") }
+    ap self
+    self
+  end
 end
 
