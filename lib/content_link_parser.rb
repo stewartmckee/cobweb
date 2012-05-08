@@ -42,6 +42,7 @@ class ContentLinkParser
     data = link_data
     links = data.keys.map{|key| data[key]}.flatten.uniq
     links = links.map{|link| UriHelper.join_no_fragment(@url, link).to_s }
+    links = links.reject{|link| link =~ /([^\/]+?)\/([^\/]+?)\/.*?\1\/\2/ }    
     links = links.select{|link| options[:valid_schemes].include? link.split(':')[0].to_sym}
     links
   end

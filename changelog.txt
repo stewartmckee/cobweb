@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.53
+  added limit on links returned to exclude duplicated sections of the path (ie in a link loop situation)
+
 0.0.52
   fixed bug with escaping for regex
 

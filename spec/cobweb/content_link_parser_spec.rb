@@ -29,7 +29,7 @@ describe ContentLinkParser do
         end
         it "should return the correct links" do
           links = @content_parser.links
-          links.length.should == 7
+          links.length.should == 11
         end
       end
       describe "returning image links" do
@@ -92,12 +92,12 @@ describe ContentLinkParser do
         link_data.should be_an_instance_of Hash
 
         link_data.keys.length.should == 5
-        link_data[:links].length.should == 7
+        link_data[:links].length.should == 11
       end
       
       it "should return all http and https links by default" do
         links = @content_parser.all_links
-        links.count.should == 11
+        links.count.should == 13
       end
       
       it "should return all http and https links by default" do
@@ -109,6 +109,13 @@ describe ContentLinkParser do
       it "should return only valid_schemes supplied" do
         links = @content_parser.all_links(:valid_schemes => [:https])
         links.count.should == 1
+      end
+      
+      it "should detect and not return link loops" do
+        links = @content_parser.all_links
+        links.should include("http://www.ge.com/repeated1/repeated2/nothing/repeated1/")
+        links.should_not include("http://www.ge.com/repeated1/repeated2/nothing/repeated1/repeated2")
+        links.should include("http://www.ge.com/repeated1/repeated2/nothing/repeated1/asdf/repeated2")
       end
     end
 
