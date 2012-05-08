@@ -1,10 +1,14 @@
+
+# Stats class is the main statisitics hub for monitoring crawls.  Either can be viewed through the Sinatra interface, or returned from the CobwebCrawler.crawl method or block
 class Stats
   
+  # Sets up redis usage for statistics
   def initialize(options)
     @full_redis = Redis.new(options[:redis_options])
     @redis = NamespacedRedis.new(options[:redis_options], "cobweb-#{options[:crawl_id]}")
   end
   
+  # Sets up the crawl in statistics
   def start_crawl(options)
     unless @full_redis.sismember "cobweb_crawls", options[:crawl_id]
       @full_redis.sadd "cobweb_crawls", options[:crawl_id]
@@ -15,12 +19,14 @@ class Stats
     @redis.hset "statistics", "current_status", "Crawl Starting..."
   end
   
+  # Removes the crawl from the running crawls and updates status
   def end_crawl(options)
     @full_redis.srem "cobweb_crawls", options[:crawl_id]
     @redis.hset "statistics", "current_status", "Crawl Stopped"
     @redis.del "crawl_details"
   end
   
+  # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  
   def update_statistics(content, crawl_counter=@redis.scard("crawled").to_i, queue_counter=@redis.scard("queued").to_i)
     
     @statistics = get_statistics
@@ -125,6 +131,41 @@ class Stats
     @statistics
   end
   
+  # Returns the statistics hash
+  def get_statistics
+    
+    @statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
+    if @statistics[:status_counts].nil?
+      @statistics[:status_counts]
+    else
+      @statistics[:status_counts] = JSON.parse(@statistics[:status_counts])
+    end
+    if @statistics[:mime_counts].nil?
+      @statistics[:mime_counts]
+    else
+      @statistics[:mime_counts] = JSON.parse(@statistics[:mime_counts])
+    end
+    @statistics
+  end
+  
+  # Sets the current status of the crawl
+  def update_status(status)
+    @redis.hset "statistics", "current_status", status
+  end
+  
+  # Returns the current status of the crawl
+  def get_status
+    @redis.hget "statistics", "current_status"
+  end
+  
+  # Sets totals for the end of the crawl (Not Used)
+  def set_totals
+    stats = get_statistics
+    stats[:crawled] = @redis.smembers "crawled"
+  end
+  
+  private
+  # Records a time based statistic
   def record_time_stat(stat_name, value, type="minute", duration=60)
     key = DateTime.now.strftime("%Y-%m-%d %H:%M")
     if type == "hour"
@@ -142,6 +183,7 @@ class Stats
     end
   end
   
+  # Increments a time based statistic (eg pages per minute)
   def increment_time_stat(stat_name, type="minute", duration=60)
     key = DateTime.now.strftime("%Y-%m-%d %H:%M")
     if type == "hour"
@@ -160,35 +202,6 @@ class Stats
         @redis.hdel(stat_name, key)
       end
     end
-  end
-  
-  def get_statistics
-    
-    @statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
-    if @statistics[:status_counts].nil?
-      @statistics[:status_counts]
-    else
-      @statistics[:status_counts] = JSON.parse(@statistics[:status_counts])
-    end
-    if @statistics[:mime_counts].nil?
-      @statistics[:mime_counts]
-    else
-      @statistics[:mime_counts] = JSON.parse(@statistics[:mime_counts])
-    end
-    @statistics
-  end
-  
-  def update_status(status)
-    @redis.hset "statistics", "current_status", status
-  end
-  
-  def get_status
-    @redis.hget "statistics", "current_status"
-  end
-  
-  def set_totals
-    stats = get_statistics
-    stats[:crawled] = @redis.smembers "crawled"
   end
   
 end

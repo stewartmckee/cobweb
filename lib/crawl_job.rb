@@ -1,3 +1,5 @@
+
+# CrawlJob defines a resque job to perform the crawl
 class CrawlJob
   
   require "net/https"  
@@ -7,10 +9,11 @@ class CrawlJob
 
   @queue = :cobweb_crawl_job
 
+  # Resque perform method to maintain the crawl, enqueue found links and detect the end of crawl
   def self.perform(content_request)
     
     # change all hash keys to symbols
-    content_request = self.deep_symbolize_keys(content_request)
+    content_request = HashUtil.deep_symbolize_keys(content_request)
     
     content_request[:redis_options] = {} unless content_request.has_key? :redis_options
     @redis = NamespacedRedis.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
@@ -81,12 +84,14 @@ class CrawlJob
 
   end
 
+  # Sets the crawl status to 'Crawl Stopped' and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
     @stats.end_crawl(content_request)
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))
   end
-
+  
+  # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
     if content_request[:use_encoding_safe_process_job]
@@ -102,14 +107,17 @@ class CrawlJob
 
   private
   
+  # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
     crawl_limit.nil? or @crawl_counter < crawl_limit.to_i
   end
   
+  # Returns true if the queue count is calculated to be still within limits when complete
   def self.within_queue_limits?(crawl_limit)
     within_crawl_limits?(crawl_limit) and (crawl_limit.nil? or (@queue_counter + @crawl_counter) < crawl_limit.to_i)
   end
   
+  # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
   def self.set_base_url(redis, content, content_request)
     if redis.get("base_url").nil?
       unless content[:redirect_through].nil? || content[:redirect_through].empty? || !content_request[:first_page_redirect_internal]
@@ -120,6 +128,7 @@ class CrawlJob
     end
   end
   
+  # Enqueues content to the crawl_job queue
   def self.enqueue_content(content_request, link)
     new_request = content_request.clone
     new_request[:url] = link
@@ -129,37 +138,32 @@ class CrawlJob
     increment_queue_counter
   end
   
+  # Increments the queue counter and refreshes crawl counters
   def self.increment_queue_counter
     @redis.incr "queue-counter"
     refresh_counters
   end
+  # Increments the crawl counter and refreshes crawl counters
   def self.increment_crawl_counter
     @redis.incr "crawl-counter"
     refresh_counters
   end
+  # Decrements the queue counter and refreshes crawl counters
   def self.decrement_queue_counter
     @redis.decr "queue-counter"
     refresh_counters
   end
+  # Refreshes the crawl counters
   def self.refresh_counters
     @crawl_counter = @redis.get("crawl-counter").to_i
     @queue_counter = @redis.get("queue-counter").to_i
   end
+  # Sets the crawl counters based on the crawled and queued queues
   def self.reset_counters
     @redis.set("crawl-counter", @redis.smembers("crawled").count)
     @redis.set("queue-counter", @redis.smembers("queued").count)
     @crawl_counter = @redis.get("crawl-counter").to_i
     @queue_counter = @redis.get("queue-counter").to_i
   end
-  def self.deep_symbolize_keys(hash)
-    hash.keys.each do |key|
-      value = hash[key]
-      hash.delete(key)
-      hash[key.to_sym] = value
-      if hash[key.to_sym].instance_of? Hash
-        hash[key.to_sym] = self.deep_symbolize_keys(hash[key.to_sym])
-      end
-    end
-    hash
-  end
+  
 end

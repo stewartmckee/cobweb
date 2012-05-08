@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.55
+  updated comments for rdoc
+
 0.0.54
   fixed bug when url had ' in it was breaking statistics
 

@@ -3,8 +3,10 @@ require 'date'
 require 'ap'
 #require 'namespaced_redis'
 
+# CobwebCrawler is a standalone crawler, it includes a built in statistics monitor using Sinatra.
 class CobwebCrawler
   
+  # See README for more information on options available
   def initialize(options={})
     @options = options
     
@@ -31,6 +33,7 @@ class CobwebCrawler
     @cobweb = Cobweb.new(@options)
   end
   
+  # Initiates a crawl starting at the base_url and applying the options supplied. Can also take a block that is executed and passed content hash and statistic hash'
   def crawl(base_url, crawl_options = {}, &block)
     @options[:base_url] = base_url unless @options.has_key? :base_url
     
@@ -107,7 +110,9 @@ class CobwebCrawler
   
 end
 
+# Monkey patch into String a starts_with method
 class String
+  # Monkey patch into String a starts_with method
   def cobweb_starts_with?(val)
     if self.length >= val.length
       self[0..val.length-1] == val

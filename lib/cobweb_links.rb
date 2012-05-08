@@ -1,6 +1,8 @@
+
+# CobwebLinks processes links to determine whether they are internal or external links
 class CobwebLinks
   
-  # processes links supplied to it
+  # Initalise's internal and external patterns and sets up regular expressions
   def initialize(options={})
     @options = options
     
@@ -15,6 +17,7 @@ class CobwebLinks
     
   end
   
+  # Returns true if the link is matched to an internal_url and not matched to an external_url
   def internal?(link)
     if @options[:debug]
       puts "--------------------------------"
@@ -27,6 +30,7 @@ class CobwebLinks
     !@internal_patterns.select{|pattern| link.match(pattern)}.empty? && @external_patterns.select{|pattern| link.match(pattern)}.empty?
   end
   
+  # Returns true if the link is matched to an external_url or not matched to an internal_url
   def external?(link)
     if @options[:debug]
       puts "--------------------------------"
@@ -40,6 +44,7 @@ class CobwebLinks
   end
   
   private
+  # escapes characters with meaning in regular expressions and adds wildcard expression
   def escape_pattern_for_regex(pattern)
     pattern = pattern.gsub(".", "\\.")
     pattern = pattern.gsub("?", "\\?")
@@ -49,8 +54,10 @@ class CobwebLinks
   end
 end
 
+# Exception raised for :internal_urls missing from CobwebLinks
 class InternalUrlsMissingError < Exception
 end  
+# Exception raised for :internal_urls being invalid from CobwebLinks
 class InvalidUrlsError < Exception
 end
 

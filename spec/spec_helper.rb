@@ -1,6 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../lib/cobweb')
 require 'mock_redis'
 
+# Sets up the environment as test so that exceptions are raised
 ENVIRONMENT = "test"
 
 RSpec.configure do |config|

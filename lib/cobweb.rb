@@ -10,19 +10,15 @@ Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
   require file
 end
 
+# Cobweb class is used to perform get and head requests.  You can use this on its own if you wish without the crawler
 class Cobweb
-  ## TASKS
   
-  # redesign to have a resque stack and a single threaded stack
-  # dry the code below, its got a lot of duplication
-  # detect the end of the crawl (queued == 0 ?)
-  # on end of crawl, return statistic hash (could call specified method ?) if single threaded or enqueue to a specified queue the stat hash
-  # investigate using event machine for single threaded crawling
-  
+  # retrieves current version
   def self.version
     CobwebVersion.version
   end
   
+  # used for setting default options
   def method_missing(method_sym, *arguments, &block)
     if method_sym.to_s =~ /^default_(.*)_to$/
       tag_name = method_sym.to_s.split("_")[1..-2].join("_").to_sym
@@ -32,6 +28,7 @@ class Cobweb
     end
   end
   
+  # See readme for more information on options available
   def initialize(options = {})
     @options = options
     default_use_encoding_safe_process_job_to  false
@@ -49,6 +46,7 @@ class Cobweb
     
   end
   
+  # This method starts the resque based crawl and enqueues the base_url
   def start(base_url)
     raise ":base_url is required" unless base_url
     request = {
@@ -75,7 +73,20 @@ class Cobweb
     
     Resque.enqueue(CrawlJob, request)
   end
+  
+  # Returns array of cookies from content
+  def get_cookies(response)
+    all_cookies = response.get_fields('set-cookie')
+    unless all_cookies.nil?
+      cookies_array = Array.new
+      all_cookies.each { |cookie|
+        cookies_array.push(cookie.split('; ')[0])
+      }
+      cookies = cookies_array.join('; ')
+    end
+  end
 
+  # Performs a HTTP GET request to the specified url applying the options supplied
   def get(url, options = @options)
     raise "url cannot be nil" if url.nil?
     uri = Addressable::URI.parse(url)
@@ -103,7 +114,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
+      content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
@@ -173,7 +184,7 @@ class Cobweb
             content[:body] = Base64.encode64(response.body)
           end
           content[:location] = response["location"]
-          content[:headers] = deep_symbolize_keys(response.to_hash)
+          content[:headers] = HashUtil.deep_symbolize_keys(response.to_hash)
           # parse data for links
           link_parser = ContentLinkParser.new(content[:url], content[:body])
           content[:links] = link_parser.link_data
@@ -233,17 +244,7 @@ class Cobweb
     content  
   end
 
-  def get_cookies(response)
-    all_cookies = response.get_fields('set-cookie')
-    unless all_cookies.nil?
-      cookies_array = Array.new
-      all_cookies.each { |cookie|
-        cookies_array.push(cookie.split('; ')[0])
-      }
-      cookies = cookies_array.join('; ')
-    end
-  end
-
+  # Performs a HTTP HEAD request to the specified url applying the options supplied
   def head(url, options = @options)
     raise "url cannot be nil" if url.nil?    
     uri = Addressable::URI.parse(url)
@@ -271,7 +272,7 @@ class Cobweb
     # check if it has already been cached
     if redis.get("head-#{unique_id}") and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
-      content = deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
+      content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
     else
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
@@ -379,18 +380,6 @@ class Cobweb
       
       content
     end
-  end
-  
-  def deep_symbolize_keys(hash)
-    hash.keys.each do |key|
-      value = hash[key]
-      hash.delete(key)
-      hash[key.to_sym] = value
-      if hash[key.to_sym].instance_of? Hash
-        hash[key.to_sym] = deep_symbolize_keys(hash[key.to_sym])
-      end
-    end
-    hash
-  end
-  
+    
+  end  
 end

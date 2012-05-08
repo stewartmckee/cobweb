@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'haml'
 
+# Sinatra server to host the statistics for the CobwebCrawler
 class Server < Sinatra::Base
 
   set :views, settings.root + '/../views'
@@ -8,6 +9,7 @@ class Server < Sinatra::Base
   set :public_folder, settings.root + '/../public'
   enable :static
   
+  # Sinatra Dashboard
   get '/' do
     @full_redis = Redis.new
     
@@ -27,6 +29,7 @@ class Server < Sinatra::Base
     haml :home
   end
   
+  # Sinatra Crawl Detail
   get '/statistics/:crawl_id' do
     redis = NamespacedRedis.new({}, "cobweb-#{params[:crawl_id]}")
     
@@ -58,6 +61,7 @@ class Server < Sinatra::Base
     haml :statistics
   end
   
+  # Starts the Sinatra server, and kills the processes when shutdown
   def self.start
     unless Server.running?
       thread = Thread.new do
@@ -72,21 +76,10 @@ class Server < Sinatra::Base
   
 end
 
-class HashUtil
-  def self.deep_symbolize_keys(hash)
-    hash.keys.each do |key|
-      value = hash[key]
-      hash.delete(key)
-      hash[key.to_sym] = value
-      if hash[key.to_sym].instance_of? Hash
-        hash[key.to_sym] = HashUtil.deep_symbolize_keys(hash[key.to_sym])
-      end
-    end
-    hash
-  end
-end
-
+# Monkey Patch of the Numeric class
 class Numeric
+  
+  #Returns a human readable format for a number representing a data size
   def to_human
     units = %w{B KB MB GB TB}
     ap self

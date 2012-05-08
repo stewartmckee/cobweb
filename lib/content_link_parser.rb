@@ -1,8 +1,10 @@
+require "nokogiri"
 
+# ContentLinkParser extracts links from HTML content and assigns them to a hash based on the location the link was found.  The has contents can be configured in options, however, defaults to a pretty sensible default.
+# Links can also be returned regardless of the location they were located and can be filtered by the scheme
 class ContentLinkParser
 
-  require "nokogiri"
-
+  # Parses the content and absolutizes the urls based on url.  Options can be setup to determine the links that are extracted.
   def initialize(url, content, options = {})
     @options = options
     @url = url
@@ -29,6 +31,7 @@ class ContentLinkParser
     
   end
  
+  # Returns a hash with arrays of links
   def link_data
     data = {}
     @options[:tags].keys.each do |key|
@@ -37,6 +40,7 @@ class ContentLinkParser
     data
   end  
   
+  # Returns an array of all absolutized links, specify :valid_schemes in options to limit to certain schemes.  Also filters repeating folders (ie if the crawler got in a link loop situation)
   def all_links(options = {})    
     options[:valid_schemes] = [:http, :https] unless options.has_key? :valid_schemes
     data = link_data
@@ -47,6 +51,7 @@ class ContentLinkParser
     links
   end
   
+  # Returns the type of links as a method rather than using the hash e.g. 'content_link_parser.images'
   def method_missing(m)
     if @options[:tags].keys.include?(m)
       links = []
@@ -60,6 +65,8 @@ class ContentLinkParser
     end
   end
   
+  private
+  # Processes the content to find links based on options[:tags]
   def find_matches(array, selector, attribute)
     if attribute.kind_of? String or attribute.kind_of? Symbol
       @doc.css(selector).each do |tag|
