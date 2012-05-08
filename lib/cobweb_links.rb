@@ -10,8 +10,8 @@ class CobwebLinks
     @options[:external_urls] = [] unless @options.has_key? :external_urls
     @options[:debug] = false unless @options.has_key? :debug
     
-    @internal_patterns = @options[:internal_urls].map{|pattern| Regexp.new("^#{pattern.gsub(".", "\\.").gsub("*", ".*?")}")}
-    @external_patterns = @options[:external_urls].map{|pattern| Regexp.new("^#{pattern.gsub(".", "\\.").gsub("*", ".*?")}")}
+    @internal_patterns = @options[:internal_urls].map{|pattern| Regexp.new("^#{pattern.gsub(".", "\\.").gsub("?", "\\?").gsub("*", ".*?")}")}
+    @external_patterns = @options[:external_urls].map{|pattern| Regexp.new("^#{pattern.gsub(".", "\\.").gsub("?", "\\?").gsub("*", ".*?")}")}
     
   end
   
