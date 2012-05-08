@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.56
+  updated gemspec
+
 0.0.55
   updated comments for rdoc
 
