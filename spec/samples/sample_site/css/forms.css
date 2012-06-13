@@ -1,0 +1,489 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.box .content.forms {
+	padding : 0;
+}
+
+form {
+	display: block;
+	margin : 0;
+	padding : 0;
+}
+
+.line {
+	display: block;
+	padding : 15px 15px 15px 139px;
+}
+
+.line.button {
+	padding :  7px 15px 10px;
+}
+
+label {
+	float : left;
+	padding : 4px 0 0 0;
+	margin : 0 0 0 -124px;
+	font-size : 12px;
+	color : #002e68;
+	font-weight : bold;
+	cursor : text;
+	width : 124px;
+}
+
+/* //////////////////// INPUTFIELD \\\\\\\\\\\\\\\\\\\\ */
+
+input {
+	display : inline-block;
+	border : 0;
+	outline: 0;
+	padding : 6px 7px 6px;
+	margin : 0;
+	font-size : 12px;
+	color : #002e68;
+	*cursor : text;
+	line-height : 1.2em;
+	height : 15px;
+}
+
+input.small {
+	background : url(../gfx/forms/forms-input-small.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 166px;
+}
+
+input.medium {
+	background : url(../gfx/forms/forms-input-medium.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 297px;
+}
+
+input.big {
+	background : url(../gfx/forms/forms-input-big.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 552px;
+}
+
+input.xl {
+	background : url(../gfx/forms/forms-input-xl.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 802px;
+}
+
+input:hover, input:focus {
+	background-position : left bottom;
+	color : #5a5a5a;
+}
+
+div.input-small {
+	display : inline;
+	background : url(../gfx/forms/forms-input-small.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 166px;
+	height : 28px;
+}
+
+div.input-medium {
+	display : inline;
+	background : url(../gfx/forms/forms-input-medium.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 297px;
+	height : 28px;
+}
+
+div.input-big {
+	display : inline;
+	background : url(../gfx/forms/forms-input-big.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 552px;
+	height : 28px;
+}
+
+div.input-xl {
+	display : inline;
+	background : url(../gfx/forms/forms-input-xl.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 802px;
+	height : 28px;
+}
+
+/* //////////////////// SELECTBOX \\\\\\\\\\\\\\\\\\\\ */
+
+.ui-selectmenu {
+	display : inline-block;
+	position : relative;
+	background : url(../gfx/forms/forms-selectbox.gif) no-repeat left top transparent;
+	padding : 5px 7px 6px 7px;
+	margin : 0 3px 0 0;
+	text-decoration : none;
+	overflow : hidden;
+	outline : none;
+	width : 167px;
+	height : 16px;
+}
+
+.ui-selectmenu.small {
+	background : url(../gfx/forms/forms-selectbox-small.gif) no-repeat left top transparent;
+	width : 67px;
+}
+
+.ui-selectmenu-menu {
+	position : absolute;
+	top : 0;
+	z-index : 9999;
+	background-color : #FFFFFF;
+	border : 1px solid #c3d0e1;
+	padding : 0;
+	margin : 9px 0 0 6px;
+	list-style : none;
+	visibility : hidden;
+	overflow : auto;
+	width : 167px;
+	max-height : 155px;
+}
+
+.ui-selectmenu-menu.small {
+	width : 67px;
+}
+
+.ui-selectmenu-open {
+	visibility : visible;
+}
+
+.ui-selectmenu-menu li {
+	display : block;
+	background : none;
+	background-color : #FFFFFF;
+	outline : none;
+	padding : 0;
+	margin : 0;
+}
+
+.ui-selectmenu-menu li a, .ui-selectmenu-status {
+	display : block;
+	padding : 4px 7px;
+	outline : none;
+	overflow : hidden;
+	font : 12px/18px Arial;
+	font-weight : 100;
+	cursor : pointer;
+	color: #5a5a5a;
+	text-decoration: none;
+}
+
+.ui-selectmenu-status {
+	padding : 0;
+}
+
+.ui-selectmenu-menu li a:hover, li.ui-selectmenu-item-selected a {
+  background : #eff2f6;
+  color : #002e68;
+}
+
+select.multi {
+	display : block;
+	border : 1px solid #c3d0e1;
+	outline : 0;
+	width : 566px;
+}
+
+/* //////////////////// UPLOAD BUTTON \\\\\\\\\\\\\\\\\\\\ */
+
+input.file {
+	float : left;
+	background : url(../gfx/forms/forms-input-small.gif) no-repeat left top transparent;
+	margin : 0 2px 0 0;
+	z-index : 99;
+	height : 15px;
+}
+
+div.btn-upload {
+	display : inline-block;
+	*display : inline;
+	background : url(../gfx/forms/forms-file.gif) no-repeat right top transparent;
+}
+
+div.btn-upload:hover {
+	background-position : right bottom;
+}
+
+div.btn-upload input {
+	*position : relative;
+	*z-index : -1;
+}
+
+/* //////////////////// TEXTAREA \\\\\\\\\\\\\\\\\\\\ */
+
+textarea {
+	display : inline-block;
+	overflow : auto;
+	border : 0;
+	outline: 0;
+	padding : 6px 7px 6px;
+	margin : 0;
+	cursor : text;
+	resize : none;
+	font : 12px Arial;
+	color : #002e68;
+	line-height : 1.42em;
+	height : 69px;
+}
+
+textarea.small {
+	background : url(../gfx/forms/forms-textarea-small.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 166px;
+}
+
+textarea.medium {
+	background : url(../gfx/forms/forms-textarea-medium.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 297px;
+}
+
+textarea.big {
+	background : url(../gfx/forms/forms-textarea-big.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 552px;
+}
+
+textarea.xl {
+	background : url(../gfx/forms/forms-textarea-xl.gif) no-repeat left top transparent;
+	*background : transparent;
+	width : 802px;
+}
+
+textarea:hover, textarea:focus {
+	background-position : left bottom;
+}
+
+div.textarea-small {
+	display : inline;
+	background : url(../gfx/forms/forms-textarea-small.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 166px;
+	height : 80px;
+}
+
+div.textarea-medium {
+	display : inline;
+	background : url(../gfx/forms/forms-textarea-medium.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 297px;
+	height : 80px;
+}
+
+div.textarea-big {
+	display : inline;
+	background : url(../gfx/forms/forms-textarea-big.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 552px;
+	height : 80px;
+}
+
+div.textarea-xl {
+	display : inline;
+	background : url(../gfx/forms/forms-textarea-xl.gif) no-repeat left top transparent;
+	overflow : hidden;
+	width : 802px;
+	height : 80px;
+}
+
+/* //////////////////// CHECKBOXES & RADIOBUTTONS \\\\\\\\\\\\\\\\\\\\ */
+
+table input[type=checkbox],
+table input[type=radio] {
+	background : none;
+	padding : 0;
+}
+
+.custom-checkbox, .custom-radio {
+	display : inline-block;
+	position : relative;
+	*display : inline;
+	margin : 3px 20px -2px 0;
+	*zoom : 1;
+}
+
+.custom-checkbox input, 
+.custom-radio input {
+	position : absolute;
+	background : transparent;
+	left : 0;
+	top : 0;
+	margin : 0;
+	z-index : -1;
+	width : 13px;
+	height : 13px;
+}
+
+.custom-checkbox label, 
+.custom-radio label {
+	display : inline-block;
+	padding : 0 0 0 26px;
+	margin : 0;
+	color : #5a5a5a;
+	font-weight : 100;
+	line-height : 20px;
+	font-size : 12px;
+	cursor : pointer;
+	width : auto;
+	height : 19px;
+}
+
+.custom-checkbox label {
+	background : url(../gfx/forms/forms-checkbox.gif) no-repeat;
+}
+
+.custom-radio label {
+	background : url(../gfx/forms/forms-radio.gif) no-repeat;
+}
+
+.custom-checkbox label.hover,
+.custom-checkbox label.focus,
+.custom-radio label.hover,
+.custom-radio label.focus,
+.custom-checkbox label, .custom-radio label {
+	background-position : left bottom;
+}
+
+.custom-checkbox label.checked, 
+.custom-radio label.checked,
+.custom-checkbox label.checkedHover, 
+.custom-checkbox label.checkedFocus {
+	background-position : left top;
+}
+
+/* //////////////////// DATE PICKER \\\\\\\\\\\\\\\\\\\\ */
+
+input.datepicker {
+	float : none;
+	background : url(../gfx/forms/forms-date.gif) no-repeat right top transparent;
+	margin : 0 20px 0 5px;
+	padding : 6px 34px 6px 7px;
+	cursor : pointer;
+	width : 69px;
+}
+
+input.timepicker {
+	float : none;
+	background : url(../gfx/forms/forms-selectbox.gif) no-repeat left top transparent;
+	margin : 0 20px 0 5px;
+	padding : 5px 7px 6px 7px;
+	cursor : pointer;
+	width : 167px;
+	height : 16px;
+}
+
+/* //////////////////// SLIDER \\\\\\\\\\\\\\\\\\\\ */
+
+.slider{
+	display : block;
+	margin : 0 0 0 -124px;
+	color : #002e68;
+}
+
+.slider .ui-slider-horizontal,
+.slider .slide{
+	position : relative;
+	display : block;
+	border: 1px solid #C3D0E1;
+	margin : 5px 0 0;
+	height : 10px;
+}
+
+.slider .ui-slider-horizontal .ui-slider-range {
+	top: 0;
+	height: 100%;
+}
+
+.slider .ui-slider .ui-slider-range {
+	position: absolute;
+	background: #F2F4F7;
+	z-index: 1;
+	font-size: .7em;
+	display: block;
+	border: 0;
+	background-position: 0 0;
+}
+
+.slider .ui-slider-horizontal .ui-slider-handle {
+	margin-left: -.6em;
+}
+
+.slider .ui-slider .ui-slider-handle {
+	position: absolute;
+	background: url(../gfx/slider-button.gif) no-repeat;
+	top : -3px;
+	z-index: 2;
+	width: 16px;
+	height: 16px;
+	cursor: default;
+}
+
+.slider input {
+	float : none;
+	padding : 0;
+	text-align : right;
+	color : #5a5a5a;
+	width : 30px;
+}
+
+.slider input.amount-second {
+	text-align : left;
+}
+
+/* //////////////////// AUTOCOMPLETE \\\\\\\\\\\\\\\\\\\\ */
+
+.ui-autocomplete { position: absolute; cursor: default; }	
+
+/* workarounds */
+* html .ui-autocomplete { width:1px; } /* without this, the menu expands to 100% in IE6 */
+
+.ui-menu {
+	float : left;
+	display : block;
+	background-color : #FFFFFF;
+	border : 1px solid #c3d0e1;
+	list-style-type : none;
+	overflow-x : hidden;
+	overflow-y : auto;
+	margin : 0;
+	padding : 0;
+	width : 168px;
+	max-height : 250px;
+}
+.ui-menu .ui-menu {
+	margin: -3px 0 0;
+}
+.ui-menu .ui-menu-item {
+	margin:0;
+	padding: 0;
+	zoom: 1;
+	float: left;
+	clear: left;
+	width: 100%;
+}
+.ui-menu .ui-menu-item a {
+	display : block;
+	background-color : #FFFFFF;
+	padding : 3px 5px;
+	overflow : hidden;
+	font-family : Arial;
+	font-weight : 100;
+	cursor : pointer;
+	color: #5a5a5a;
+	font-size : 12px;
+	line-height : 18px;
+	text-decoration: none;
+	zoom:1;
+}
+.ui-menu .ui-menu-item a.ui-state-hover,
+.ui-menu .ui-menu-item a.ui-state-active {
+  background-color : #eff2f6;
+  color : #002e68;
+}

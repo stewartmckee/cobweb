@@ -1,0 +1,189 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+table {
+	width : 100%;
+}
+
+table, td, tr, th {
+	padding : 0;
+	margin : 0;
+	border-collapse: collapse;
+	text-align : left;
+}
+
+table thead tr th, table tfoot tr th {
+	color : #002e68;
+}
+
+table thead {
+	background : url(../gfx/table-thead.gif) repeat-x right top;
+	border : 1px solid #d2dce9;
+	border-right : none;
+}
+
+table thead tr th{
+	border : 1px solid #d2dce9;
+	padding : 5px 8px;
+	line-height : 19px;
+}
+
+table thead tr th.header {
+	border : 1px solid #d2dce9;
+	background-color : transparent
+}
+
+table tbody td {
+	border : 1px solid #d2dce9;
+	padding : 5px 8px;
+	line-height : 19px;
+}
+
+table tbody tr.odd td {
+	background-color:#f9f9f9;
+}
+
+table thead tr .sorting_desc {
+	background : url(../gfx/table-asc-arrow.gif) no-repeat right center;
+}
+
+table thead tr .sorting_asc {
+	background : url(../gfx/table-desc-arrow.gif) no-repeat right center;
+}
+
+table td:first-child{
+    width: 13px;
+}
+
+table td:first-child + td + td + td + td + td {
+    text-align: center;
+    padding: 0;
+    line-height: 0;
+    width: 65px;
+}
+
+.dataTables_wrapper {
+	display : block;
+}
+
+.dataTables_wrapper div {
+	float : right;
+	width : 70%;
+}
+
+.dataTables_wrapper label {
+	float : none;
+	padding : 0;
+	margin : 0;
+	width : auto;
+	height : auto;
+}
+
+.dataTables_wrapper .dataTables_length {
+	float : right;
+	display : inline-block;
+	margin : 0 0 0 2px;
+	width : 60px;
+}
+
+.dataTables_wrapper .dataTables_length .ui-selectmenu {
+	float : right;
+	display : inline-block;
+	position : relative;
+	background : url(../gfx/table-rows.gif) no-repeat right top transparent;
+	padding : 5px 24px 0 1px;
+	margin : 8px 0 0 0;
+	color : #5a5a5a;
+	font-weight : bold;
+	font : 11px/1.1em Arial;
+	text-align : center;
+	width : 35px;
+	height : 18px;
+}
+
+.ui-selectmenu-menu.entries {
+	margin : 3px 0 0 6px;
+	width : 46px;
+}
+
+.dataTables_wrapper .dataTables_length .ui-selectmenu-status {
+	font : 11px/1.1em Arial;
+	font-weight : bold;
+}
+
+.ui-selectmenu-menu.entries li a{
+	font : 11px/1.1em Arial;
+}
+
+.dataTables_wrapper  .dataTables_filter {
+	float : right;
+	display : inline-block;
+	width : 120px;
+}
+
+.dataTables_wrapper  .dataTables_filter input {
+	float : right;
+	display : inline-block;
+	background : url(../gfx/table-search.gif) no-repeat left top transparent;
+	margin : 8px 0 0 0;
+	padding : 5px 6px;
+	font : 11px/1.0em Arial;
+	text-align : left;
+	width : 108px;
+	height : 13px;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+	float : right;
+	margin : 8px 0 0;
+	width : auto;
+}
+
+.dataTables_paginate span.paginate_button {
+	float : left;
+	margin : 0 0 0 2px;
+	text-indent : 999px;
+	overflow : hidden;
+	cursor : pointer;
+	width : 24px;
+	height : 23px;
+}
+
+.dataTables_paginate span.paginate_button.first {
+	background : url(../gfx/table-first.gif) no-repeat left top transparent;
+}
+
+.dataTables_paginate span.paginate_button.previous {
+	background : url(../gfx/table-prev.gif) no-repeat left top transparent;
+}
+
+.dataTables_paginate span.paginate_button.next {
+	background : url(../gfx/table-next.gif) no-repeat left top transparent;
+}
+
+.dataTables_paginate span.paginate_button.last {
+	background : url(../gfx/table-last.gif) no-repeat left top transparent;
+}
+
+.dataTables_paginate span span.paginate_button,
+.dataTables_paginate span span {
+	float : left;
+	background : url(../gfx/table-number.gif) no-repeat left top transparent;
+	margin : 0 0 0 2px;
+	font : 11px/2.0em Arial;
+	text-align : center;
+	text-indent : 0;
+	cursor : pointer;
+	width : 24px;
+	height : 23px;
+}
+
+.dataTables_paginate span span:hover,
+.dataTables_paginate span span.paginate_active {
+	color : #002E68;
+	font-weight : bold;
+}

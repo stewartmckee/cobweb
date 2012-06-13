@@ -1,0 +1,852 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" /> 
+	<title>CleanDream</title>
+	
+	<style type="text/css">
+		@import url("css/style.css");
+		@import url('css/style_text.css');
+		@import url('css/form-buttons.css');
+		@import url('css/link-buttons.css');
+		@import url('css/menu.css');
+		@import url('css/statics.css');
+		@import url('css/messages.css');
+		@import url('css/datatable.css');
+		@import url('css/accordion.css');
+		@import url('css/tabs.css');
+		@import url('css/forms.css');
+		@import url('css/datepicker.css');
+		@import url('css/modalbox.css');
+		@import url('css/jquery.fancybox-1.3.4.css');
+		@import url('css/jquery.treeview.css');
+		@import url('css/wysiwyg.css');
+		@import url('css/wysiwyg.modal.css');
+		@import url('css/wysiwyg-editor.css');
+	</style>
+	
+	<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+	
+	<!--[if lte IE 8]>
+		<script type="text/javascript" src="js/excanvas.min.js"></script>
+	<![endif]-->
+	
+</head>
+
+<body>
+
+<div class="container">   
+  
+	<div class="logo-labels">
+		<h1><a href="#">CleanDream</a></h1>
+		<ul>
+			<li><a href="#"><span>Settings</span></a></li>
+			<li class="usermessage"><a href="#"><span>1 new message</span></a></li>
+			<li class="logout"><a href="#"><span>Logout</span></a></li>
+		</ul>
+	</div>
+	
+	<div class="menu-search">
+		<ul> 
+			<li class="current"><a href="dashboard.html">Dashboard</a></li> 
+			<li> 
+				<a href="#">Dropdown</a> 
+				<ul> 
+					<li><a href="#">Submenu item 001</a></li>
+					<li><a href="#">Submenu item 002</a></li>
+					<li><a href="#">Submenu item 003</a></li>
+					<li class="current">
+						<a href="#">Submenu item 004</a>
+						<ul> 
+							<li><a href="#">Subsubmenu item 001</a></li>
+							<li><a href="#">Subsubmenu item 002</a></li>
+							<li class="current"><a href="#">Subsubmenu item 003</a></li>
+							<li><a href="#">Subsubmenu item 003</a></li>
+							<li><a href="#">Subsubmenu item 005</a></li>
+						</ul> 
+					</li> 
+					<li> <a href="#">Submenu item 005</a> </li>
+				</ul> 
+			</li> 
+			<li><a href="typography.html">Typography</a></li>
+			<li><a href="boxgrid.html">Boxes Grid</a></li>
+			<li><a href="forms.html">Forms</a></li>
+			<li><a href="gallery.html">Gallery</a></li>
+			<li><a href="tables.html">Tables</a></li>
+			<li><a href="more.html">More</a></li>
+		</ul>
+		<div class="search">
+			<form action="" method="post">
+				<input type="text" value="Seachterm" />
+				<button type="submit"></button>
+			</form> 
+		</div>
+	</div>
+	
+	<div class="breadcrumbs">
+		<ul>
+			<li class="home"><a href="#"></a></li>
+			<li class="break">&#187;</li>
+			<li><a href="#">Menu item</a></li>
+			<li class="break">&#187;</li>
+			<li><a href="#">Menu item</a></li>
+		</ul>
+	</div>
+	
+	<div class="section">
+		<div class="full">
+			<div class="box">
+				<div class="title">
+					<h2>Statistics</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<div class="caption">Statistics for August</div> 
+					<table class="statics" style="width : 100%;"> 
+						<thead> 
+							<tr> 
+								<th></th> 
+								<th style="color : #00366f;">unique visitors</th> 
+								<th style="color : #006ba0;">pageviews</th> 
+							</tr> 
+						</thead> 
+						<tbody> 
+							<tr> 
+								<th>1</th><td>256</td><td>1207</td> 
+							</tr> 
+							<tr> 
+								<th>2</th><td>203</td><td>1000</td> 
+							</tr> 
+							<tr> 
+								<th>3</th><td>241</td><td>1050</td> 
+							</tr> 
+							<tr> 
+								<th>4</th><td>227</td><td>1143</td> 
+							</tr> 
+							<tr> 
+								<th>5</th><td>220</td><td>1027</td> 
+							</tr> 
+							<tr> 
+								<th>6</th><td>219</td><td>939</td> 
+							</tr> 
+							<tr> 
+								<th>7</th><td>260</td><td>1163</td> 
+							</tr> 
+							<tr> 
+								<th>8</th><td>235</td><td>1301</td> 
+							</tr> 
+							<tr> 
+								<th>9</th><td>277</td><td>1439</td> 
+							</tr> 
+							<tr> 
+								<th>10</th><td>245</td><td>1508</td> 
+							</tr> 
+							<tr> 
+								<th>11</th><td>249</td><td>1200</td> 
+							</tr> 
+							<tr> 
+								<th>12</th><td>240</td><td>1213</td> 
+							</tr> 
+							<tr> 
+								<th>13</th><td>246</td><td>1200</td> 
+							</tr> 
+							<tr> 
+								<th>14</th><td>256</td><td>1444</td> 
+							</tr> 
+							<tr> 
+								<th>15</th><td>227</td><td>1069</td> 
+							</tr> 
+							<tr> 
+								<th>16</th><td>221</td><td>1158</td> 
+							</tr> 
+							<tr> 
+								<th>17</th><td>266</td><td>1384</td> 
+							</tr> 
+							<tr> 
+								<th>18</th><td>247</td><td>1395</td> 
+							</tr> 
+							<tr> 
+								<th>19</th><td>286</td><td>1729</td> 
+							</tr> 
+							<tr> 
+								<th>20</th><td>224</td><td>1175</td> 
+							</tr> 
+							<tr> 
+								<th>21</th><td>225</td><td>1026</td> 
+							</tr> 
+							<tr> 
+								<th>22</th><td>216</td><td>994</td> 
+							</tr> 
+							<tr> 
+								<th>23</th><td>179</td><td>762</td> 
+							</tr> 
+							<tr> 
+								<th>24</th><td>259</td><td>1151</td> 
+							</tr> 
+							<tr> 
+								<th>25</th><td>191</td><td>978</td> 
+							</tr> 
+							<tr> 
+								<th>26</th><td>196</td><td>1069</td> 
+							</tr> 
+							<tr> 
+								<th>27</th><td>209</td><td>1189</td> 
+							</tr> 
+							<tr> 
+								<th>28</th><td>199</td><td>1099</td> 
+							</tr> 
+							<tr> 
+								<th>29</th><td>225</td><td>1215</td> 
+							</tr> 
+							<tr> 
+								<th>30</th><td>228</td><td>973</td> 
+							</tr>
+							<tr> 
+								<th>31</th><td>258</td><td>1462</td> 
+							</tr> 
+						</tbody> 
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>System information messages</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<div class="messages green">
+						<span></span>
+						This is a successful placed text message.
+					</div>
+					<div class="messages blue">
+						<span></span>
+						This is a information placed text message.
+					</div>
+					<div class="messages orange">
+						<span></span>
+						This is a warning placed text message.
+					</div>
+					<div class="messages red">
+						<span></span>
+						This is a warning placed text message.
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Link button and sumbit button styles</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<h2>Buttons small</h2>
+					<a href="#" class="button green">Button</a>
+					<a href="#" class="button blue">Button</a>
+					<a href="#" class="button orange">Button</a>
+					<a href="#" class="button red">Button</a>
+					<a href="#" class="button grey">Button</a><br />
+					<br />
+					<h2>Buttons medium</h2>
+					<a href="#" class="button green medium">Button</a>
+					<a href="#" class="button blue medium">Button</a>
+					<a href="#" class="button orange medium">Button</a>
+					<a href="#" class="button red medium">Button</a>
+					<a href="#" class="button grey medium">Button</a><br />
+					<br />
+					<h2>Buttons big</h2>
+					<a href="#" class="button green big">Button</a>
+					<a href="#" class="button blue big">Button</a>
+					<a href="#" class="button orange big">Button</a>
+					<a href="#" class="button red big">Button</a>
+					<a href="#" class="button grey big">Button</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="section">
+		
+		<div class="small">
+			<div class="box">
+				<div class="title">
+					<h2>Messages</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<div class="message">
+						<h3>This is a title</h3>
+						Etiam et tristique nisi. Vestibulum non
+						massa nec dui aliquet ultrices. Suspe
+						id lacus augue, eu cursus.<br />
+						<a href="#" class="button blue">Read more</a>
+					</div>
+					<div class="message">
+						<h3>This is a title</h3>
+						Etiam et tristique nisi. Vestibulum non
+						massa nec dui aliquet ultrices. Suspe
+						id lacus augue, eu cursus.<br />
+						<a href="#" class="button blue">Read more</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="big">
+			<div class="box">
+				<div class="title">
+					<h2>Pages</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<table cellspacing="0" cellpadding="0" border="0" class="all"> 
+						<thead> 
+							<tr> 
+								<th><input type="checkbox" name="check" class="checkall" /></th>
+								<th>Title</th>
+								<th>Status</th>
+								<th>Date created</th>
+								<th>Author</th>
+								<th></th>
+							</tr> 
+						</thead> 
+						<tbody> 
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Vestibulum ante ipsum primis</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Quisque nulla libero</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Donec pretium scelerisque mi id</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Nam porttitor dictum arcu</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Duis suscipit mollis consectetur</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Vestibulum ante ipsum primis</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Quisque nulla libero</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Donec pretium scelerisque mi id</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Nam porttitor dictum arcu</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Duis suscipit mollis consectetur</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Vestibulum ante ipsum primis</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Quisque nulla libero</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Donec pretium scelerisque mi id</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Nam porttitor dictum arcu</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Duis suscipit mollis consectetur</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Vestibulum ante ipsum primis</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Quisque nulla libero</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Donec pretium scelerisque mi id</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Nam porttitor dictum arcu</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Duis suscipit mollis consectetur</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Vestibulum ante ipsum primis</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Quisque nulla libero</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Donec pretium scelerisque mi id</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Nam porttitor dictum arcu</a></td>
+								<td>Draft</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+							<tr> 
+								<td><input type="checkbox" name="check" /></td>
+								<td><a href="#">Duis suscipit mollis consectetur</a></td>
+								<td>Published</td>
+								<td>26th August 2011</td>
+								<td>First, Lastname</td>
+								<td>
+									<a href="#"><img src="gfx/icon-edit.png" alt="edit" /></a>
+									<a href="#"><img src="gfx/icon-delete.png" alt="delete" /></a>
+								</td>
+							</tr>
+						</tbody> 
+					</table>
+					<button type="submit" class="red"><span>Delete</span></button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Information tabs</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content tabs">
+					
+					<div class="tabmenu">
+						<ul> 
+							<li><a href="#tabs-1">Tab number 1</a></li> 
+							<li><a href="#tabs-2">Tab number 2</a></li> 
+							<li><a href="#tabs-3">Tab number 3</a></li> 
+						</ul>
+					</div>
+					
+					<div id="tabs-1">
+						<img src="gfx/photos/00.jpg" class="right" alt="Photo" />
+						<b>Donec pharetra ullamcorper ligula, vel vehicula ante lobo
+						nulla a nibh pulvinar imperdiet. Aenean sagittis neque se
+						Cras egestas lacus vitae tortor.</b><br />
+						<br />
+						Nulla sodales condimentum dolor at pharetra. Donec feug
+						amet dignissim augue semper a. Ut imperdiet iaculis pur
+						nibh eros, elementum eget viverra eget, tempus et velit.
+						penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc sapien
+						libero, facilisis a varius non, gravida et odio. Pellentesque habitant morbi
+						tristique senectus et netus et malesuada fames ac turpis egestas. In fermentum
+						mauris non turpis sagittis vel sollicitudin magna dictum. Cras vel lectus sed
+						sapien malesuada viverra ac ut elit. Vivamus vel nunc ac est iaculis lobortis.
+						Maecenas congue velit sit amet leo sapien libero, facilisis a varius non,
+						gravida et odio.
+					</div>
+					
+					<div id="tabs-2">
+						<img src="gfx/photos/00.jpg" class="left" alt="Photo" />
+						<b>Donec pharetra ullamcorper ligula, vel vehicula ante lobo
+						nulla a nibh pulvinar imperdiet. Aenean sagittis neque se
+						Cras egestas lacus vitae tortor.</b><br />
+						<br />
+						Nulla sodales condimentum dolor at pharetra. Donec feug
+						amet dignissim augue semper a. Ut imperdiet iaculis pur
+						nibh eros, elementum eget viverra eget, tempus et velit.
+						penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc sapien
+						libero, facilisis a varius non, gravida et odio. Pellentesque habitant morbi
+						tristique senectus et netus et malesuada fames ac turpis egestas. In fermentum
+						mauris non turpis sagittis vel sollicitudin magna dictum. Cras vel lectus sed
+						sapien malesuada viverra ac ut elit. Vivamus vel nunc ac est iaculis lobortis.
+						Maecenas congue velit sit amet leo sapien libero, facilisis a varius non,
+						gravida et odio.
+					</div>
+					
+					<div id="tabs-3">
+						<img src="gfx/photos/00.jpg" class="right" alt="Photo" />
+						<b>Donec pharetra ullamcorper ligula, vel vehicula ante lobo
+						nulla a nibh pulvinar imperdiet. Aenean sagittis neque se
+						Cras egestas lacus vitae tortor.</b><br />
+						<br />
+						Nulla sodales condimentum dolor at pharetra. Donec feug
+						amet dignissim augue semper a. Ut imperdiet iaculis pur
+						nibh eros, elementum eget viverra eget, tempus et velit.
+						penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nunc sapien
+						libero, facilisis a varius non, gravida et odio. Pellentesque habitant morbi
+						tristique senectus et netus et malesuada fames ac turpis egestas. In fermentum
+						mauris non turpis sagittis vel sollicitudin magna dictum. Cras vel lectus sed
+						sapien malesuada viverra ac ut elit. Vivamus vel nunc ac est iaculis lobortis.
+						Maecenas congue velit sit amet leo sapien libero, facilisis a varius non,
+						gravida et odio.
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Gallery: thumb options</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content gallery">
+				
+					<div class="thumb">
+						<div>
+							<a href="gfx/photos/01xl.jpg" class="zoom"><img src="gfx/img-zoom.png" alt="Zoom" /></a>
+							<a href="#"><img src="gfx/img-delete.png" alt="Delete" /></a>
+						</div>
+						<img src="gfx/photos/01.jpg" class="shadow" alt="Photo" />
+					</div>
+					<div class="thumb">
+						<div>
+							<a href="gfx/photos/02xl.jpg" class="zoom"><img src="gfx/img-zoom.png" alt="Zoom" /></a>
+							<a href="#"><img src="gfx/img-delete.png" alt="Delete" /></a>
+						</div>
+						<img src="gfx/photos/02.jpg" class="shadow" alt="Photo" />
+					</div>
+					<div class="thumb">
+						<div>
+							<a href="gfx/photos/03xl.jpg" class="zoom"><img src="gfx/img-zoom.png" alt="Zoom" /></a>
+							<a href="#"><img src="gfx/img-delete.png" alt="Delete" /></a>
+						</div>
+						<img src="gfx/photos/03.jpg" class="shadow" alt="Photo" />
+					</div>
+					<div class="thumb">
+						<div>
+							<a href="gfx/photos/04xl.jpg" class="zoom"><img src="gfx/img-zoom.png" alt="Zoom" /></a>
+							<a href="#"><img src="gfx/img-delete.png" alt="Delete" /></a>
+						</div>
+						<img src="gfx/photos/04.jpg" class="shadow" alt="Photo" />
+					</div>
+					
+					<a href="gfx/photos/06xl.jpg" class="zoom"><img src="gfx/photos/06.jpg" class="shadow" alt="Photo" /></a>
+					<a href="gfx/photos/07xl.jpg" class="zoom"><img src="gfx/photos/07.jpg" class="shadow" alt="Photo" /></a>
+					<a href="gfx/photos/08xl.jpg" class="zoom"><img src="gfx/photos/08.jpg" class="shadow" alt="Photo" /></a>
+					<a href="gfx/photos/09xl.jpg" class="zoom"><img src="gfx/photos/09.jpg" class="shadow" alt="Photo" /></a>
+					
+					<a href="#"><img src="gfx/photos/11.jpg" class="shadow" alt="Photo" /></a>
+					<a href="#"><img src="gfx/photos/12.jpg" class="shadow" alt="Photo" /></a>
+					<a href="#"><img src="gfx/photos/13.jpg" class="shadow" alt="Photo" /></a>
+					<a href="#"><img src="gfx/photos/14.jpg" class="shadow" alt="Photo" /></a>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Form elements</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content forms">
+					<form action="" method="post">
+						<div class="line">
+							<label>Small inputfield</label>
+							<input type="text" class="small" value="" />
+						</div>
+						<div class="line">
+							<label>Medium inputfield</label>
+							<input type="text" class="medium" value="" />
+						</div>
+						<div class="line">
+							<label>Selectbox</label>
+							<select>
+								<option selected="selected" value="">Option 01</option>
+								<option value="">Option 02</option>
+								<option value="">Option 03</option>
+								<option value="">Option 04</option>
+								<option value="">Option 05</option>
+							</select>
+						</div>
+						<div class="line">
+							<label>File inputfield</label>
+							<input type="file" />
+						</div>
+						<div class="line">
+							<label>Textarea</label>
+							<textarea class="medium" rows="" cols=""></textarea>
+						</div>
+						<div class="line">
+						<label>Checkboxes</label>
+							<input type="checkbox" name="checkbox" id="check-1" checked="checked" />
+							<label for="check-1">Checkbox on</label>
+							
+							<input type="checkbox" name="checkbox" id="check-2" />
+							<label for="check-2">Checkbox off</label>
+						</div>
+						<div class="line">
+							<label>Radiobuttons</label>
+							<input type="radio" name="radiobutton" id="radio-1" checked="checked" /> 
+							<label for="radio-1">Radiobutton on</label>
+							
+							<input type="radio" name="radiobutton" id="radio-2" /> 
+							<label for="radio-2">Radiobutton off</label>
+						</div>
+					</form> 
+				</div>
+			</div>
+		</div>
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Text options</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<h1>This is a H1 heading.</h1>
+					Duis libero lectus, vestibulum at laoreet sed, elementum id augue. Maecenas ut dapibus arcu. Curabitur
+					malesuada venenatis orci, sed adipiscing diam pharetra sit amet. Donec vulputate consequat ante, a
+					eleifend urna feugiat suscipit. Nunc est dolor.<br />
+					<br />
+					<h2>This is a H2 heading.</h2>
+					Duis libero lectus, vestibulum at laoreet sed, elementum id augue. Maecenas ut dapibus arcu. Curabitur
+					malesuada venenatis orci, sed adipiscing diam pharetra sit amet. Donec vulputate consequat ante, a
+					eleifend urna feugiat suscipit. Nunc est dolor.<br />
+					<br />
+					<h4>A bullet list</h4>
+					<ul>
+						<li>Morbi porttitor risus a nulla vestibulum vulputate.</li>
+						<li>Curabitur vestibulum condimentum arcu non.</li>
+						<li>Vestibulum mollis rutrum diam nec euismod.</li>
+						<li>Aenean feugiat vestibulum congue donec nibh nulla, ullamcorper.</li>
+					</ul>
+					<br />
+					<h4>A numbered list</h4>
+					<ol>
+						<li>Morbi porttitor risus a nulla vestibulum vulputate.</li>
+						<li>Curabitur vestibulum condimentum arcu non.</li>
+						<li>Vestibulum mollis rutrum diam nec euismod.</li>
+						<li>Aenean feugiat vestibulum congue donec nibh nulla, ullamcorper.</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="footer">
+		<div class="split">&#169; Copyright <a href="#">website.com</a></div> 
+		<div class="split right">Powered by <a href="http://themeforest.net/item/cleandream/490140" target="_blank">CleanDream</a></div> 
+	</div>
+</div>
+
+<script type="text/javascript" src="js/superfish.js"></script>
+<script type="text/javascript" src="js/supersubs.js"></script>
+<script type="text/javascript" src="js/hoverIntent.js"></script>
+<script type="text/javascript" src="js/jquery.flot.js"></script>
+<script type="text/javascript" src="js/jquery.graphtable-0.2.js"></script>
+<script type="text/javascript" src="js/jquery.flot.resize.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/jquery-ui-select.js"></script>
+<script type="text/javascript" src="js/customInput.jquery.js"></script>
+<script type="text/javascript" src="js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="js/jquery.fancybox-1.3.4.js"></script>
+<script type="text/javascript" src="js/jquery.filestyle.mini.js"></script>
+<script type="text/javascript" src="js/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="js/jquery.treeview.js"></script>
+<script type="text/javascript" src="js/jquery.tipsy.js"></script>
+<script type="text/javascript" src="js/jquery.wysiwyg.js"></script>
+<script type="text/javascript" src="js/plugins/wysiwyg.rmFormat.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.image.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.link.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.table.js"></script>
+<script type="text/javascript" src="js/inline.js"></script>
+
+</body>
+
+</html> 

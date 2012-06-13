@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" /> 
+	<title>CleanDream</title>
+	
+	<style type="text/css">
+		@import url("css/style.css");
+		@import url('css/style_text.css');
+		@import url('css/form-buttons.css');
+		@import url('css/link-buttons.css');
+		@import url('css/menu.css');
+		@import url('css/statics.css');
+		@import url('css/messages.css');
+		@import url('css/datatable.css');
+		@import url('css/accordion.css');
+		@import url('css/tabs.css');
+		@import url('css/forms.css');
+		@import url('css/datepicker.css');
+		@import url('css/modalbox.css');
+		@import url('css/jquery.fancybox-1.3.4.css');
+		@import url('css/jquery.treeview.css');
+		@import url('css/wysiwyg.css');
+		@import url('css/wysiwyg.modal.css');
+		@import url('css/wysiwyg-editor.css');
+	</style>
+	
+	<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+	
+	<!--[if lte IE 8]>
+		<script type="text/javascript" src="js/excanvas.min.js"></script>
+	<![endif]-->
+	
+</head>
+
+<body>
+
+<div class="container">   
+  
+	<div class="logo-labels">
+		<h1><a href="#">CleanDream</a></h1>
+		<ul>
+			<li><a href="#"><span>Settings</span></a></li>
+			<li class="usermessage"><a href="#"><span>1 new message</span></a></li>
+			<li class="logout"><a href="#"><span>Logout</span></a></li>
+		</ul>
+	</div>
+	
+	<div class="menu-search">
+		<ul> 
+			<li><a href="dashboard.html">Dashboard</a></li> 
+			<li> 
+				<a href="#">Dropdown</a> 
+				<ul> 
+					<li><a href="#">Submenu item 001</a></li>
+					<li><a href="#">Submenu item 002</a></li>
+					<li><a href="#">Submenu item 003</a></li>
+					<li class="current">
+						<a href="#">Submenu item 004</a>
+						<ul> 
+							<li><a href="#">Subsubmenu item 001</a></li>
+							<li><a href="#">Subsubmenu item 002</a></li>
+							<li class="current"><a href="#">Subsubmenu item 003</a></li>
+							<li><a href="#">Subsubmenu item 003</a></li>
+							<li><a href="#">Subsubmenu item 005</a></li>
+						</ul> 
+					</li> 
+					<li> <a href="#">Submenu item 005</a> </li>
+				</ul> 
+			</li> 
+			<li><a href="typography.html">Typography</a></li>
+			<li><a href="boxgrid.html">Boxes Grid</a></li>
+			<li class="current"><a href="forms.html">Forms</a></li>
+			<li><a href="gallery.html">Gallery</a></li>
+			<li><a href="tables.html">Tables</a></li>
+			<li><a href="more.html">More</a></li>
+		</ul>
+		<div class="search">
+			<form action="" method="post">
+				<input type="text" value="Seachterm" />
+				<button type="submit"></button>
+			</form> 
+		</div>
+	</div>
+	
+	<div class="breadcrumbs">
+		<ul>
+			<li class="home"><a href="#"></a></li>
+			<li class="break">&#187;</li>
+			<li><a href="#">Menu item</a></li>
+			<li class="break">&#187;</li>
+			<li><a href="#">Menu item</a></li>
+		</ul>
+	</div>
+
+	<div class="section">
+		<div class="full">
+			<div class="box">
+				<div class="title">
+					<h2>Inputfields and textareas</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content forms">
+					<form action="" method="post">
+						<div class="line">
+							<label>Small inputfield</label>
+							<input type="text" class="small" value="" />
+						</div>
+						<div class="line">
+							<label>Medium inputfield</label>
+							<input type="text" class="medium" value="" />
+						</div>
+						<div class="line">
+							<label>Big inputfield</label>
+							<input type="text" class="big" value="" />
+						</div>
+						<div class="line">
+							<label>XL inputfield</label>
+							<input type="text" class="xl" value="" />
+						</div>
+						<div class="line">
+							<label>Textarea small</label>
+							<textarea class="small" rows="" cols=""></textarea>
+						</div>
+						<div class="line">
+							<label>Textarea medium</label>
+							<textarea class="medium" rows="" cols=""></textarea>
+						</div>
+						<div class="line">
+							<label>Textarea big</label>
+							<textarea class="big" rows="" cols=""></textarea>
+						</div>
+						<div class="line">
+							<label>Textarea XL</label>
+							<textarea class="xl" rows="" cols=""></textarea>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div class="big">
+			<div class="box">
+				<div class="title">
+					<h2>Other form elements</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content forms">
+					<form action="" method="post">
+						<div class="line">
+							<label>Autocomplete</label>
+							<input type="text" class="small complete" value="" />
+						</div>
+						<div class="line">
+							<label>Date picker</label>
+							<span class="date">Starting date</span> <input type="text" class="datepicker" /> 
+						</div>
+						<div class="line">
+							<label>Time & Date picker</label>
+							<span class="date">Starting date</span> <input type="text" class="timepicker" /> 
+						</div>
+						<div class="line">
+							<label>Selectbox small</label>
+							<select class="small">
+								<option selected="selected" value="">0001</option>
+								<option value="">0002</option>
+								<option value="">0003</option>
+								<option value="">0004</option>
+								<option value="">0005</option>
+							</select>
+						</div>
+						<div class="line">
+							<label>Selectbox medium</label>
+							<select>
+								<option selected="selected" value="">Option 01</option>
+								<option value="">Option 02</option>
+								<option value="">Option 03</option>
+								<option value="">Option 04</option>
+								<option value="">Option 05</option>
+							</select>
+						</div>
+						<div class="line">
+							<label>Multi Selectbox</label>
+							<select multiple="multiple" class="multi" size="7">
+								<option selected="selected" value="">Option 01</option>
+								<option value="">Option 02</option>
+								<option value="">Option 03</option>
+								<option value="">Option 04</option>
+								<option value="">Option 05</option>
+								<option value="">Option 06</option>
+								<option value="">Option 07</option>
+								<option value="">Option 08</option>
+								<option value="">Option 09</option>
+								<option value="">Option 10</option>
+							</select>
+						</div>
+						<div class="line">
+							<label>File inputfield</label>
+							<input type="file" />
+						</div>
+						<div class="line">
+							<label>Checkboxes</label>
+							<input type="checkbox" name="days[]" value="monday" id="monday" checked="checked" />
+							<label for="monday">Mon</label>
+							
+							<input type="checkbox" name="days[]" value="tuesday" id="tuesday" />
+							<label for="tuesday">Tue</label>
+							
+							<input type="checkbox" name="days[]" value="wednesday" id="wednesday" />
+							<label for="wednesday">Wed</label>
+							
+							<input type="checkbox" name="days[]" value="thursday" id="thursday" />
+							<label for="thursday">Thu</label>
+							
+							<input type="checkbox" name="days[]" value="friday" id="friday" />
+							<label for="friday">Fri</label>
+							
+							<input type="checkbox" name="days[]" value="saterday" id="saterday" />
+							<label for="saterday">Sat</label>
+							
+							<input type="checkbox" name="days[]" value="sunday" id="sunday" />
+							<label for="sunday">Sun</label>
+						</div>
+						<div class="line">
+							<label>Radiobuttons</label>
+							<input type="radio" name="radiobutton" id="radio-1" checked="checked" /> 
+							<label for="radio-1">Radiobutton on</label>
+							
+							<input type="radio" name="radiobutton" id="radio-2" /> 
+							<label for="radio-2">Radiobutton off</label>
+						</div>
+						<div class="line">
+							<div class="slider range-slide">
+								<b>A range slider:</b>
+								<input type="text" class="amount-first" value="" /> -
+								<input type="text" class="amount-second" value="" />
+								<div class="slide" value="1200,2500" max="4000" min="50"></div> 
+							</div>
+						</div>
+						<div class="line">
+							<div class="slider signle-slide">
+								<b>A signle slider:</b>
+								<input type="text" class="amount" value="" />
+								<div class="slide" value="150" max="600" min="50"></div> 
+							</div>
+						</div>
+						<div class="line">
+							<label>WYSIWYG Editor</label>
+							<textarea class="wysiwyg" cols="" rows=""></textarea> 
+						</div>
+						<div class="line button">
+							<button type="submit" class="green"><span>Sumbit</span></button>
+							<button type="submit" class="blue"><span>Sumbit</span></button>
+							<button type="submit" class="orange"><span>Sumbit</span></button>
+							<button type="submit" class="red"><span>Sumbit</span></button>
+							<button type="submit" class="grey"><span>Sumbit</span></button>
+							<br />
+							<button type="submit" class="green medium"><span>Sumbit</span></button>
+							<button type="submit" class="blue medium"><span>Sumbit</span></button>
+							<button type="submit" class="orange medium"><span>Sumbit</span></button>
+							<button type="submit" class="red medium"><span>Sumbit</span></button>
+							<button type="submit" class="grey medium"><span>Sumbit</span></button>
+							<br />
+							<button type="submit" class="green big"><span>Sumbit</span></button>
+							<button type="submit" class="blue big"><span>Sumbit</span></button>
+							<button type="submit" class="orange big"><span>Sumbit</span></button>
+							<button type="submit" class="red big"><span>Sumbit</span></button>
+							<button type="submit" class="grey big"><span>Sumbit</span></button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="small">
+			<div class="box">
+				<div class="title">
+					<h2>Progressbars</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<h4>A progressbar (70%):</h4>
+					<div class="progressbar">
+						<div style="width : 70%;"></div>
+					</div>
+					<br />
+					<h4>A progressbar animated (50%):</h4>
+					<div class="progressbar animated">
+						<div style="width : 50%;"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="footer">
+		<div class="split">&#169; Copyright <a href="#">website.com</a></div> 
+		<div class="split right">Powered by <a href="http://themeforest.net/item/cleandream/490140" target="_blank">CleanDream</a></div> 
+	</div>
+</div>
+
+<script type="text/javascript" src="js/superfish.js"></script>
+<script type="text/javascript" src="js/supersubs.js"></script>
+<script type="text/javascript" src="js/hoverIntent.js"></script>
+<script type="text/javascript" src="js/jquery.flot.js"></script>
+<script type="text/javascript" src="js/jquery.graphtable-0.2.js"></script>
+<script type="text/javascript" src="js/jquery.flot.resize.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/jquery-ui-select.js"></script>
+<script type="text/javascript" src="js/customInput.jquery.js"></script>
+<script type="text/javascript" src="js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="js/jquery.fancybox-1.3.4.js"></script>
+<script type="text/javascript" src="js/jquery.filestyle.mini.js"></script>
+<script type="text/javascript" src="js/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="js/jquery.treeview.js"></script>
+<script type="text/javascript" src="js/jquery.tipsy.js"></script>
+<script type="text/javascript" src="js/jquery.wysiwyg.js"></script>
+<script type="text/javascript" src="js/plugins/wysiwyg.rmFormat.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.image.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.link.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.table.js"></script>
+<script type="text/javascript" src="js/inline.js"></script>
+
+</body>
+
+</html> 

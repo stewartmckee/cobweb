@@ -4,8 +4,9 @@ class Stats
   
   # Sets up redis usage for statistics
   def initialize(options)
+    options[:redis_options] = {} unless options.has_key? :redis_options
     @full_redis = Redis.new(options[:redis_options])
-    @redis = NamespacedRedis.new(options[:redis_options], "cobweb-#{options[:crawl_id]}")
+    @redis = NamespacedRedis.new(options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
   end
   
   # Sets up the crawl in statistics
@@ -24,6 +25,10 @@ class Stats
     @full_redis.srem "cobweb_crawls", options[:crawl_id]
     @redis.hset "statistics", "current_status", "Crawl Stopped"
     @redis.del "crawl_details"
+  end
+  
+  def get_crawled
+    @redis.smembers "crawled"
   end
   
   # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  

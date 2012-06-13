@@ -1,0 +1,58 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.messages {
+	display : block;
+	*zoom : 1;
+	margin : 15px 0 3px 0;
+	*margin : 15px 0 0;
+	text-align : left;
+	overflow : hidden;
+	line-height : 2.45em;
+	color : #FFFFFF;
+	width : 100%;
+	height : 30px;
+}
+
+.messages span {
+	float : left;
+	margin : 0 8px 0 0;
+	width : 31px;
+	height : 30px;
+}
+
+.messages.green {
+	background : url(../gfx/system-messages.gif) no-repeat right top transparent;
+}
+
+.messages.green span {
+	background : url(../gfx/system-messages.gif) no-repeat left top transparent;
+}
+
+.messages.blue {
+	background : url(../gfx/system-messages.gif) no-repeat right -30px transparent;
+}
+
+.messages.blue span {
+	background : url(../gfx/system-messages.gif) no-repeat left -30px transparent;
+}
+
+.messages.orange {
+	background : url(../gfx/system-messages.gif) no-repeat right -60px transparent;
+}
+
+.messages.orange span {
+	background : url(../gfx/system-messages.gif) no-repeat left -60px transparent;
+}
+
+.messages.red {
+	background : url(../gfx/system-messages.gif) no-repeat right -90px transparent;
+}
+
+.messages.red span {
+	background : url(../gfx/system-messages.gif) no-repeat left -90px transparent;
+}

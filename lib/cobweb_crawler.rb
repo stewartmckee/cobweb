@@ -20,7 +20,7 @@ class CobwebCrawler
       @options[:crawl_id] = @crawl_id
     end
     
-    @redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{@crawl_id}")
+    @redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{@crawl_id}")
     @options[:internal_urls] = [] if @options[:internal_urls].nil?
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
     @debug = @options[:debug]

@@ -1,0 +1,103 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.treeview, .treeview ul { 
+	padding : 0;
+	margin : 0;
+	list-style : none;
+}
+
+.treeview ul {
+	margin : 3px 0 0;
+}
+
+.treeview .hitarea {
+	float : left;
+	background : url(../gfx/treeview/treeview-default.gif) -64px -25px no-repeat;
+	margin-left : -16px;
+	cursor : pointer;
+	height : 16px;
+	width : 16px;
+}
+/* fix for IE6 */
+* html .hitarea {
+	display : inline;
+	float : none;
+}
+
+.treeview li { 
+	margin : 0;
+	padding : 3px 0 3px 16px;
+}
+
+.treeview .hover {
+	color : #002e68;
+	cursor : pointer;
+}
+
+.treeview li { 
+	background : url(../gfx/treeview/treeview-default-line.gif) 0 0 no-repeat;
+}
+
+.treeview li.collapsable, .treeview li.expandable {
+	background-position : 0 -176px;
+}
+
+.treeview .expandable-hitarea {
+	background-position : -80px -3px;
+}
+
+.treeview li.last {
+	background-position : 0 -1766px;
+}
+
+.treeview li.lastCollapsable, .treeview li.lastExpandable {
+	background-image : url(../gfx/treeview/treeview-default.gif);
+}
+
+.treeview li.lastCollapsable {
+	background-position : 0 -111px
+}
+
+.treeview li.lastExpandable {
+	background-position : -32px -67px;
+}
+
+.treeview div.lastCollapsable-hitarea, .treeview div.lastExpandable-hitarea {
+	background-position : 0;
+}
+
+.treeview .placeholder {
+	display : block;
+	background : url(../gfx/treeview/ajax-loader.gif) 0 0 no-repeat;
+	height : 16px;
+	width : 16px;
+}
+
+.filetree li {
+	padding : 3px 0 2px 16px;
+}
+
+.filetree span {
+	padding : 1px 0 1px 5px; display: block;
+}
+
+.filetree span.folder, .filetree span.file {
+	padding : 1px 0 1px 23px; display: block;
+}
+
+.filetree span.folder {
+	background : url(../gfx/treeview/folder.gif) 4px 0 no-repeat;
+}
+
+.filetree li.expandable span.folder {
+	background : url(../gfx/treeview/folder-closed.gif) 4px 0 no-repeat;
+}
+
+.filetree span.file {
+	background : url(../gfx/treeview/file.gif) 0 0 no-repeat;
+}

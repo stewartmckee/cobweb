@@ -1,0 +1,171 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.ui-datepicker {
+	margin : 5px 0 0;
+	width : 230px;
+}
+
+.ui-datepicker-calendar {
+	background : #FFFFFF;
+	margin : 0 0 0;
+}
+
+.ui-datepicker-calendar thead {
+	background : url(../gfx/table-thead.gif) repeat-x left top;
+	border-top : none;
+}
+
+.ui-datepicker-calendar thead th {
+	border-top : none;
+}
+
+.ui-datepicker table td:first-child + td + td + td + td + td {
+	line-height : normal;
+	width: auto;
+}
+
+.ui-datepicker-header {
+	display : block;
+	background : url(../gfx/back-menu.gif) repeat-x left top;
+	border : 1px solid #C3D0E1;
+	overflow : hidden;
+	height : 30px;
+}
+
+.ui-datepicker-header .ui-datepicker-prev {
+	float : left;
+	background : url(../gfx/datepicker-arrows.gif) no-repeat left top;
+	border-right : 1px solid #C3D0E1;
+	text-indent: -99999px;
+	cursor : pointer;
+	width : 31px;
+	height : 29px;
+}
+
+.ui-datepicker-header .ui-datepicker-title {
+	text-align : center;
+	font: 12px/31px Arial;
+	color: #002E68;
+	text-transform : uppercase;
+	font-weight : bold;
+}
+
+.ui-datepicker-header .ui-datepicker-next {
+	float : right;
+	background : url(../gfx/datepicker-arrows.gif) no-repeat right top;
+	border-left : 1px solid #C3D0E1;
+	text-indent: -99999px;
+	cursor : pointer;
+	width : 31px;
+	height : 29px;
+}
+
+.ui-datepicker-header .ui-datepicker-prev:hover,
+.ui-datepicker-header .ui-datepicker-next:hover {
+	opacity : 0.45;
+	filter : alpha(opacity=45);
+}
+
+.ui-datepicker-current-day {
+	background : #f8f8f8;
+}
+
+.ui-datepicker-today {
+	background : #EFEFEF;
+}
+
+.ui-timepicker-div {
+	background : #FFFFFF;
+	border : 1px solid #C3D0E1;
+	border-top : none;
+}
+
+.ui-timepicker-div .ui-widget-header {
+	margin-bottom : 8px;
+}
+
+.ui-timepicker-div dl {
+	margin : 0;
+	padding : 10px 10px 5px;
+	text-align : left;
+}
+
+.ui-timepicker-div dl dt {
+	height : 25px;
+	margin-bottom : -25px;
+}
+
+.ui-timepicker-div dl dd {
+	margin : 0 10px 10px 65px;
+}
+
+.ui-timepicker-div td {
+	font-size : 90%;
+}
+
+.ui-tpicker-grid-label {
+	background : none;
+	border : none;
+	margin : 0;
+	padding : 0;
+}
+
+.ui-slider-horizontal{
+	position : relative;
+	border : 1px solid #C3D0E1;
+	margin : 5px 0 0;
+	height : 7px;
+}
+
+.ui-slider-horizontal .ui-slider-range {
+	top : 0;
+	height : 100%;
+}
+
+.ui-slider .ui-slider-range {
+	position : absolute;
+	background : #FFFFFF;
+	z-index : 1;
+	font-size : 11px;
+	display : block;
+	border : 0;
+	background-position : 0 0;
+}
+
+.ui-slider-horizontal .ui-slider-handle {
+	margin-left: -.6em;
+}
+
+.ui-slider .ui-slider-handle {
+	position : absolute;
+	top : -5px;
+	background : url(../gfx/slider-button.gif) no-repeat;
+	outline : none;
+	z-index : 2;
+	cursor : default;
+	width : 16px;
+	height : 16px;
+}
+
+.ui-datepicker-buttonpane {
+	display : block;
+	background : url(../gfx/back-menu.gif) repeat-x left top;	
+	border : 1px solid #C3D0E1;
+	border-top : none;
+	padding : 4px;
+	height : 22px;
+}
+
+.ui-datepicker-buttonpane button{
+	float : left;
+	margin : 0 0 0 0;
+}
+
+.ui-datepicker-buttonpane button.ui-datepicker-close{
+	float : right;
+}

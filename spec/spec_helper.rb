@@ -1,14 +1,17 @@
 require File.expand_path(File.dirname(__FILE__) + '/../lib/cobweb')
+require File.expand_path(File.dirname(__FILE__) + '/../spec/samples/sample_server')
 require 'mock_redis'
+require 'thin'
 
 # Sets up the environment as test so that exceptions are raised
 ENVIRONMENT = "test"
+APP_ROOT = File.expand_path(File.dirname(__FILE__) + '/../')
 
 RSpec.configure do |config|
   config.before(:each) {
         
-    redis_mock = double("redis")
-    redis_mock.stub(:new).and_return(@redis_mock_object)
+    #redis_mock = double("redis")
+    #redis_mock.stub(:new).and_return(@redis_mock_object)
     
     #redis_mock.flushdb
     

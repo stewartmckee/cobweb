@@ -1,0 +1,503 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" /> 
+	<title>CleanDream</title>
+	
+	<style type="text/css">
+		@import url("css/style.css");
+		@import url('css/style_text.css');
+		@import url('css/form-buttons.css');
+		@import url('css/link-buttons.css');
+		@import url('css/menu.css');
+		@import url('css/statics.css');
+		@import url('css/messages.css');
+		@import url('css/datatable.css');
+		@import url('css/accordion.css');
+		@import url('css/tabs.css');
+		@import url('css/forms.css');
+		@import url('css/datepicker.css');
+		@import url('css/modalbox.css');
+		@import url('css/jquery.fancybox-1.3.4.css');
+		@import url('css/jquery.treeview.css');
+		@import url('css/wysiwyg.css');
+		@import url('css/wysiwyg.modal.css');
+		@import url('css/wysiwyg-editor.css');
+	</style>
+	
+	<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+	
+	<!--[if lte IE 8]>
+		<script type="text/javascript" src="js/excanvas.min.js"></script>
+	<![endif]-->
+	
+</head>
+
+<body>
+
+<div class="container">   
+  
+	<div class="logo-labels">
+		<h1><a href="#">CleanDream</a></h1>
+		<ul>
+			<li><a href="#"><span>Settings</span></a></li>
+			<li class="usermessage"><a href="#"><span>1 new message</span></a></li>
+			<li class="logout"><a href="#"><span>Logout</span></a></li>
+		</ul>
+	</div>
+	
+	<div class="menu-search">
+		<ul> 
+			<li><a href="dashboard.html">Dashboard</a></li> 
+			<li> 
+				<a href="#">Dropdown</a> 
+				<ul> 
+					<li><a href="#">Submenu item 001</a></li>
+					<li><a href="#">Submenu item 002</a></li>
+					<li><a href="#">Submenu item 003</a></li>
+					<li class="current">
+						<a href="#">Submenu item 004</a>
+						<ul> 
+							<li><a href="#">Subsubmenu item 001</a></li>
+							<li><a href="#">Subsubmenu item 002</a></li>
+							<li class="current"><a href="#">Subsubmenu item 003</a></li>
+							<li><a href="#">Subsubmenu item 003</a></li>
+							<li><a href="#">Subsubmenu item 005</a></li>
+						</ul> 
+					</li> 
+					<li> <a href="#">Submenu item 005</a> </li>
+				</ul> 
+			</li> 
+			<li><a href="typography.html">Typography</a></li>
+			<li><a href="boxgrid.html">Boxes Grid</a></li>
+			<li><a href="forms.html">Forms</a></li>
+			<li><a href="gallery.html">Gallery</a></li>
+			<li><a href="tables.html">Tables</a></li>
+			<li class="current"><a href="more.html">More</a></li>
+		</ul>
+		<div class="search">
+			<form action="" method="post">
+				<input type="text" value="Seachterm" />
+				<button type="submit"></button>
+			</form> 
+		</div>
+	</div>
+	
+	<div class="breadcrumbs">
+		<ul>
+			<li class="home"><a href="#"></a></li>
+			<li class="break">&#187;</li>
+			<li><a href="#">Menu item</a></li>
+			<li class="break">&#187;</li>
+			<li><a href="#">Menu item</a></li>
+		</ul>
+	</div>
+	
+	<div class="section">
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Accordion menu</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<div class="accordion">
+						<h3><a href="#">Section 1</a></h3>
+						<div>
+							Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed sapien nulla,
+							hendrerit ac feugiat vel, pulvinar id dui.
+						</div>
+						<h3><a href="#">Section 2</a></h3>
+						<div>
+							Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed sapien nulla,
+							hendrerit ac feugiat vel, pulvinar id dui.
+						</div>
+						<h3><a href="#">Section 3</a></h3>
+						<div>
+							Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed sapien nulla,
+							hendrerit ac feugiat vel, pulvinar id dui.<br />
+							<br />
+							<ul>
+								<li>List item one</li>
+								<li>List item two</li>
+								<li>List item three</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="small">
+			<div class="box">
+				<div class="title">
+					<h2>A tree view</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<ul class="filetree">
+						<li><span>Folder without images</span>
+							<ul>
+								<li><span>Subfolder 2.1</span>
+									<ul>
+										<li><span>Item 1.1</span></li>
+										<li><span>Item 1.1</span></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+						<li><span class="folder">Folder with images</span>
+							<ul>
+								<li><span class="folder">Subfolder 2.1</span>
+									<ul>
+										<li><span class="file">Item 1.1</span></li>
+										<li><span class="file">Item 1.1</span></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+						<li class="open"><span class="folder">Folder that starts open</span>
+							<ul>
+								<li class="open"><span class="folder">Subfolder 2.1</span>
+									<ul>
+										<li><span class="file">Item 1.1</span></li>
+										<li><span class="file">Item 1.1</span></li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		
+		<div class="small">
+			<div class="box">
+				<div class="title">
+					<h2>Tooltip</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					When you hover on <a href="#" class="tooltip" title="Hello, i am a tooltip.">this</a> link you will see a nice tooltip.<br />
+					<a href="#" class="tooltip" title="Hello, i am a tooltip."><img src="gfx/photos/10.jpg" class="shadow" alt="Photo" /></a>
+					<a href="gfx/photos/01xl.jpg" class="zoom tooltip" title="Hello, i am a tooltip."><img src="gfx/photos/01.jpg" class="shadow" alt="Photo" /></a>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Statics Months</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<div class="caption">Statistics for 2011</div> 
+					<table class="statics-date"> 
+						<thead> 
+							<tr> 
+								<th></th> 
+								<th style="color : #00366f;">unique visitors</th> 
+								<th style="color : #006ba0;">pageviews</th> 
+							</tr> 
+						</thead> 
+						<tbody> 
+							<tr> 
+								<th>Jan</th><td>256</td><td>1207</td> 
+							</tr> 
+							<tr> 
+								<th>Feb</th><td>203</td><td>1000</td> 
+							</tr> 
+							<tr> 
+								<th>Mar</th><td>241</td><td>1050</td> 
+							</tr> 
+							<tr> 
+								<th>Apr</th><td>227</td><td>1143</td> 
+							</tr> 
+							<tr> 
+								<th>May</th><td>220</td><td>1027</td> 
+							</tr> 
+							<tr> 
+								<th>Jun</th><td>219</td><td>939</td> 
+							</tr> 
+							<tr> 
+								<th>Jul</th><td>260</td><td>1163</td> 
+							</tr> 
+							<tr> 
+								<th>Aug</th><td>235</td><td>1301</td> 
+							</tr> 
+							<tr> 
+								<th>Sep</th><td>277</td><td>1439</td> 
+							</tr> 
+							<tr> 
+								<th>Oct</th><td>245</td><td>1508</td> 
+							</tr> 
+							<tr> 
+								<th>Nov</th><td>245</td><td>1508</td> 
+							</tr> 
+							<tr> 
+								<th>Dec</th><td>245</td><td>1508</td> 
+							</tr> 
+						</tbody> 
+					</table>
+				</div>
+			</div>
+		</div>
+		
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Statics numbers</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<div class="caption">Statistics for August</div> 
+					<table class="statics"> 
+						<thead> 
+							<tr> 
+								<th></th> 
+								<th style="color : #00366f;">unique visitors</th> 
+								<th style="color : #006ba0;">pageviews</th> 
+							</tr> 
+						</thead> 
+						<tbody> 
+							<tr> 
+								<th>1</th><td>256</td><td>1207</td> 
+							</tr> 
+							<tr> 
+								<th>2</th><td>203</td><td>1000</td> 
+							</tr> 
+							<tr> 
+								<th>3</th><td>241</td><td>1050</td> 
+							</tr> 
+							<tr> 
+								<th>4</th><td>227</td><td>1143</td> 
+							</tr> 
+							<tr> 
+								<th>5</th><td>220</td><td>1027</td> 
+							</tr> 
+							<tr> 
+								<th>6</th><td>219</td><td>939</td> 
+							</tr> 
+							<tr> 
+								<th>7</th><td>260</td><td>1163</td> 
+							</tr> 
+							<tr> 
+								<th>8</th><td>235</td><td>1301</td> 
+							</tr> 
+							<tr> 
+								<th>9</th><td>277</td><td>1439</td> 
+							</tr> 
+							<tr> 
+								<th>10</th><td>245</td><td>1508</td> 
+							</tr> 
+							<tr> 
+								<th>11</th><td>245</td><td>1508</td> 
+							</tr> 
+							<tr> 
+								<th>12</th><td>245</td><td>1508</td> 
+							</tr> 
+						</tbody> 
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Statics: Your own colors</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					<div class="caption">Statistics for 2011</div> 
+					<table class="statics"> 
+						<thead> 
+							<tr> 
+								<th></th> 
+								<th style="color : #7a0059;">unique visitors</th> 
+								<th style="color : #fc00b8;">pageviews</th> 
+							</tr> 
+						</thead> 
+						<tbody> 
+							<tr> 
+								<th>1</th><td>256</td><td>1207</td> 
+							</tr> 
+							<tr> 
+								<th>2</th><td>203</td><td>1000</td> 
+							</tr> 
+							<tr> 
+								<th>3</th><td>241</td><td>1050</td> 
+							</tr> 
+							<tr> 
+								<th>4</th><td>227</td><td>1143</td> 
+							</tr> 
+							<tr> 
+								<th>5</th><td>220</td><td>1027</td> 
+							</tr> 
+							<tr> 
+								<th>6</th><td>219</td><td>939</td> 
+							</tr> 
+							<tr> 
+								<th>7</th><td>260</td><td>1163</td> 
+							</tr> 
+							<tr> 
+								<th>8</th><td>235</td><td>1301</td> 
+							</tr> 
+							<tr> 
+								<th>9</th><td>277</td><td>1439</td> 
+							</tr> 
+							<tr> 
+								<th>10</th><td>245</td><td>1508</td> 
+							</tr> 
+							<tr> 
+								<th>11</th><td>245</td><td>1508</td> 
+							</tr> 
+							<tr> 
+								<th>12</th><td>245</td><td>1508</td> 
+							</tr> 
+						</tbody> 
+					</table>
+				</div>
+			</div>
+		</div>
+		
+		<div class="medium">
+			<div class="box">
+				<div class="title">
+					<h2>Box search</h2>
+					<span class="hide"></span>
+					<span class="search"></span>
+					<div class="box-search">
+						<form action="" method="post">
+							<input type="text" class="small" value="Seachterm" />
+							<button type="submit"></button>
+						</form> 
+					</div>
+				</div>
+				<div class="content">
+					The title bar in this box contains a search option.
+				</div>
+			</div>
+		
+			<div class="box">
+				<div class="title">
+					<h2>Modal Window</h2>
+					<span class="hide"></span>
+				</div>
+				<div class="content">
+					
+					Fusce ante sapien, varius eu eleifend sed, egestas eu purus. Duis nec scelerisque sem. Proin ut mi in odio euismod porttitor.
+					Sed viverra eros sit amet ipsum dapibus cursus. <a href="#" class="modalopen">Open the modal window</a>, eleifend ac luctus sit amet, aliquam ac nulla. Curabitur
+					aliquam risus venenatis nulla ullamcorper at ultrices turpis tempor. Praesent ut mi ac nibh congue malesuada.
+					
+					<div class="modal forms" title="Here you title">
+						<form action="" method="post">
+							<div class="line">
+								<label>Small inputfield</label>
+								<input type="text" class="small" value="" />
+							</div>
+							<div class="line">
+								<label>Medium inputfield</label>
+								<input type="text" class="medium" value="" />
+							</div>
+							<div class="line">
+								<label>Selectbox medium</label>
+								<select>
+									<option selected="selected" value="">Option 01</option>
+									<option value="">Option 02</option>
+									<option value="">Option 03</option>
+									<option value="">Option 04</option>
+									<option value="">Option 05</option>
+								</select>
+							</div>
+							<div class="line">
+								<label>Checkboxes</label>
+								<input type="checkbox" name="days[]" value="monday" id="monday" checked="checked" />
+								<label for="monday">Mon</label>
+								
+								<input type="checkbox" name="days[]" value="tuesday" id="tuesday" />
+								<label for="tuesday">Tue</label>
+								
+								<input type="checkbox" name="days[]" value="wednesday" id="wednesday" />
+								<label for="wednesday">Wed</label>
+								
+								<input type="checkbox" name="days[]" value="thursday" id="thursday" />
+								<label for="thursday">Thu</label>
+								
+								<input type="checkbox" name="days[]" value="friday" id="friday" />
+								<label for="friday">Fri</label>
+								
+								<input type="checkbox" name="days[]" value="saterday" id="saterday" />
+								<label for="saterday">Sat</label>
+								
+								<input type="checkbox" name="days[]" value="sunday" id="sunday" />
+								<label for="sunday">Sun</label>
+							</div>
+							<div class="line">
+								<label>Textarea medium</label>
+								<textarea class="medium" rows="" cols=""></textarea>
+							</div>
+							<div class="line button">
+								<button type="submit" class="green"><span>Sumbit</span></button>
+								<button type="submit" class="blue"><span>Sumbit</span></button>
+								<button type="submit" class="orange"><span>Sumbit</span></button>
+								<button type="submit" class="red"><span>Sumbit</span></button>
+								<button type="submit" class="grey"><span>Sumbit</span></button>
+								<br />
+								<button type="submit" class="green medium"><span>Sumbit</span></button>
+								<button type="submit" class="blue medium"><span>Sumbit</span></button>
+								<button type="submit" class="orange medium"><span>Sumbit</span></button>
+								<button type="submit" class="red medium"><span>Sumbit</span></button>
+								<button type="submit" class="grey medium"><span>Sumbit</span></button>
+								<br />
+								<button type="submit" class="green big"><span>Sumbit</span></button>
+								<button type="submit" class="blue big"><span>Sumbit</span></button>
+								<button type="submit" class="orange big"><span>Sumbit</span></button>
+								<button type="submit" class="red big"><span>Sumbit</span></button>
+								<button type="submit" class="grey big"><span>Sumbit</span></button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="footer">
+		<div class="split">&#169; Copyright <a href="#">website.com</a></div> 
+		<div class="split right">Powered by <a href="http://themeforest.net/item/cleandream/490140" target="_blank">CleanDream</a></div> 
+	</div>  
+</div>
+
+<script type="text/javascript" src="js/superfish.js"></script>
+<script type="text/javascript" src="js/supersubs.js"></script>
+<script type="text/javascript" src="js/hoverIntent.js"></script>
+<script type="text/javascript" src="js/jquery.flot.js"></script>
+<script type="text/javascript" src="js/jquery.graphtable-0.2.js"></script>
+<script type="text/javascript" src="js/jquery.flot.resize.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/jquery-ui-select.js"></script>
+<script type="text/javascript" src="js/customInput.jquery.js"></script>
+<script type="text/javascript" src="js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="js/jquery.fancybox-1.3.4.js"></script>
+<script type="text/javascript" src="js/jquery.filestyle.mini.js"></script>
+<script type="text/javascript" src="js/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="js/jquery.treeview.js"></script>
+<script type="text/javascript" src="js/jquery.tipsy.js"></script>
+<script type="text/javascript" src="js/jquery.wysiwyg.js"></script>
+<script type="text/javascript" src="js/plugins/wysiwyg.rmFormat.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.image.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.link.js"></script>
+<script type="text/javascript" src="js/controls/wysiwyg.table.js"></script>
+<script type="text/javascript" src="js/inline.js"></script>
+
+</body>
+
+</html> 

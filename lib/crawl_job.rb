@@ -36,6 +36,7 @@ class CrawlJob
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         
         ## update statistics
+        @stats.update_status("Crawling #{content_request[:url]}...")
         @stats.update_statistics(content)
         
         # set the base url if this is the first page
@@ -72,7 +73,7 @@ class CrawlJob
           if @redis.scard("queued") == 0
             finished(content_request)
           end
-        elsif @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
+        elsif @queue_counter == 0 || @crawl_counter > content_request[:crawl_limit].to_i
           finished(content_request)
         end
       end
@@ -109,12 +110,12 @@ class CrawlJob
   
   # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
-    crawl_limit.nil? or @crawl_counter < crawl_limit.to_i
+    crawl_limit.nil? or @crawl_counter <= crawl_limit.to_i
   end
   
   # Returns true if the queue count is calculated to be still within limits when complete
   def self.within_queue_limits?(crawl_limit)
-    within_crawl_limits?(crawl_limit) and (crawl_limit.nil? or (@queue_counter + @crawl_counter) < crawl_limit.to_i)
+    within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_counter) < crawl_limit.to_i)
   end
   
   # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination

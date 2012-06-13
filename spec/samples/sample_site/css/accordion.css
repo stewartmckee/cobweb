@@ -1,0 +1,45 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.box .content .accordion{
+	display : block;
+	border-top : 1px solid #dde5ef;
+	margin : 0;
+}
+
+.box .content .accordion h3.ui-accordion-header {
+	display : block;
+	background : url(../gfx/table-thead.gif) repeat-x left top;
+	border : 1px solid #dde5ef;
+	border-top : none;
+	padding : 0 10px;
+	line-height : 29px;
+	cursor : pointer;
+}
+
+.box .content .accordion h3.ui-accordion-header span.ui-icon {
+	float : left;
+	background : url(../gfx/li.gif) no-repeat left center;
+	margin : 0 10px 0 0;
+	width : 5px;
+	height : 29px;
+}
+
+.box .content .accordion h3.ui-accordion-header span.ui-icon.ui-icon-triangle-1-s {
+	background : url(../gfx/li-down.gif) no-repeat left center;
+}
+
+.box .content .accordion .ui-accordion-content{
+	display : block;
+	border : 1px solid #dde5ef;
+	border-top : none;
+	padding : 15px 15px 13px;
+}
+
+.box .content .accordion h3.ui-accordion-header:focus {
+	outline : none;
+}

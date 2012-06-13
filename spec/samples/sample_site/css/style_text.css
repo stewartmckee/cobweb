@@ -1,0 +1,128 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+html,body{
+	font-family : Arial;
+	color : #5a5a5a;
+	font-size : 12px;
+	line-height : 18px;
+}
+
+a, a:link, a:active, a:visited {
+	color : #002e68;
+	text-decoration : none;
+}
+
+a:hover {
+	color : #5a5a5a;
+	text-decoration : none;
+}
+
+pre {
+	border : 1px solid #c3d0e1;
+	border-left : 5px solid #002e68;
+	font-size: 12px;
+	padding: 5px 15px;
+	margin: 15px 0 0 40px;
+	line-height: 18px;
+}
+
+code {
+	display : block;
+	margin : 0;
+	padding : 0;
+	background : url(../gfx/code.gif) repeat left top transparent;
+	line-height: 20px;
+}
+
+blockquote {
+	border-left : 5px solid #002e68;
+	padding : 0 0 0 15px;
+	margin : 15px 0 0 40px;
+	font : italic 14px Times New Roman italic;
+	line-height : 20px;
+}
+
+ul {
+	margin : 0;
+	padding : 0;
+	list-style : none;
+}
+
+ul li {
+	background : url(../gfx/li.gif) no-repeat left 7px transparent;
+	padding : 1px 0 1px 13px;
+}
+
+ol {
+	margin : 0;
+	padding : 0 0 0 15px;
+	*padding : 0 0 0 22px;
+}
+
+ol li {
+	padding : 1px 0 1px 0;
+}
+
+@font-face {
+    font-family: 'MuseoSans700';
+    src: url('../text/museosans_bold-webfont.eot');
+    src: url('../text/museosans_bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../text/museosans_bold-webfont.woff') format('woff'),
+         url('../text/museosans_bold-webfont.ttf') format('truetype'),
+         url('../text/museosans_bold-webfont.svg#MuseoSans700') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'MuseoSans300';
+    src: url('../text/museosans-webfont.eot');
+    src: url('../text/museosans-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../text/museosans-webfont.woff') format('woff'),
+         url('../text/museosans-webfont.ttf') format('truetype'),
+         url('../text/museosans-webfont.svg#MuseoSans300') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+h1 {
+	margin : 0;
+	padding : 0 0 4px;
+	font : 18px Arial;
+	font-weight : normal;
+	line-height : 19px;
+	color : #002e68;
+}
+
+h2 {
+	margin : 0;
+	padding : 0 0 5px;
+	font : 15px Arial;
+	font-weight : normal;
+	line-height : 10px;
+	color : #002e68;
+}
+
+h3{
+	margin : 0;
+	padding : 0 0 4px;
+	font : 13px Arial;
+	font-weight : bold;
+	line-height : 12px;
+	color : #002e68;
+}
+
+h4{
+	margin : 0;
+	padding : 0 0 5px;
+	*padding : 0 0 5px;
+	font : 12px Arial;
+	font-weight : bold;
+	line-height : 12px;
+	color : #002e68;
+}

@@ -17,7 +17,7 @@ class Server < Sinatra::Base
     
     @crawls = []
     @full_redis.smembers("cobweb_crawls").each do |crawl_id|
-      redis = NamespacedRedis.new({}, "cobweb-#{crawl_id}")
+      redis = NamespacedRedis.new({}, "cobweb-#{Cobweb.version}-#{crawl_id}")
       stats = HashUtil.deep_symbolize_keys({
         :crawl_details => redis.hgetall("crawl_details"), 
         :statistics => redis.hgetall("statistics"),
@@ -31,7 +31,7 @@ class Server < Sinatra::Base
   
   # Sinatra Crawl Detail
   get '/statistics/:crawl_id' do
-    redis = NamespacedRedis.new({}, "cobweb-#{params[:crawl_id]}")
+    redis = NamespacedRedis.new({}, "cobweb-#{Cobweb.version}-#{params[:crawl_id]}")
     
     @statistics = HashUtil.deep_symbolize_keys(redis.hgetall("statistics"))
     if @statistics[:status_counts].nil?

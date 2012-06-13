@@ -1,0 +1,57 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.space {
+	display : block;
+	height : 19px;
+}
+
+.flot-graph {
+	display : inline-block;
+	padding : 0;
+	line-height : normal;
+	width : 100%;
+}
+
+.flot-graph .xAxis {
+	line-height : 7px;
+}
+
+.caption {
+	float : left;
+	margin : -3px 0 0 0;
+	font-size : 12px;
+	line-height : normal;
+	color : #1c1c1c;
+	font-weight : bold;
+}
+
+.flot-graph .legend {
+	line-height : 12px;
+}
+
+.flot-graph .legend table {
+	border : 0;
+	width : auto;
+}
+
+.flot-graph .legend table td {
+	border : 0;
+	padding : 2px 0 0 5px;
+	line-height : 18px;
+	white-space : nowrap;
+	width : auto;
+}
+
+#tooltip {
+	background-color : #1c1c1c;
+	padding : 0 8px;
+	color : #FFFFFF;
+	font-size : 11px;
+	line-height : 25px;
+	height: 25px;
+}

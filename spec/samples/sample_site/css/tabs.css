@@ -1,0 +1,58 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.box .content.tabs{
+	padding : 0;
+}
+
+.box .content.tabs .tabmenu {
+	display : block;
+	border : 1px solid #dde5ef;
+	padding : 0;
+}
+
+.box .content.tabs .tabmenu ul {
+	display : inline-block;
+	margin : 0;
+	padding : 0;
+	list-style-type : none;
+	width : 100%;
+}
+
+.box .content.tabs .tabmenu ul li {
+	float : left;
+	background : none;
+	border-right : 1px solid #dde5ef;
+	padding : 0;
+	line-height : 29px;
+}
+
+.box .content.tabs .tabmenu ul li a {
+	float : left;
+	border-right : 1px solid #FFFFFF;
+	border-left : 1px solid #FFFFFF;
+	padding : 0 20px 0 18px;
+	color : #002e68;
+	font-weight : bold;
+	text-decoration : none;
+	outline : none;
+}
+
+.box .content.tabs .tabmenu ul li a:hover, .box .content.tabs .tabmenu ul li a:active, .box .content.tabs .tabmenu ul li.ui-tabs-selected a {
+	background : url(../gfx/table-thead.gif) repeat-x left top;
+	text-decoration : none;
+}
+	
+.box .content.tabs div {
+	display : block;
+	border-top : 1px solid #f2f4f7;
+	padding : 15px;
+}
+
+.box .content.tabs .ui-tabs-hide {
+	display : none;
+}

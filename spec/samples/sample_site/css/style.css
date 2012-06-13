@@ -1,0 +1,497 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+/* //////////////////// LAYOUT \\\\\\\\\\\\\\\\\\\\ */
+
+html, body {
+	margin : 0;
+	padding : 0;
+	background : url(../gfx/background.gif) repeat-x left top #fbfcfd;
+	height : 100%;
+}
+
+img {border : 0;}
+
+.container {
+	position : relative;
+	margin : 0 auto;
+	width : 980px;
+	
+	/* Want a fluid template? Delete the width property then and place this two lines instead
+		min-width : 980px;
+		max-width : 90%;
+	*/
+}
+
+.logo-labels {
+	display : block;
+	position : relative;
+	overflow : hidden;
+	height : 49px;
+}
+
+.logo-labels h1 {
+	position : absolute;
+	background : url(../gfx/logo.png) no-repeat left top;
+	left : 0;
+	top : 14px;
+	font-size : 0;
+	width : 165px;
+	height : 20px;
+}
+
+.logo-labels h1 a, .logo-labels h1 a:link, .logo-labels h1 a:visited, .logo-labels h1 a:active {
+	display : block;
+	width : 100%;
+	height : 100%;
+}
+
+.logo-labels ul {
+	float : right;
+	margin : 0;
+	padding : 13px 0 0;
+	list-style : none;
+	width : auto;
+}
+
+.logo-labels ul li {
+	float : left;
+	background : none;
+	padding : 0 0 0 1px;
+	font : 11px Arial;
+	line-height : 1.9em;
+	text-transform : uppercase;
+	cursor : pointer;
+	color : #FFFFFF;
+	height : 22px;
+}
+
+.logo-labels ul li a, .logo-labels ul li a:link, .logo-labels ul li a:visited, .logo-labels ul li a:active{
+	float : left;
+	background : url(../gfx/label-icons.gif) no-repeat left top;
+	padding : 0 0 0 19px;
+	color : #FFFFFF;
+	text-decoration : none;
+	height : 22px;
+}
+
+.logo-labels ul li.usermessage a, .logo-labels ul li.usermessage a:link, .logo-labels ul li.usermessage a:visited, .logo-labels ul li.usermessage a:active{
+	background : url(../gfx/label-icons.gif) no-repeat left -22px;
+}
+
+.logo-labels ul li.logout a, .logo-labels ul li.logout a:link, .logo-labels ul li.logout a:visited, .logo-labels ul li.logout a:active{
+	background : url(../gfx/label-icons.gif) no-repeat left -44px;
+}
+
+.logo-labels ul li span{
+	float : left;
+	background : url(../gfx/label.gif) no-repeat right top;
+	padding : 0 8px 0 6px;
+	overflow : hidden;
+	cursor : pointer;
+	height : 22px;
+}
+
+.logo-labels ul li:hover span {
+	background : url(../gfx/label.gif) no-repeat right -22px;
+}
+
+.menu-search {
+	display : block;
+	position : relative;
+	z-index : 999;
+	height : 32px;
+}
+
+.menu-search .search {
+	float : right;
+	padding : 4px 0 0;
+}
+
+.menu-search .search input {
+	float : left;
+	background : url(../gfx/search-input.gif) no-repeat left top transparent;
+	border : 0;
+	outline: none;
+	padding : 4px 7px 4px;
+	margin : 0;
+	font-size : 10px;
+	color : #c9c9c9;
+	line-height : 1.5em;
+	text-transform: uppercase;
+	width : 174px;
+}
+
+.menu-search .search input:focus {
+	color : #5a5a5a;
+}
+
+.menu-search .search button {
+	float : left;
+	background : url(../gfx/search-button.gif) no-repeat left top transparent;
+	border : none;
+	outline : none;
+	padding : 0;
+	margin : 0;
+	cursor : pointer;
+    overflow: visible;
+	width : 28px;
+	height : 22px;
+} 
+
+.breadcrumbs{
+	float : left;
+	overflow : hidden;
+	font-size : 10px;
+	color : #adadad;
+	text-transform : uppercase;
+	width : 980px;
+	height : 29px;
+}
+
+.breadcrumbs a, .breadcrumbs a:link, .breadcrumbs a:active, .breadcrumbs a:visited {
+	color : #adadad;
+	text-decoration : none;
+}
+
+.breadcrumbs a:hover {
+	color : #8f8f8f;
+}
+
+.breadcrumbs ul {
+	float : left;
+	margin : 0;
+	padding : 0;
+	list-style : none;
+}
+
+.breadcrumbs ul li{
+	float : left;
+	background : none;
+	padding : 9px 0 0;
+	line-height : 1.05em;
+}
+
+.breadcrumbs ul li.home{
+	float : left;
+	border-left : 1px solid #dbdbdb;
+	border-right : 1px solid #dbdbdb;
+	padding : 8px 6px 0;
+	width : 16px;
+	height : 21px;
+}
+
+.breadcrumbs ul li.home a, .breadcrumbs ul li.home a:link, .breadcrumbs ul li.home a:active, .breadcrumbs ul li.home a:visited {
+	float : left;
+	background : url(../gfx/icon-home.gif) no-repeat left top transparent;
+	width : 16px;
+	height : 14px;
+}
+
+.breadcrumbs ul li.home a:hover {
+	background : url(../gfx/icon-home.gif) no-repeat left bottom transparent;
+}
+
+.breadcrumbs ul li.break{
+	float : left;
+	padding : 9px 7px 0;
+	font-size : 11px;
+	line-height : 0.8em;
+}
+
+.section{
+	float : left;
+	width : 100%;
+}
+
+div.full{
+	float : left;
+	width : 100%;
+}
+
+div.small{
+	float : left;
+	width : 25%;
+	*width : 24.97%;
+}
+
+div.medium{
+	float : left;
+	width : 50%;
+	*width : 49.98%;
+}
+
+div.big{
+	float : left;
+	width : 75%;
+	*width : 74.98%;
+}
+
+.box{
+	display : block;
+	*zoom : 1;
+	border : 1px solid #c3d0e1;
+	margin : 20px 0 0 20px;
+}
+
+.section div:first-child .box{
+	margin : 20px 0 0 0;
+}
+
+.box .title{
+	display : block;
+	background : url(../gfx/box-title.gif) repeat-x left top transparent;
+	border-bottom : 1px solid #e2e5e8;
+	border-left : 1px solid #FFFFFF;
+	border-right : 1px solid #FFFFFF;
+	padding : 10px 0 0 0;
+	height : 24px;
+}
+
+.box .title h2{
+	float : left;
+	padding : 0 0 0 10px;
+	font: 14px 'MuseoSans700', Arial;
+	color : #002e68;
+	line-height : 1.0em;
+	text-transform : uppercase;
+	font-weight : 100;
+}
+
+@-moz-document url-prefix() {
+  .box .title h2 {
+     font-weight : 100;
+  }
+}
+
+.box .title span.hide{
+	float : right;
+	margin : -4px 5px 0;
+	background : url(../gfx/box-hide.png) no-repeat left top transparent;
+	overflow : hidden;
+	cursor : pointer;
+	width : 40px;
+	height : 21px;
+}
+
+.box .title span.hide:hover{
+	background : url(../gfx/box-hide.png) no-repeat left bottom transparent;
+}
+
+.box .title span.search{
+	float : right;
+	margin : -4px 0 0;
+	background : url(../gfx/box-search.png) no-repeat left top transparent;
+	overflow : hidden;
+	cursor : pointer;
+	width : 57px;
+	height : 21px;
+}
+
+.box .title span.search:hover{
+	background : url(../gfx/box-search.png) no-repeat left bottom transparent;
+}
+
+.box .title .box-search {
+	float : right;
+	margin : -4px 0 0;
+}
+
+.box .title .box-search input {
+	float : left;
+	background : url(../gfx/search-input.gif) no-repeat left top transparent;
+	border : 0;
+	outline: none;
+	padding : 4px 7px 4px;
+	margin : 0;
+	font-size : 10px;
+	color : #c9c9c9;
+	line-height : 1.5em;
+	text-transform: uppercase;
+	width : 100px;
+}
+
+.box .title .box-search input:focus {
+	color : #5a5a5a;
+}
+
+.box .title .box-search button {
+	float : left;
+	background : url(../gfx/search-button.gif) no-repeat left top transparent;
+	border : none;
+	outline : none;
+	padding : 0;
+	margin : 0;
+	cursor : pointer;
+    overflow: visible;
+	width : 28px;
+	height : 22px;
+} 
+
+.box .content{
+	display : block;
+	background-color : #FFFFFF;
+	border : 4px solid #f2f4f7;
+	padding : 15px;
+}
+
+.box .content span.shadow{
+	display : inline-block;
+	border : 1px solid #f2f4f7;
+	cursor : pointer;
+}
+
+.box .content span.shadow.left{
+	float : left;
+	border : 1px solid #f2f4f7;
+	margin : 3px 14px 15px 0;
+}
+
+.box .content span.shadow.right{
+	float : right;
+	border : 1px solid #f2f4f7;
+	margin : 3px 0 15px 14px;
+}
+
+.box .content span.shadow img{
+	background-color : #FFFFFF;
+	border : 1px solid #c3d0e1;
+	padding : 1px;
+}
+
+.box .content.gallery{
+	display : block;
+	padding : 5px 6px 15px 15px;
+	*padding : 5px 5px 12px 15px;
+	line-height : 0.70em;
+	text-align : center;
+}
+
+.box .content.gallery a{
+	display : inline-block;
+}
+
+.box .content a span.shadow{
+	display : inline-block;
+	margin : 12px 7px 0 0;
+	*margin : 10px 7px 0 0;
+}
+
+.box  .shadow img{
+	width : 74px;
+	height : 74px;
+}
+
+.box .content a:hover span.shadow img{
+	opacity : 0.5;
+	filter : alpha(opacity=50);
+}
+
+.box .content div.thumb{
+	display : inline-block;
+	*display : inline;
+	*zoom : 1;
+	position : relative;
+	overflow : hidden;
+	margin : 12px 7px 0 0;
+	*margin : 10px 9px 3px 1px;
+	width : 80px;
+	height : 80px;
+}
+
+.box .thumb div {
+	position : absolute;
+	background : url(../gfx/img-hover.png) repeat left bottom transparent;
+	display : none;
+	top : 0;
+	left : 0;
+	z-index : 999;
+	text-align : center;
+	width : 100%;
+	height : 100%;
+}
+
+.box .thumb div a.zoom{
+	display : inline-block;
+	margin : 18px 0 0;
+}
+
+.box .thumb div a:hover img{
+	opacity : 0.8;
+	filter : alpha(opacity=80);
+}
+
+.box .content .message{
+	display : block;
+	border-bottom : 1px solid #c3d0e1;
+	padding : 0 0 13px;
+	*padding : 0 0 8px;
+	font-size : 11px;
+}
+
+.tipsy {
+	background : url(../gfx/tooltip.gif) no-repeat top center;
+	padding : 5px;
+}
+
+.tipsy-inner {
+	background-color: #002e68;
+	padding: 5px 8px 4px 8px;
+	text-align: center;
+	color: #FFFFFF;
+	font-size : 11px;
+	max-width: 200px;
+}
+
+.progressbar {
+	display : block;
+	border: 1px solid #C3D0E1;
+	padding : 0 1px;
+	text-align : left;
+	height : 29px;
+}
+
+.progressbar div {
+	display : block;
+	background : url(../gfx/loading-2.gif) repeat left top transparent;
+	height: 100%;
+}
+
+.progressbar.animated div {
+	display : block;
+	background : url(../gfx/loading.gif) repeat left top transparent;
+	height: 100%;
+}
+
+.footer{
+	float : left;
+	border-top : 1px solid #c3d0e1;
+	margin : 18px 0 0;
+	padding : 10px 0;
+	font-size : 11px;
+	color : #949ea8;
+	width : 100%;
+}
+
+.footer a, .footer a:link, .footer a:active, .footer a:visited {
+	color : #949ea8;
+	text-decoration : underline;
+}
+
+.footer a:hover {
+	color : #949ea8;
+	text-decoration : none;
+}
+
+.footer .split{
+	float : left;
+	width : 50%;
+}
+
+.footer .split.right{
+	text-align : right;
+}

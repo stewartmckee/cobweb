@@ -1,0 +1,180 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+button::-moz-focus-inner {border:0;padding:0;margin:0;}
+
+button{
+	display : inline-block;
+	border : none;
+	outline: none;
+	padding : 0;
+	margin : 8px 3px 0 0;
+	cursor : pointer;
+    overflow: visible;
+	width : auto;
+	height : 23px;
+}
+
+button span{
+	float : left;
+	padding : 0 8px 0 4px;
+	margin : 0 0 0 4px;
+	font : 10px Arial;
+	font-weight : bold;
+	line-height : 2.1em;
+	color : #FFFFFF;
+	text-transform : uppercase;
+	white-space : nowrap;
+	height : 23px;
+}
+
+button.medium{
+	height : 28px;
+}
+
+button.medium span{
+	padding : 0 10px 0 6px;
+	font : 12px Arial;
+	line-height : 2.35em;
+	*line-height : 2.2em;
+	height : 28px;
+}
+
+button.big{
+	height : 31px;
+}
+
+button.big span{
+	padding : 0 12px 0 8px;
+	font : 13px Arial;
+	line-height : 2.4em;
+	height : 31px;
+}
+
+button.green{
+	background : url(../gfx/link-button.gif) no-repeat left top transparent;
+}
+
+button.green span{
+	background : url(../gfx/link-button.gif) no-repeat right top transparent;
+}
+
+button.blue{
+	background : url(../gfx/link-button.gif) no-repeat left -23px transparent;
+}
+
+button.blue span{
+	background : url(../gfx/link-button.gif) no-repeat right -23px transparent;
+}
+
+button.orange{
+	background : url(../gfx/link-button.gif) no-repeat left -46px transparent;
+}
+
+button.orange span{
+	background : url(../gfx/link-button.gif) no-repeat right -46px transparent;
+}
+
+button.red{
+	background : url(../gfx/link-button.gif) no-repeat left -69px transparent;
+}
+
+button.red span{
+	background : url(../gfx/link-button.gif) no-repeat right -69px transparent;
+}
+
+button.grey{
+	background : url(../gfx/link-button.gif) no-repeat left -92px transparent;
+}
+
+button.grey span{
+	background : url(../gfx/link-button.gif) no-repeat right -92px transparent;
+}
+
+/* MEDIUM SIZE LINK BUTTONS */
+
+button.medium.green{
+	background : url(../gfx/link-button-medium.gif) no-repeat left top transparent;
+}
+
+button.medium.green span{
+	background : url(../gfx/link-button-medium.gif) no-repeat right top transparent;
+}
+
+button.medium.blue{
+	background : url(../gfx/link-button-medium.gif) no-repeat left -28px transparent;
+}
+
+button.medium.blue span{
+	background : url(../gfx/link-button-medium.gif) no-repeat right -28px transparent;
+}
+
+button.medium.orange{
+	background : url(../gfx/link-button-medium.gif) no-repeat left -56px transparent;
+}
+
+button.medium.orange span{
+	background : url(../gfx/link-button-medium.gif) no-repeat right -56px transparent;
+}
+
+button.medium.red{
+	background : url(../gfx/link-button-medium.gif) no-repeat left -84px transparent;
+}
+
+button.medium.red span{
+	background : url(../gfx/link-button-medium.gif) no-repeat right -84px transparent;
+}
+
+button.medium.grey{
+	background : url(../gfx/link-button-medium.gif) no-repeat left -112px transparent;
+}
+
+button.medium.grey span{
+	background : url(../gfx/link-button-medium.gif) no-repeat right -112px transparent;
+}
+
+/* BIG SIZE LINK BUTTONS */
+
+button.big.green{
+	background : url(../gfx/link-button-big.gif) no-repeat left top transparent;
+}
+
+button.big.green span{
+	background : url(../gfx/link-button-big.gif) no-repeat right top transparent;
+}
+
+button.big.blue{
+	background : url(../gfx/link-button-big.gif) no-repeat left -31px transparent;
+}
+
+button.big.blue span{
+	background : url(../gfx/link-button-big.gif) no-repeat right -31px transparent;
+}
+
+button.big.orange{
+	background : url(../gfx/link-button-big.gif) no-repeat left -62px transparent;
+}
+
+button.big.orange span{
+	background : url(../gfx/link-button-big.gif) no-repeat right -62px transparent;
+}
+
+button.big.red{
+	background : url(../gfx/link-button-big.gif) no-repeat left -93px transparent;
+}
+
+button.big.red span{
+	background : url(../gfx/link-button-big.gif) no-repeat right -93px transparent;
+}
+
+button.big.grey{
+	background : url(../gfx/link-button-big.gif) no-repeat left -124px transparent;
+}
+
+button.big.grey span{
+	background : url(../gfx/link-button-big.gif) no-repeat right -124px transparent;
+}

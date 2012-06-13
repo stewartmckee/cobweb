@@ -1,0 +1,18 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+html, body {
+	font-family : Arial;
+	font-size : 12px;
+	line-height : 18px;
+	height : 100%;
+}
+
+body.wysiwyg  {
+	cursor : text;
+	height : 100%;
+}

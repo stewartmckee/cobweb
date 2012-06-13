@@ -15,3 +15,4 @@ gem 'namespaced_redis', ">=1.0.2"
 gem 'rspec'
 gem 'rspec-core'
 gem 'mock_redis'
+gem 'thin'

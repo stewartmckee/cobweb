@@ -1,0 +1,156 @@
+/*
+Template Name: CleanDream
+Author: Rory Kranendonk
+Author URI: http://www.dreamwire.nl
+Version: 1.0
+*/
+
+.menu-search ul, .menu-search ul * {
+	margin : 0;
+	padding : 0;
+	list-style-type : none;
+}
+.menu-search ul {
+	line-height : 1.0;
+}
+.menu-search ul ul {
+	position : absolute;
+	top : -999em;
+	width : 10em;
+}
+.menu-search ul ul li {
+	width : 100%;
+}
+.menu-search ul li:hover {
+	visibility : inherit;
+}
+.menu-search ul li {
+	float : left;
+	position : relative;
+}
+.menu-search ul a {
+	display : block;
+	position : relative;
+}
+.menu-search ul li:hover ul,
+.menu-search ul li.sfHover ul {
+	left : 0;
+	top : 31px; /* match top ul list item height */
+	z-index : 99;
+}
+.menu-search ul li:hover li ul,
+.menu-search ul li.sfHover li ul {
+	top : -999em;
+}
+.menu-search ul li li:hover ul,
+.menu-search ul li li.sfHover ul {
+	left : 10em;
+	top : 0;
+}
+.menu-search ul li li:hover li ul,
+.menu-search ul li li.sfHover li ul {
+	top : -999em;
+}
+.menu-search ul li li li:hover ul,
+.menu-search ul li li li.sfHover ul {
+	left : 10em;
+	top : 0;
+}
+
+.menu-search ul {
+	float : left;
+	border-left : 1px solid #c3d0e1;
+	border-bottom : 1px solid #c3d0e1;
+	font-family: 'MuseoSans300', Arial;
+	text-transform : uppercase;
+	font-size : 12px;
+	line-height : 1.0em;
+}
+
+.menu-search ul li{
+	background : none;
+	border-right : 1px solid #c3d0e1;
+}
+
+.menu-search ul ul{
+	border-top : 1px solid #c3d0e1;
+	border-right : 1px solid #c3d0e1;
+	border-bottom : none;
+	padding : 1px 0 0;
+	margin : 0 0 0 -1px;
+}
+
+.menu-search ul li li{
+	border-bottom : 1px solid #c3d0e1;
+}
+
+.menu-search ul ul ul{
+	margin : -1px 0 0 0;
+}
+
+.menu-search ul li a, .menu-search ul li a:link, .menu-search ul li a:active, .menu-search ul li a:visited{
+	position : relative;
+	z-index : 999;
+	border-left : 1px solid #FFFFFF;
+	border-right : 1px solid #FFFFFF;
+	padding : 10px 16px 0;
+	text-decoration : none;
+	color : #5d6f87;
+	white-space : nowrap;
+	height : 21px;
+}
+
+.menu-search ul li li a, .menu-search ul li li a:link, .menu-search ul li li a:active, .menu-search ul li li a:visited,
+.menu-search ul li.current li a, .menu-search ul li.current li a:link, .menu-search ul li.current li a:active, .menu-search ul li.current li a:visited  {
+	position : relative;
+	z-index : 999;
+	background : url(../gfx/back-submenu.gif) repeat-x left top;
+	border : 1px solid #FFFFFF;
+	padding : 7px 20px 7px;
+	font : 12px Arial;
+	color : #002e68;
+	text-transform : none;
+	text-decoration : none;
+	overflow : hidden;
+	white-space : nowrap;
+	height : auto;
+}
+
+.menu-search ul li.current a, .menu-search ul li.current a:link, .menu-search ul li.current a:active, .menu-search ul li.current a:visited,
+.menu-search ul li li.current a, .menu-search ul li li.current a:link, .menu-search ul li li.current a:active, .menu-search ul li li.current a:visited,
+.menu-search ul li:hover, .menu-search ul li.sfHover,
+.menu-search ul li a:focus, .menu-search ul li a:hover,
+.menu-search ul li li a:focus, .menu-search ul li li a:hover{
+	outline : 0;
+}
+
+.menu-search ul li.current a, .menu-search ul li.current a:link, .menu-search ul li.current a:active, .menu-search ul li.current a:visited,
+.menu-search ul li:hover, .menu-search ul li.sfHover,
+.menu-search ul li a:focus, .menu-search ul li a:hover{
+	background : url(../gfx/back-menu.gif) repeat-x left top;
+	color : #002e68;
+}
+
+.menu-search ul li.current a, .menu-search ul li.current a:link, .menu-search ul li.current a:active, .menu-search ul li.current a:visited {
+	font-family: 'MuseoSans700', Arial;
+}
+
+.menu-search ul li.current li.current a, .menu-search ul li.current li.current a:link, .menu-search ul li.current li.current a:active, .menu-search ul li.current li.current a:visited,
+.menu-search ul li li.current a, .menu-search ul li li.current a:link, .menu-search ul li li.current a:active, .menu-search ul li li.current a:visited,
+.menu-search ul li li a:focus, .menu-search ul li li a:hover,
+.menu-search ul li.current li a:focus, .menu-search ul li.current li a:hover{
+	background : url(../gfx/back-submenu.gif) repeat-x left bottom;
+	font-family: Arial;
+}
+
+.menu-search ul li li.current li a, .menu-search ul li li.current li a:link, .menu-search ul li li.current li a:active, .menu-search ul li li.current li a:visited,
+.menu-search ul li.current li.current li a, .menu-search ul li.current li.current li a:link, .menu-search ul li.current li.current li a:active, .menu-search ul li.current li.current li a:visited {
+	background : url(../gfx/back-submenu.gif) repeat-x left top;
+}
+
+.menu-search ul li li.current li a:focus, .menu-search ul li li.current li a:hover,
+.menu-search ul li.current li.current li a:focus, .menu-search ul li.current li.current li a:hover,
+.menu-search ul li.current li.current li.current a, .menu-search ul li.current li.current li.current a:link, .menu-search ul li.current li.current li.current a:active, .menu-search ul li.current li.current li.current a:visited {
+	background : url(../gfx/back-submenu.gif) repeat-x left bottom;
+	font-family: Arial;
+}
