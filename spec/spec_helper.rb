@@ -9,7 +9,7 @@ APP_ROOT = File.expand_path(File.dirname(__FILE__) + '/../')
 
 RSpec.configure do |config|
   
-  if defined? TRAVIS_RUBY_VERSION
+  unless ENV["TRAVIS_RUBY_VERSION"].nil?
     config.filter_run_excluding :local_only => true
   end
   
