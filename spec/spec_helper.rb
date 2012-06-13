@@ -8,6 +8,11 @@ ENVIRONMENT = "test"
 APP_ROOT = File.expand_path(File.dirname(__FILE__) + '/../')
 
 RSpec.configure do |config|
+  
+  if defined? TRAVIS_RUBY_VERSION
+    config.filter_run_excluding :local_only => true
+  end
+  
   config.before(:each) {
         
     #redis_mock = double("redis")

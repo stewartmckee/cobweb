@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Cobweb do
+describe Cobweb, :local_only => true do
 
   before(:all) do
     #store all existing resque process ids
@@ -8,7 +8,7 @@ describe Cobweb do
     
     # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
     puts "Starting Workers... Please Wait..."
-    io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=5 QUEUE=cobweb_crawl_job > output.log &")
+    io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=5 QUEUE=cobweb_crawl_job > log/output.log &")
     puts "Workers Started."
     
     # START THIN SERVER TO HOST THE SAMPLE SITE FOR CRAWLING

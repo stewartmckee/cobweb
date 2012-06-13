@@ -42,9 +42,6 @@ class CobwebCrawler
     
     @crawl_options = crawl_options
     
-    puts "http://localhost:4567/statistics/#{@crawl_id}"
-    puts ""
-    
     @redis.sadd("queued", base_url) unless @redis.sismember("crawled", base_url) || @redis.sismember("queued", base_url)
     crawl_counter = @redis.scard("crawled").to_i
     queue_counter = @redis.scard("queued").to_i
