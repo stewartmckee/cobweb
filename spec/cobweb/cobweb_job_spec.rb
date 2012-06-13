@@ -8,6 +8,7 @@ describe Cobweb, :local_only => true do
     
     # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
     puts "Starting Workers... Please Wait..."
+    `mkdir log`
     io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=5 QUEUE=cobweb_crawl_job > log/output.log &")
     puts "Workers Started."
     
