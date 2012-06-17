@@ -95,7 +95,10 @@ class CrawlJob
   # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
-    if content_request[:use_encoding_safe_process_job]
+    if content_request[:direct_call_process_job]
+      clazz = const_get(content_request[:processing_queue])
+      clazz.perform(content_to_send)
+    elsif content_request[:use_encoding_safe_process_job]
       content_to_send[:body] = Base64.encode64(content[:body])
       content_to_send[:processing_queue] = content_request[:processing_queue]
       Resque.enqueue(EncodingSafeProcessJob, content_to_send)
