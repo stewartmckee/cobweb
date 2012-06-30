@@ -43,6 +43,9 @@ class Cobweb
     default_redis_options_to                  Hash.new
     default_internal_urls_to                  []
     default_first_page_redirect_internal_to   true
+    default_text_mime_types_to                ["text/*", "application/xhtml+xml"]
+    default_obey_robots_to                    false
+    default_user_agent_to                     "cobweb"
     
   end
   
@@ -177,7 +180,7 @@ class Cobweb
             content[:character_set] = charset
           end
           content[:length] = response.content_length
-          if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
+          if text_content?(content[:mime_type])
             if response["Content-Encoding"]=="gzip"
               content[:body] = Zlib::GzipReader.new(StringIO.new(response.body)).read
             else
@@ -384,5 +387,23 @@ class Cobweb
       content
     end
     
-  end  
+  end
+  
+  private
+  # checks if the mime_type is textual
+  def text_content?(content_type)
+    @options[:text_mime_types].each do |mime_type|
+      return true if content_type.match(escape_pattern_for_regex(mime_type))
+    end
+    false
+  end
+
+  # escapes characters with meaning in regular expressions and adds wildcard expression
+  def escape_pattern_for_regex(pattern)
+    pattern = pattern.gsub(".", "\\.")
+    pattern = pattern.gsub("?", "\\?")
+    pattern = pattern.gsub("*", ".*?")
+    pattern
+  end
+  
 end

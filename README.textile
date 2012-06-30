@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.57
+h1. Cobweb v0.0.58
 !https://secure.travis-ci.org/stewartmckee/cobweb.png?branch=master!
 
 h2. Intro 
@@ -41,6 +41,8 @@ h3. Data Returned
   * :crawl_id - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
   * :internal_urls - an array of urls with * wildcards that represent urls internal to the site (ie pages within the same domain)
   * :external_urls - an array of urls with * wildcards that represent urls external to the site (overrides internal_urls)
+  * :obey_robots - boolean determining if robots.txt should be honoured. (default: false)
+  * :user_agent - user agent string to match in robots.txt (not sent as user_agent of requests yet) (default: cobweb)
   
   The source for the links can be overridden, contact me for the syntax (don't have time to put it into this documentation, will as soon as i have time!)
 

@@ -5,7 +5,6 @@ require 'haml'
 class Server < Sinatra::Base
 
   set :views, settings.root + '/../views'
-  puts "#{settings.root}/../public"
   set :public_folder, settings.root + '/../public'
   enable :static
   

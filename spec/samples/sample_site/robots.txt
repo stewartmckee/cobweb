@@ -1,0 +1,13 @@
+# robots.txt for http://www.example.com/
+
+User-agent: cybermapper
+Disallow:
+
+User-agent: google
+Disallow: /
+
+User-agent: *
+Disallow: /forms
+Disallow: /gallery
+Disallow: /more.html
+Allow: /catalogs/about

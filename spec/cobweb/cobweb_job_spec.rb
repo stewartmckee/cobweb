@@ -12,15 +12,6 @@ describe Cobweb, :local_only => true do
     io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=5 QUEUE=cobweb_crawl_job > log/output.log &")
     puts "Workers Started."
   
-    # START THIN SERVER TO HOST THE SAMPLE SITE FOR CRAWLING
-    @thin = nil
-    Thread.new do
-      @thin = Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
-    end
-  
-    # WAIT FOR START TO COMPLETE
-    sleep 1
-  
   end
 
   before(:each) do
@@ -147,7 +138,6 @@ describe Cobweb, :local_only => true do
     @all_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
     command = "kill #{(@all_processes - @existing_processes).join(" ")}"
     IO.popen(command)
-    #@thin.stop!    
   end
 
 end

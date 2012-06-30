@@ -17,6 +17,15 @@ class CobwebLinks
     
   end
   
+  def allowed?(link)
+    if @options[:obey_robots]
+      robot = Robots.new(:url => link, :user_agent => @options[:user_agent])
+      return robot.allowed?(link)
+    else
+      return true
+    end
+  end
+  
   # Returns true if the link is matched to an internal_url and not matched to an external_url
   def internal?(link)
     if @options[:debug]

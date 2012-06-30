@@ -4,7 +4,7 @@ describe CobwebCrawler do
 
   before(:each) do
   
-    @base_url = "http://www.baseurl.com/"
+    @base_url = "http://localhost:3532/"
   
     @default_headers = {"Cache-Control" => "private, max-age=0",
                         "Date" => "Wed, 10 Nov 2010 09:06:17 GMT",
@@ -27,9 +27,9 @@ describe CobwebCrawler do
       
       # temporary tests to run crawler - proper specs to follow.. honest
       
-      crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
+      crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => true})
       
-      statistics = crawler.crawl("http://rockwellcottage.heroku.com/")
+      statistics = crawler.crawl(@base_url)
       
       statistics.should_not be_nil
       statistics.should be_an_instance_of Hash
@@ -42,7 +42,7 @@ describe CobwebCrawler do
 
       crawler = CobwebCrawler.new({:cache => false, :quiet => false, :debug => false})
       
-      statistics = crawler.crawl("http://www.rockwellcottage.com/") do |content, statistics|
+      statistics = crawler.crawl(@base_url) do |content, statistics|
         content[:url].should_not be_nil
         statistics[:average_length].should_not be_nil
       end

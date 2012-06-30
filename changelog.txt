@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.0.58
+  removed rogue 'puts' that was displaying gem path
+  added obey_robots option
+
 0.0.57
   fixed bug with default internal_urls when port was non standard
   added specs for crawl_job

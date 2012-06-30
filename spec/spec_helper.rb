@@ -13,6 +13,17 @@ RSpec.configure do |config|
     config.filter_run_excluding :local_only => true
   end
   
+  config.before(:all) {
+    # START THIN SERVER TO HOST THE SAMPLE SITE FOR CRAWLING
+    @thin = nil
+    Thread.new do
+      @thin = Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
+    end
+  
+    # WAIT FOR START TO COMPLETE
+    sleep 1
+  }
+  
   config.before(:each) {
         
     #redis_mock = double("redis")
@@ -40,10 +51,12 @@ RSpec.configure do |config|
 
     @mock_http_client = mock(Net::HTTP)
     @mock_http_request = mock(Net::HTTPRequest)
+    @mock_http_robot_request = mock(Net::HTTPRequest)
     @mock_http_redirect_request = mock(Net::HTTPRequest)
     @mock_http_redirect_request2 = mock(Net::HTTPRequest)
     
     @mock_http_response = mock(Net::HTTPResponse)
+    @mock_http_robot_response = mock(Net::HTTPResponse)
     @mock_http_redirect_response = mock(Net::HTTPRedirection)
     @mock_http_redirect_response2 = mock(Net::HTTPRedirection)
     @mock_http_get = mock(Net::HTTP::Get)
@@ -51,11 +64,13 @@ RSpec.configure do |config|
     Net::HTTP.stub!(:new).and_return(@mock_http_client)
     Net::HTTP::Get.stub!(:new).and_return(@mock_http_request)
     Net::HTTP::Get.stub!(:new).with("/redirect.html", {}).and_return(@mock_http_redirect_request)
+    Net::HTTP::Get.stub!(:new).with("/robots.txt", {}).and_return(@mock_http_robot_request)
     Net::HTTP::Get.stub!(:new).with("/redirect2.html", {}).and_return(@mock_http_redirect_request2)
 
     Net::HTTP::Head.stub!(:new).and_return(@mock_http_request)
 
     @mock_http_client.stub!(:request).with(@mock_http_request).and_return(@mock_http_response)
+    @mock_http_client.stub!(:request).with(@mock_http_robot_request).and_return(@mock_http_robot_response)
     @mock_http_client.stub!(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)      
     @mock_http_client.stub!(:request).with(@mock_http_redirect_request2).and_return(@mock_http_redirect_response2)
     @mock_http_client.stub!(:read_timeout=).and_return(nil)      
@@ -63,6 +78,16 @@ RSpec.configure do |config|
     @mock_http_client.stub!(:start).and_return(@mock_http_response)
     @mock_http_client.stub!(:address).and_return("www.baseurl.com")
     @mock_http_client.stub!(:port).and_return("80 ")
+    
+    @mock_http_robot_response.stub!(:code).and_return(200)
+    @mock_http_robot_response.stub!(:body).and_return(File.open(File.dirname(__FILE__) + '/../spec/samples/robots.txt', "r").read)
+    @mock_http_robot_response.stub!(:content_type).and_return("text/plain")
+    @mock_http_robot_response.stub!(:[]).with("Content-Type").and_return(@default_headers["Content-Type"])
+    @mock_http_robot_response.stub!(:[]).with("location").and_return(@default_headers["location"])
+    @mock_http_robot_response.stub!(:[]).with("Content-Encoding").and_return(@default_headers["Content-Encoding"])
+    @mock_http_robot_response.stub!(:content_length).and_return(1024)
+    @mock_http_robot_response.stub!(:get_fields).with('set-cookie').and_return(["session=al98axx; expires=Fri, 31-Dec-1999 23:58:23", "query=rubyscript; expires=Fri, 31-Dec-1999 23:58:23"])
+    @mock_http_robot_response.stub!(:to_hash).and_return(@default_headers)
     
     @mock_http_response.stub!(:code).and_return(200)
     @mock_http_response.stub!(:content_type).and_return("text/html")
