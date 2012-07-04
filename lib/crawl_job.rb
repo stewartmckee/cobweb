@@ -110,7 +110,6 @@ class CrawlJob
       Resque.enqueue(const_get(content_request[:processing_queue]), content_to_send)
     end
     puts "#{content_request[:url]} has been sent for processing. use_encoding_safe_process_job: #{content_request[:use_encoding_safe_process_job]}" if content_request[:debug]
-    puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if content_request[:debug]
   end
 
   private
