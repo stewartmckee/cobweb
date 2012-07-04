@@ -84,8 +84,6 @@ class CobwebCrawler
               
               @stats.update_statistics(content, crawl_counter, queue_counter)
               @stats.update_status("Completed #{url}.")
-              puts "Crawled: #{crawl_counter.to_i} Limit: #{@options[:crawl_limit].to_i} Queued: #{queue_counter.to_i}" if @debug 
-              
               yield content, @stats.get_statistics if block_given?
 
             rescue => e

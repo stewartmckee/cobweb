@@ -25,13 +25,12 @@ class CrawlJob
     
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
-      @redis.srem "queued", content_request[:url]
-      decrement_queue_counter
-      @redis.sadd "crawled", content_request[:url]
-      increment_crawl_counter
-      
+
       # if there is no limit or we're still under it lets get the url
       if within_crawl_limits?(content_request[:crawl_limit])
+        #update the queued and crawled lists if we are within the crawl limits.
+        @redis.srem "queued", content_request[:url]
+        @redis.sadd "crawled", content_request[:url]
 
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         
@@ -68,6 +67,11 @@ class CrawlJob
           enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
         end
 
+        # update the queue and crawl counts -- doing this very late in the piece so that the following transaction all occurs at once.
+        # really we should do this with a lock https://github.com/PatrickTulskie/redis-lock
+        decrement_queue_counter
+        increment_crawl_counter
+        puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if @debug
         # if there's nothing left queued or the crawled limit has been reached
         if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
           if @redis.scard("queued") == 0
