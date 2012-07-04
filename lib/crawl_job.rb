@@ -31,6 +31,8 @@ class CrawlJob
         #update the queued and crawled lists if we are within the crawl limits.
         @redis.srem "queued", content_request[:url]
         @redis.sadd "crawled", content_request[:url]
+        increment_crawl_started_counter
+        decrement_queue_counter
 
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         
@@ -69,15 +71,14 @@ class CrawlJob
 
         # update the queue and crawl counts -- doing this very late in the piece so that the following transaction all occurs at once.
         # really we should do this with a lock https://github.com/PatrickTulskie/redis-lock
-        decrement_queue_counter
         increment_crawl_counter
-        puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter}" if @debug
+        puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter} In Progress: #{@crawl_started_counter-@crawl_counter}" if @debug
         # if there's nothing left queued or the crawled limit has been reached
         if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
           if @redis.scard("queued") == 0
             finished(content_request)
           end
-        elsif @queue_counter == 0 || @crawl_counter > content_request[:crawl_limit].to_i
+        elsif @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
           finished(content_request)
         end
       end
@@ -116,12 +117,12 @@ class CrawlJob
   
   # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
-    crawl_limit.nil? or @crawl_counter <= crawl_limit.to_i
+    crawl_limit.nil? or @crawl_started_counter < crawl_limit.to_i
   end
   
   # Returns true if the queue count is calculated to be still within limits when complete
   def self.within_queue_limits?(crawl_limit)
-    within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_counter) < crawl_limit.to_i)
+    within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_started_counter) < crawl_limit.to_i)
   end
   
   # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
@@ -155,6 +156,10 @@ class CrawlJob
     @redis.incr "crawl-counter"
     refresh_counters
   end
+  def self.increment_crawl_started_counter
+    @redis.incr "crawl-started-counter"
+    refresh_counters
+  end
   # Decrements the queue counter and refreshes crawl counters
   def self.decrement_queue_counter
     @redis.decr "queue-counter"
@@ -163,12 +168,15 @@ class CrawlJob
   # Refreshes the crawl counters
   def self.refresh_counters
     @crawl_counter = @redis.get("crawl-counter").to_i
+    @crawl_started_counter = @redis.get("crawl-started-counter").to_i
     @queue_counter = @redis.get("queue-counter").to_i
   end
   # Sets the crawl counters based on the crawled and queued queues
   def self.reset_counters
+    @redis.set("crawl-started-counter", @redis.smembers("crawled").count)
     @redis.set("crawl-counter", @redis.smembers("crawled").count)
     @redis.set("queue-counter", @redis.smembers("queued").count)
+    @crawl_started_counter = @redis.get("crawl-started-counter").to_i
     @crawl_counter = @redis.get("crawl-counter").to_i
     @queue_counter = @redis.get("queue-counter").to_i
   end
