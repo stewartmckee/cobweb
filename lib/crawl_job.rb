@@ -14,8 +14,11 @@ class CrawlJob
     
     # change all hash keys to symbols
     content_request = HashUtil.deep_symbolize_keys(content_request)
+    @content_request = content_request
     
     content_request[:redis_options] = {} unless content_request.has_key? :redis_options
+    content_request[:crawl_limit_by_page] = false unless content_request.has_key? :crawl_limit_by_page
+    content_request[:valid_mime_types] = ["*/*"] unless content_request.has_key? :valid_mime_types
     @redis = NamespacedRedis.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     @stats = Stats.new(content_request)
     
@@ -27,62 +30,74 @@ class CrawlJob
     unless @redis.sismember "crawled", content_request[:url]
       @redis.srem "queued", content_request[:url]
       decrement_queue_counter
-      @redis.sadd "crawled", content_request[:url]
-      increment_crawl_counter
+      content = Cobweb.new(content_request).get(content_request[:url], content_request)
       
-      # if there is no limit or we're still under it lets get the url
-      if within_crawl_limits?(content_request[:crawl_limit])
+      if is_permitted_type(content)
+        @redis.sadd "crawled", content_request[:url]
 
-        content = Cobweb.new(content_request).get(content_request[:url], content_request)
+        # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
+        if content_request[:crawl_limit_by_page]
+          if content[:mime_type].match("text/html")
+            increment_crawl_counter
+          end
+        else
+          increment_crawl_counter 
+        end
+      
         
-        ## update statistics
-        @stats.update_status("Crawling #{content_request[:url]}...")
-        @stats.update_statistics(content)
-        
-        # set the base url if this is the first page
-        set_base_url @redis, content, content_request
-        
-        @cobweb_links = CobwebLinks.new(content_request)
-        if within_queue_limits?(content_request[:crawl_limit])
-          internal_links = ContentLinkParser.new(content_request[:url], content[:body]).all_links(:valid_schemes => [:http, :https])
-
-          # select the link if its internal
-          internal_links.select!{|link| @cobweb_links.internal?(link)}
-        
-          # reject the link if we've crawled it or queued it
-          internal_links.reject!{|link| @redis.sismember("crawled", link)}
-          internal_links.reject!{|link| @redis.sismember("queued", link)}
+        # if there is no limit or we're still under it lets get the url
+        if within_crawl_limits?(content_request[:crawl_limit])
           
-          internal_links.each do |link|
-            enqueue_content(content_request, link) if within_queue_limits?(content_request[:crawl_limit])
+          ## update statistics
+          @stats.update_status("Crawling #{content_request[:url]}...")
+          @stats.update_statistics(content)
+          
+          # set the base url if this is the first page
+          set_base_url @redis, content, content_request
+          
+          @cobweb_links = CobwebLinks.new(content_request)
+          if within_queue_limits?(content_request[:crawl_limit])
+            internal_links = ContentLinkParser.new(content_request[:url], content[:body]).all_links(:valid_schemes => [:http, :https])
+            
+            # select the link if its internal
+            internal_links.select!{|link| @cobweb_links.internal?(link)}
+        
+            # reject the link if we've crawled it or queued it
+            internal_links.reject!{|link| @redis.sismember("crawled", link)}
+            internal_links.reject!{|link| @redis.sismember("queued", link)}
+          
+            internal_links.each do |link|
+              enqueue_content(content_request, link) if within_queue_limits?(content_request[:crawl_limit])
+            end
+          end
+        
+          # enqueue to processing queue
+          send_to_processing_queue(content, content_request)
+        
+          #if the enqueue counter has been requested update that
+          if content_request.has_key? :enqueue_counter_key                                                                                  
+            enqueue_redis = NamespacedRedis.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
+            current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
+            enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
           end
         end
-        
-        # enqueue to processing queue
-        send_to_processing_queue(content, content_request)
-        
-        #if the enqueue counter has been requested update that
-        if content_request.has_key? :enqueue_counter_key                                                                                  
-          enqueue_redis = NamespacedRedis.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
-          current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
-          enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
-        end
-
-        # if there's nothing left queued or the crawled limit has been reached
-        if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
-          if @redis.scard("queued") == 0
-            finished(content_request)
-          end
-        elsif @queue_counter == 0 || @crawl_counter > content_request[:crawl_limit].to_i
-          finished(content_request)
-        end
+      else
+        puts "ignoring #{content_request[:url]} as mime_type is #{content[:mime_type]}" if content_request[:debug]
       end
     else
       @redis.srem "queued", content_request[:url]
       decrement_queue_counter
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
-
+    
+    # if there's nothing left queued or the crawled limit has been reached
+    if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
+      if @redis.scard("queued") == 0
+        finished(content_request)
+      end
+    elsif @queue_counter == 0 || @crawl_counter > content_request[:crawl_limit].to_i
+      finished(content_request)
+    end
   end
 
   # Sets the crawl status to 'Crawl Stopped' and enqueues the crawl finished job
@@ -108,14 +123,31 @@ class CrawlJob
 
   private
   
+  # Helper method to determine if this content is to be processed or not
+  def self.is_permitted_type(content)
+    @content_request[:valid_mime_types].each do |mime_type|
+      return true if content[:mime_type].match(escape_pattern_for_regex(mime_type))
+    end
+    false
+  end
+  
+  # escapes characters with meaning in regular expressions and adds wildcard expression
+  def self.escape_pattern_for_regex(pattern)
+    pattern = pattern.gsub(".", "\\.")
+    pattern = pattern.gsub("?", "\\?")
+    pattern = pattern.gsub("*", ".*?")
+    pattern
+  end
+    
   # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
+    refresh_counters
     crawl_limit.nil? or @crawl_counter <= crawl_limit.to_i
   end
   
   # Returns true if the queue count is calculated to be still within limits when complete
   def self.within_queue_limits?(crawl_limit)
-    within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_counter) < crawl_limit.to_i)
+    @content_request[:crawl_limit_by_page] || within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_counter) < crawl_limit.to_i)
   end
   
   # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
