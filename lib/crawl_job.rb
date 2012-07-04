@@ -126,19 +126,11 @@ class CrawlJob
   # Helper method to determine if this content is to be processed or not
   def self.is_permitted_type(content)
     @content_request[:valid_mime_types].each do |mime_type|
-      return true if content[:mime_type].match(escape_pattern_for_regex(mime_type))
+      return true if content[:mime_type].match(Cobweb.escape_pattern_for_regex(mime_type))
     end
     false
   end
   
-  # escapes characters with meaning in regular expressions and adds wildcard expression
-  def self.escape_pattern_for_regex(pattern)
-    pattern = pattern.gsub(".", "\\.")
-    pattern = pattern.gsub("?", "\\?")
-    pattern = pattern.gsub("*", ".*?")
-    pattern
-  end
-    
   # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
     refresh_counters

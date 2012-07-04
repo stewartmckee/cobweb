@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.58
+h1. Cobweb v0.0.59
 !https://secure.travis-ci.org/stewartmckee/cobweb.png?branch=master!
 
 h2. Intro 
@@ -38,11 +38,6 @@ h3. Data Returned
     ** :related - url's from link tags
     ** :scripts - url's from script tags
     ** :styles - url's from within link tags with rel of stylesheet and from url() directives with stylesheets
-  * :crawl_id - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
-  * :internal_urls - an array of urls with * wildcards that represent urls internal to the site (ie pages within the same domain)
-  * :external_urls - an array of urls with * wildcards that represent urls external to the site (overrides internal_urls)
-  * :obey_robots - boolean determining if robots.txt should be honoured. (default: false)
-  * :user_agent - user agent string to match in robots.txt (not sent as user_agent of requests yet) (default: cobweb)
   
   The source for the links can be overridden, contact me for the syntax (don't have time to put it into this documentation, will as soon as i have time!)
 
@@ -70,6 +65,13 @@ Creates a new crawler object based on a base_url
     ** :redis_options                 - hash containing the initialization options for redis (e.g. {:host => "redis.mydomain.com"}) (Default: {})
     ** :internal_urls                 - array of strings representing internal url forms for your site (eg: ['http://test.com/*', 'http://blog.test.com/*', 'http://externaltest.com/*']) (Default: [], although your first url's scheme, host and domain are added)
     ** :first_page_redirect_internal  - if true and the first page crawled is a redirect, it will add the final destination of redirects to the internal_urls (e.g. http://www.test.com gets redirected to http://test.com) (Default: true)
+    ** :crawl_id                      - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
+    ** :internal_urls                 - an array of urls with * wildcards that represent urls internal to the site (ie pages within the same domain)
+    ** :external_urls                 - an array of urls with * wildcards that represent urls external to the site (overrides internal_urls)
+    ** :obey_robots                   - boolean determining if robots.txt should be honoured. (default: false)
+    ** :user_agent                    - user agent string to match in robots.txt (not sent as user_agent of requests yet) (default: cobweb)
+    ** :crawl_limit_by_page           - sets the crawl counter to only use html page types when counting objects crawled
+    ** :valid_mime_types              - an array of mime types that takes wildcards (eg 'text/*') defaults to ['*/*']
     
 bq. crawler = CobWeb.new(:follow_redirects => false)
 

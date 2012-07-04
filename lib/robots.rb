@@ -28,10 +28,10 @@ class Robots
   def allowed?(url)
     uri = URI.parse(url)
     @params[:allow].each do |pattern|
-      return true if uri.path.match(escape_pattern_for_regex(pattern))
+      return true if uri.path.match(Cobweb.escape_pattern_for_regex(pattern))
     end
     @params[:disallow].each do |pattern|
-      return false if uri.path.match(escape_pattern_for_regex(pattern))
+      return false if uri.path.match(Cobweb.escape_pattern_for_regex(pattern))
     end
     true
   end
@@ -45,13 +45,6 @@ class Robots
   end
   
   private
-  # escapes characters with meaning in regular expressions and adds wildcard expression
-  def escape_pattern_for_regex(pattern)
-    pattern = pattern.gsub(".", "\\.")
-    pattern = pattern.gsub("?", "\\?")
-    pattern = pattern.gsub("*", ".*?")
-    pattern
-  end
   
   def parse_data(data)
     user_agents = {}
