@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.59
+  merged pull request from ephox for running method instead of enqueueing to process queue
+
 0.0.58
   removed rogue 'puts' that was displaying gem path
   added obey_robots option
