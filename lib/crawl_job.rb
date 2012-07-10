@@ -11,7 +11,6 @@ class CrawlJob
 
   # Resque perform method to maintain the crawl, enqueue found links and detect the end of crawl
   def self.perform(content_request)
-    
     # change all hash keys to symbols
     content_request = HashUtil.deep_symbolize_keys(content_request)
     @content_request = content_request
@@ -19,37 +18,36 @@ class CrawlJob
     content_request[:redis_options] = {} unless content_request.has_key? :redis_options
     content_request[:crawl_limit_by_page] = false unless content_request.has_key? :crawl_limit_by_page
     content_request[:valid_mime_types] = ["*/*"] unless content_request.has_key? :valid_mime_types
+    
     @redis = NamespacedRedis.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     @stats = Stats.new(content_request)
     
     @debug = content_request[:debug]
     
-    refresh_counters
+    decrement_queue_counter
     
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
+      
+      content = Cobweb.new(content_request).get(content_request[:url], content_request)
+
       if is_permitted_type(content)
         # if there is no limit or we're still under it lets get the url
         if within_crawl_limits?(content_request[:crawl_limit])
           #update the queued and crawled lists if we are within the crawl limits.
           @redis.srem "queued", content_request[:url]
           @redis.sadd "crawled", content_request[:url]
-          increment_crawl_started_counter
-          decrement_queue_counter
-
-        # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
-        if content_request[:crawl_limit_by_page]
-          if content[:mime_type].match("text/html")
+          # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
+          if content_request[:crawl_limit_by_page]
+            if content[:mime_type].match("text/html")
+              increment_crawl_counter
+              increment_crawl_started_counter
+            end
+          else
             increment_crawl_counter
+            increment_crawl_started_counter 
           end
-        else
-          increment_crawl_counter 
-        end
-      
         
-        # if there is no limit or we're still under it lets get the url
-        if within_crawl_limits?(content_request[:crawl_limit])
-          
           ## update statistics
           @stats.update_status("Crawling #{content_request[:url]}...")
           @stats.update_statistics(content)
@@ -85,39 +83,33 @@ class CrawlJob
 
           # update the queue and crawl counts -- doing this very late in the piece so that the following transaction all occurs at once.
           # really we should do this with a lock https://github.com/PatrickTulskie/redis-lock
-          increment_crawl_counter
+          #increment_crawl_counter
           puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter} In Progress: #{@crawl_started_counter-@crawl_counter}" if @debug
-          # if there's nothing left queued or the crawled limit has been reached
-          if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
-            if @redis.scard("queued") == 0
-              finished(content_request)
-            end
-          elsif @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
-            finished(content_request)
-          end
         end
       else
         puts "ignoring #{content_request[:url]} as mime_type is #{content[:mime_type]}" if content_request[:debug]
       end
+      
     else
       @redis.srem "queued", content_request[:url]
-      decrement_queue_counter
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
     
     # if there's nothing left queued or the crawled limit has been reached
     if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
-      if @redis.scard("queued") == 0
+      if @queue_counter == 0
         finished(content_request)
       end
-    elsif @queue_counter == 0 || @crawl_counter > content_request[:crawl_limit].to_i
+    elsif @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
       finished(content_request)
     end
+    
   end
 
   # Sets the crawl status to 'Crawl Stopped' and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
+    ap "FINISHED"
     @stats.end_crawl(content_request)
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))
   end
@@ -206,6 +198,11 @@ class CrawlJob
     @crawl_started_counter = @redis.get("crawl-started-counter").to_i
     @queue_counter = @redis.get("queue-counter").to_i
   end
+  
+  def self.print_counters
+    puts "@crawl_counter: #{@crawl_counter} @crawl_started_counter: #{@crawl_started_counter} @queue_counter: #{@queue_counter}"    
+  end
+  
   # Sets the crawl counters based on the crawled and queued queues
   def self.reset_counters
     @redis.set("crawl-started-counter", @redis.smembers("crawled").count)

@@ -182,6 +182,8 @@ describe Cobweb, :local_only => true do
     @all_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
     command = "kill #{(@all_processes - @existing_processes).join(" ")}"
     IO.popen(command)
+    
+    clear_queues
   end
 
 end
@@ -194,7 +196,7 @@ def wait_for_crawl_finished(crawl_id, timeout=20)
   end
   if Time.now > start_time + timeout
     raise "End of crawl not detected"
-  end 
+  end
 end
 
 def running?(crawl_id)
@@ -205,6 +207,7 @@ def clear_queues
   Resque.queues.each do |queue|
     Resque.remove_queue(queue)
   end
+  puts "Cleared"
   
   Resque.size("cobweb_process_job").should == 0
   Resque.size("cobweb_finished_job").should == 0
