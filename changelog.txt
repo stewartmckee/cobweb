@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.60
+  bug fixes in the resque job to make crawl finished detection better
+
 0.0.59
   merged pull request from ephox for running method instead of enqueueing to process queue
 
