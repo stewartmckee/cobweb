@@ -40,14 +40,12 @@ class CrawlJob
           # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
           if content_request[:crawl_limit_by_page]
             if content[:mime_type].match("text/html")
-              increment_crawl_counter
               increment_crawl_started_counter
             end
           else
-            increment_crawl_counter
-            increment_crawl_started_counter 
+            increment_crawl_started_counter
           end
-        
+
           ## update statistics
           @stats.update_status("Crawling #{content_request[:url]}...")
           @stats.update_statistics(content)
@@ -73,7 +71,7 @@ class CrawlJob
         
           # enqueue to processing queue
           send_to_processing_queue(content, content_request)
-        
+
           #if the enqueue counter has been requested update that
           if content_request.has_key? :enqueue_counter_key                                                                                  
             enqueue_redis = NamespacedRedis.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
@@ -83,7 +81,13 @@ class CrawlJob
 
           # update the queue and crawl counts -- doing this very late in the piece so that the following transaction all occurs at once.
           # really we should do this with a lock https://github.com/PatrickTulskie/redis-lock
-          #increment_crawl_counter
+          if content_request[:crawl_limit_by_page]
+            if content[:mime_type].match("text/html")
+              increment_crawl_counter
+            end
+          else
+            increment_crawl_counter
+          end
           puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter} In Progress: #{@crawl_started_counter-@crawl_counter}" if @debug
         end
       else
@@ -97,10 +101,10 @@ class CrawlJob
     
     # if there's nothing left queued or the crawled limit has been reached
     if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
-      if @queue_counter == 0
+      if @redis.scard("queued") == 0
         finished(content_request)
       end
-    elsif @queue_counter == 0 || @crawl_counter >= content_request[:crawl_limit].to_i
+    elsif (@queue_counter +@crawl_started_counter-@crawl_counter)== 0 || @crawl_counter >= content_request[:crawl_limit].to_i
       finished(content_request)
     end
     
@@ -109,9 +113,14 @@ class CrawlJob
   # Sets the crawl status to 'Crawl Stopped' and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
-    ap "FINISHED"
-    @stats.end_crawl(content_request)
-    Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))
+    if @redis.hget("statistics", "current_status")!= "Crawl Stopped"
+      ap "CRAWL FINISHED" if content_request[:debug]
+      @stats.end_crawl(content_request)
+      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id]}))
+    else
+      # TODO it would be good to send some kind of notification or warning when this happens.
+      ap "CRAWL REFINISHED" if content_request[:debug]
+    end
   end
   
   # Enqueues the content to the processing queue setup in options
@@ -143,13 +152,12 @@ class CrawlJob
   # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
     refresh_counters
-    crawl_limit.nil? or @crawl_counter <= crawl_limit.to_i
     crawl_limit.nil? or @crawl_started_counter < crawl_limit.to_i
   end
   
   # Returns true if the queue count is calculated to be still within limits when complete
   def self.within_queue_limits?(crawl_limit)
-    @content_request[:crawl_limit_by_page] || within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_started_counter) < crawl_limit.to_i)
+    (@content_request[:crawl_limit_by_page]&&within_crawl_limits?(crawl_limit)) || within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_counter) < crawl_limit.to_i)
   end
   
   # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
