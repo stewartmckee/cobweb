@@ -207,7 +207,6 @@ def clear_queues
   Resque.queues.each do |queue|
     Resque.remove_queue(queue)
   end
-  puts "Cleared"
   
   Resque.size("cobweb_process_job").should == 0
   Resque.size("cobweb_finished_job").should == 0
