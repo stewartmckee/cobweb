@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.61
+  remove url from queued and add it to crawled for both original and redirected url if a redirect is in place
+
 0.0.60
   bug fixes in the resque job to make crawl finished detection better
 
