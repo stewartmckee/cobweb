@@ -6,7 +6,7 @@ rvm:
   - jruby-18mode # JRuby in 1.8 mode
   - jruby-19mode # JRuby in 1.9 mode
   - jruby-head
-  - ruby-head
+#  - ruby-head
 
 # Branch white list
 branches:
