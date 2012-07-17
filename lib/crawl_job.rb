@@ -35,8 +35,11 @@ class CrawlJob
         # if there is no limit or we're still under it lets get the url
         if within_crawl_limits?(content_request[:crawl_limit])
           begin
+            # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
             @redis.srem "queued", content_request[:url]
             @redis.sadd "crawled", content_request[:url]
+            @redis.srem "queued", content[:url]
+            @redis.sadd "crawled", content[:url]
             # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
             if content_request[:crawl_limit_by_page]
               if content[:mime_type].match("text/html")
