@@ -66,6 +66,7 @@ class Cobweb
     
     request.merge!(@options)
     @redis = NamespacedRedis.new(request[:redis_options], "cobweb-#{Cobweb.version}-#{request[:crawl_id]}")
+    @redis.set("original_base_url", base_url)
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
     @redis.set("queue-counter", 1)
@@ -75,7 +76,6 @@ class Cobweb
     
     # add internal_urls into redis
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
-    
     Resque.enqueue(CrawlJob, request)
     request
   end
@@ -114,7 +114,7 @@ class Cobweb
     else
       redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
     end
-    
+
     content = {:base_url => url}
   
     # check if it has already been cached
@@ -149,7 +149,7 @@ class Cobweb
           puts "redirected... " unless @options[:quiet]
           
           # get location to redirect to
-          url = UriHelper.join_no_fragment(uri, response['location'])
+          uri = UriHelper.join_no_fragment(uri, response['location'])
           
           # decrement redirect limit
           redirect_limit = redirect_limit - 1
@@ -158,7 +158,7 @@ class Cobweb
           cookies = get_cookies(response)
 
           # get the content from redirect location
-          content = get(url, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
+          content = get(uri, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
@@ -307,14 +307,14 @@ class Cobweb
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
 
-          url = UriHelper.join_no_fragment(uri, response['location'])
+          uri = UriHelper.join_no_fragment(uri, response['location'])
 
           redirect_limit = redirect_limit - 1
 
           raise RedirectError, "Redirect Limit reached" if redirect_limit == 0
           cookies = get_cookies(response)
 
-          content = head(url, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
+          content = head(uri, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
