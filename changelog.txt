@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.62
+  fixed bugs in redirect logic
+
 0.0.61
   remove url from queued and add it to crawled for both original and redirected url if a redirect is in place
 
