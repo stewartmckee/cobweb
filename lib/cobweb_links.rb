@@ -28,27 +28,11 @@ class CobwebLinks
   
   # Returns true if the link is matched to an internal_url and not matched to an external_url
   def internal?(link)
-    if @options[:debug]
-      puts "--------------------------------"
-      puts "Link: #{link}"
-      puts "Internal matches"
-      ap @internal_patterns.select{|pattern| link.match(pattern)}
-      puts "External matches"
-      ap @external_patterns.select{|pattern| link.match(pattern)}
-    end
     !@internal_patterns.select{|pattern| link.match(pattern)}.empty? && @external_patterns.select{|pattern| link.match(pattern)}.empty?
   end
   
   # Returns true if the link is matched to an external_url or not matched to an internal_url
   def external?(link)
-    if @options[:debug]
-      puts "--------------------------------"
-      puts "Link: #{link}"
-      puts "Internal matches"
-      ap @internal_patterns.select{|pattern| link.match(pattern)}
-      puts "External matches"
-      ap @external_patterns.select{|pattern| link.match(pattern)}
-    end
     @internal_patterns.select{|pattern| link.match(pattern)}.empty? || !@external_patterns.select{|pattern| link.match(pattern)}.empty?
   end
   
