@@ -28,14 +28,14 @@ class CrawlJob
     
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
-      content = Cobweb.new(content_request).get(content_request[:url], content_request)
-      if content_request[:url] == @redis.get("original_base_url")
-        puts content
-         @redis.set("crawled_base_url", content[:base_url])
-      end
-      if is_permitted_type(content)
-        # if there is no limit or we're still under it lets get the url
-        if within_crawl_limits?(content_request[:crawl_limit])
+      # if there is no limit or we're still under it lets get the url
+      if within_crawl_limits?(content_request[:crawl_limit])
+        content = Cobweb.new(content_request).get(content_request[:url], content_request)
+        if content_request[:url] == @redis.get("original_base_url")
+          puts content
+           @redis.set("crawled_base_url", content[:base_url])
+        end
+        if is_permitted_type(content)
           begin
             # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
             @redis.srem "queued", content_request[:url]
@@ -99,10 +99,10 @@ class CrawlJob
             puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter} In Progress: #{@crawl_started_counter-@crawl_counter}" if @debug
           end
         else
-          puts "ignoring #{content_request[:url]} as outside of crawl limits." if content_request[:debug]
+          puts "ignoring #{content_request[:url]} as mime_type is #{content[:mime_type]}" if content_request[:debug]
         end
       else
-        puts "ignoring #{content_request[:url]} as mime_type is #{content[:mime_type]}" if content_request[:debug]
+        puts "ignoring #{content_request[:url]} as outside of crawl limits." if content_request[:debug]
       end
       
     else
@@ -122,15 +122,15 @@ class CrawlJob
     
   end
 
-  # Sets the crawl status to 'Crawl Stopped' and enqueues the crawl finished job
+  # Sets the crawl status to 'Crawl Finished' and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
-    if @redis.hget("statistics", "current_status")!= "Crawl Stopped"
+    if @redis.hget("statistics", "current_status")!= "Crawl Finished"
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
       Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id], :crawled_base_url => @redis.get("crawled_base_url")}))
     else
-      ap "CRAWL REFINISHED  #{content_request[:url]}, #{counters}" if content_request[:debug]
+      # nothing to report here, we're skipping the remaining urls as we're outside of the crawl limit
     end
   end
   

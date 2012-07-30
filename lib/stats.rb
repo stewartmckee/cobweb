@@ -23,7 +23,7 @@ class Stats
   # Removes the crawl from the running crawls and updates status
   def end_crawl(options)
     @full_redis.srem "cobweb_crawls", options[:crawl_id]
-    @redis.hset "statistics", "current_status", "Crawl Stopped"
+    @redis.hset "statistics", "current_status", "Crawl Finished"
     @redis.del "crawl_details"
   end
   
