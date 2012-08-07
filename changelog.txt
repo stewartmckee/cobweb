@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.0.63
+  fixed bug in statistics sinatra app with encoding issues
+  removed some debug output
+  changed "Crawl Stopped" status to "Crawl Finished"
+
 0.0.62
   fixed bugs in redirect logic
 
