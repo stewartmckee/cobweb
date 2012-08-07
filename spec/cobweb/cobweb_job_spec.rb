@@ -200,7 +200,7 @@ def wait_for_crawl_finished(crawl_id, timeout=20)
 end
 
 def running?(crawl_id)
-  @stat.get_status != "Crawl Stopped"
+  @stat.get_status != "Crawl Finished"
 end
 
 def clear_queues
