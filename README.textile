@@ -6,6 +6,8 @@ h2. Intro
   
   CobWeb has three methods of running.  Firstly it is a http client that allows get and head requests returning a hash of data relating to the requested resource.  The second main function is to utilize this combined with the power of Resque to cluster the crawls allowing you crawl quickly.  Lastly you can run the crawler with a block that uses each of the pages found in the crawl.
   
+  I've created a sample app to help with setting up cobweb at http://github.com/stewartmckee/cobweb_sample
+  
 h3. Resque
 
   When running on resque, passing in a Class and queue name it will enqueue all resources to this queue for processing, passing in the hash it has generated.  You then implement the perform method to process the resource for your own application.
