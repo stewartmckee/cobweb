@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.0.64
+  fixed bug if option was array
+  updated readme to include cobweb_sample
+  some minor changes to statistics from resque crawl
+
 0.0.63
   fixed bug in statistics sinatra app with encoding issues
   removed some debug output
