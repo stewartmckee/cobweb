@@ -34,8 +34,8 @@ class Cobweb
     default_use_encoding_safe_process_job_to  false
     default_follow_redirects_to               true
     default_redirect_limit_to                 10
-    default_processing_queue_to               CobwebProcessJob
-    default_crawl_finished_queue_to           CobwebFinishedJob
+    default_processing_queue_to               "CobwebProcessJob"
+    default_crawl_finished_queue_to           "CobwebFinishedJob"
     default_quiet_to                          true
     default_debug_to                          false
     default_cache_to                          300
