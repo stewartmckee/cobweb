@@ -14,7 +14,7 @@ class Stats
     unless @full_redis.sismember "cobweb_crawls", options[:crawl_id]
       @full_redis.sadd "cobweb_crawls", options[:crawl_id]
       options.keys.each do |key|
-        @redis.hset "crawl_details", key, options[key]
+        @redis.hset "crawl_details", key, options[key].to_s
       end
     end
     @redis.hset "statistics", "current_status", "Crawl Starting..."
