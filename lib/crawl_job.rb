@@ -32,7 +32,6 @@ class CrawlJob
       if within_crawl_limits?(content_request[:crawl_limit])
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         if content_request[:url] == @redis.get("original_base_url")
-          puts content
            @redis.set("crawled_base_url", content[:base_url])
         end
         if is_permitted_type(content)
@@ -128,7 +127,12 @@ class CrawlJob
     if @redis.hget("statistics", "current_status")!= "Crawl Finished"
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
-      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge({:redis_options => content_request[:redis_options], :crawl_id => content_request[:crawl_id], :source_id => content_request[:source_id], :crawled_base_url => @redis.get("crawled_base_url")}))
+      
+      additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @redis.get("crawled_base_url")}
+      additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
+      additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
+      
+      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge(additional_stats))
     else
       # nothing to report here, we're skipping the remaining urls as we're outside of the crawl limit
     end
