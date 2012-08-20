@@ -18,8 +18,8 @@ describe Cobweb do
     
     options[:follow_redirects].should == true
     options[:redirect_limit].should == 10
-    options[:processing_queue].should == CobwebProcessJob
-    options[:crawl_finished_queue].should == CobwebFinishedJob
+    options[:processing_queue].should == "CobwebProcessJob"
+    options[:crawl_finished_queue].should == "CobwebFinishedJob"
     options[:quiet].should == true
     options[:debug].should == false
     options[:cache].should == 300
