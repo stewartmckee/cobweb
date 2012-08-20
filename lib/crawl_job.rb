@@ -59,7 +59,7 @@ class CrawlJob
 
             @cobweb_links = CobwebLinks.new(content_request)
             if within_queue_limits?(content_request[:crawl_limit])
-              internal_links = ContentLinkParser.new(content_request[:url], content[:body]).all_links(:valid_schemes => [:http, :https])
+              internal_links = ContentLinkParser.new(content_request[:url], content[:body], content_request).all_links(:valid_schemes => [:http, :https])
 
               # select the link if its internal
               internal_links.select! { |link| @cobweb_links.internal?(link) }
