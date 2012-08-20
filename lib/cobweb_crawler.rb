@@ -64,7 +64,6 @@ class CobwebCrawler
               @redis.incr "crawl-counter" 
               
               internal_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
-              ap internal_links
 
               # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
               cobweb_links = CobwebLinks.new(@options)
