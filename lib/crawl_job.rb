@@ -25,7 +25,7 @@ class CrawlJob
     @debug = content_request[:debug]
     
     decrement_queue_counter
-    
+
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
       # if there is no limit or we're still under it lets get the url
@@ -60,7 +60,8 @@ class CrawlJob
             @cobweb_links = CobwebLinks.new(content_request)
             if within_queue_limits?(content_request[:crawl_limit])
               internal_links = ContentLinkParser.new(content_request[:url], content[:body], content_request).all_links(:valid_schemes => [:http, :https])
-
+              #get rid of duplicate links in the same page.
+              internal_links.uniq!
               # select the link if its internal
               internal_links.select! { |link| @cobweb_links.internal?(link) }
 
