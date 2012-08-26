@@ -1,7 +1,9 @@
+require File.expand_path(File.dirname(__FILE__) + '/../lib/sidekiq/cobweb_helper')
 require File.expand_path(File.dirname(__FILE__) + '/../lib/cobweb')
 require File.expand_path(File.dirname(__FILE__) + '/../spec/samples/sample_server')
 require 'mock_redis'
 require 'thin' if ENV["TRAVIS_RUBY_VERSION"].nil?
+require 'sidekiq'
 
 # Sets up the environment as test so that exceptions are raised
 ENVIRONMENT = "test"

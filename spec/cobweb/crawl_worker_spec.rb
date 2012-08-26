@@ -1,16 +1,18 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+#require 'sidekiq/testing'
 
 describe Cobweb, :local_only => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards
-    @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
+    @existing_processes = `ps aux | grep sidekiq | grep -v grep | grep -v sidekiq-web | awk '{print $2}'`.split("\n")
     @existing_processes.should be_empty
   
     # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
     puts "Starting Workers... Please Wait..."
-    `mkdir log`
-    io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=5 QUEUE=cobweb_crawl_job > log/output.log &")
+    #{}`mkdir log`
+    #{}`rm -rf output.log`
+    #io = IO.popen("nohup sidekiq -r ./lib/crawl_worker.rb -q crawl_worker > ./log/output.log &")
     puts "Workers Started."
   
   end
@@ -29,7 +31,8 @@ describe Cobweb, :local_only => true do
         :crawl_limit => nil,
         :quiet => false,
         :debug => false,
-        :cache => nil
+        :cache => nil,
+        :queue_system => :sidekiq
       }
       @cobweb = Cobweb.new @request
     end
@@ -38,13 +41,13 @@ describe Cobweb, :local_only => true do
       crawl = @cobweb.start(@base_url)
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
-      Resque.size("cobweb_process_job").should == @base_page_count
+      CrawlProcessWorker.queue_size.should == @base_page_count
     end
     it "detect crawl finished" do
       crawl = @cobweb.start(@base_url)
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
-      Resque.size("cobweb_finished_job").should == 1
+      CrawlFinishedWorker.queue_size.should == 1
     end
   end
   describe "with limited mime_types" do
@@ -53,6 +56,7 @@ describe Cobweb, :local_only => true do
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => true,
         :cache => nil,
+        :queue_system => :sidekiq,
         :valid_mime_types => ["text/html"]
       }
       @cobweb = Cobweb.new @request
@@ -62,9 +66,9 @@ describe Cobweb, :local_only => true do
       crawl = @cobweb.start(@base_url)
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
-      Resque.size("cobweb_process_job").should == 8
+      CrawlProcessWorker.queue_size.should == 8
       
-      mime_types = Resque.peek("cobweb_process_job", 0, 100).map{|job| job["args"][0]["mime_type"]}
+      mime_types = CrawlProcessWorker.queue_items(0, 100).map{|job| job["args"][0]["mime_type"]}
       mime_types.count.should == 8
       mime_types.map{|m| m.should == "text/html"}
       mime_types.select{|m| m=="text/html"}.count.should == 8
@@ -78,55 +82,63 @@ describe Cobweb, :local_only => true do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => true,
+        :queue_system => :sidekiq,
         :cache => nil
       }
     end
   
-    describe "limit to 1" do
+    describe "of 1" do
       before(:each) do
         @request[:crawl_limit] = 1
         @cobweb = Cobweb.new @request
       end
-
+  
       it "should not crawl the entire site" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_process_job").should_not == @base_page_count
+        CrawlProcessWorker.queue_size.should_not == @base_page_count
       end      
       it "should only crawl 1 page" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_process_job").should == 1
+        CrawlProcessWorker.queue_size.should == 1
       end      
       it "should notify of crawl finished" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_finished_job").should == 1
+        CrawlFinishedWorker.queue_size.should == 1
       end      
     
     end
-
-    describe "for pages only" do
+  
+    describe "of 5" do
       before(:each) do
-        @request[:crawl_limit_by_page] = true
         @request[:crawl_limit] = 5
-        @cobweb = Cobweb.new @request
       end
+
+      describe "limiting count to html pages only" do
+        before(:each) do
+          @request[:crawl_limit_by_page] = true
+          @cobweb = Cobweb.new @request
+        end
       
-      it "should only use html pages towards the crawl limit" do
-        crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
-        wait_for_crawl_finished crawl[:crawl_id]
-        mime_types = Resque.peek("cobweb_process_job", 0, 200).map{|job| job["args"][0]["mime_type"]}
-        mime_types.count.should == 70
-        mime_types.select{|m| m=="text/html"}.count.should == 5
+        it "should only use html pages towards the crawl limit" do
+          crawl = @cobweb.start(@base_url)
+          @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+          wait_for_crawl_finished crawl[:crawl_id]
+        
+        
+          mime_types = CrawlProcessWorker.queue_items(0, 200).map{|job| job["args"][0]["mime_type"]}
+          mime_types.count.should == 70
+          mime_types.select{|m| m=="text/html"}.count.should == 5
+        end
       end
     end
   
-    describe "limit to 10" do
+    describe "of 10" do
       before(:each) do
         @request[:crawl_limit] = 10
         @cobweb = Cobweb.new @request
@@ -136,23 +148,23 @@ describe Cobweb, :local_only => true do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_process_job").should_not == @base_page_count
+        CrawlProcessWorker.queue_size.should_not == @base_page_count
       end      
       it "should notify of crawl finished" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_finished_job").should == 1
+        CrawlFinishedWorker.queue_size.should == 1
       end      
       it "should only crawl 10 objects" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_process_job").should == 10
+        CrawlProcessWorker.queue_size.should == 10
       end
     end
   
-    describe "limit to 100" do
+    describe "of 100" do
       before(:each) do
         @request[:crawl_limit] = 100
         @cobweb = Cobweb.new @request
@@ -162,28 +174,29 @@ describe Cobweb, :local_only => true do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_process_job").should == @base_page_count
+        CrawlProcessWorker.queue_size.should == @base_page_count
       end      
       it "should notify of crawl finished" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_finished_job").should == 1
+        CrawlFinishedWorker.queue_size.should == 1
       end      
       it "should not crawl 100 pages" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        Resque.size("cobweb_process_job").should_not == 100
+        CrawlProcessWorker.queue_size.should_not == 100
       end      
     end    
   end
 
   after(:all) do
-    @all_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
-    command = "kill #{(@all_processes - @existing_processes).join(" ")}"
-    IO.popen(command)
-    
+    @all_processes = `ps aux | grep sidekiq | grep -v grep | grep -v sidekiq-web | awk '{print $2}'`.split("\n")
+    unless (@all_processes - @existing_processes).empty?
+      command = "kill #{(@all_processes - @existing_processes).join(" ")}"
+      IO.popen(command)
+    end
     clear_queues
   end
 
@@ -205,12 +218,16 @@ def running?(crawl_id)
 end
 
 def clear_queues
-  Resque.queues.each do |queue|
-    Resque.remove_queue(queue)
+  Sidekiq.redis do |conn|
+    conn.smembers("queues").each do |queue_name|
+      conn.del("queue:#{queue_name}")
+      #conn.srem("queues", queue_name)
+    end
   end
+  sleep 2
   
-  Resque.size("cobweb_process_job").should == 0
-  Resque.size("cobweb_finished_job").should == 0
+  CrawlProcessWorker.queue_size.should == 0
+  CrawlFinishedWorker.queue_size.should == 0
 end
 
 

@@ -34,8 +34,14 @@ class Cobweb
     default_use_encoding_safe_process_job_to  false
     default_follow_redirects_to               true
     default_redirect_limit_to                 10
-    default_processing_queue_to               "CobwebProcessJob"
-    default_crawl_finished_queue_to           "CobwebFinishedJob"
+    default_queue_system_to                   :resque
+    if @options[:queue_system] == :resque
+      default_processing_queue_to               "CobwebProcessJob"
+      default_crawl_finished_queue_to           "CobwebFinishedJob"
+    else
+      default_processing_queue_to               "CrawlProcessWorker"
+      default_crawl_finished_queue_to           "CrawlFinishedWorker"      
+    end
     default_quiet_to                          true
     default_debug_to                          false
     default_cache_to                          300
@@ -45,7 +51,7 @@ class Cobweb
     default_first_page_redirect_internal_to   true
     default_text_mime_types_to                ["text/*", "application/xhtml+xml"]
     default_obey_robots_to                    false
-    default_user_agent_to                     "cobweb"
+    default_user_agent_to                     "cobweb/#{CobwebVersion.version}} (ruby#{RUBY_VERSION}; nokogiri#{Nokogiri::VERSION})"
     
   end
   
@@ -76,7 +82,19 @@ class Cobweb
     
     # add internal_urls into redis
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
-    Resque.enqueue(CrawlJob, request)
+    if @options[:queue_system] == :resque
+      Resque.enqueue(CrawlJob, request)
+    elsif @options[:queue_system] == :sidekiq
+      puts "Queueing Start on Sidekiq"
+      if CrawlWorker.perform_async(request)
+        puts "Queued."
+      else
+        puts "Queue Failed"
+      end
+    else
+      raise "Unknown queue system: #{content_request[:queue_system]}"
+    end
+    
     request
   end
   

@@ -6,7 +6,7 @@ class CobwebProcessJob
 
   # Resque perform method
   def self.perform(content)
-    content = HashHelper.symbolize_keys(content)
+    content = HashUtil.symbolize_keys(content)
     puts "Dummy Processing for #{content[:url]}"
 
     #ap content.keys

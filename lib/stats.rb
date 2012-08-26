@@ -34,46 +34,46 @@ class Stats
   # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  
   def update_statistics(content, crawl_counter=@redis.scard("crawled").to_i, queue_counter=@redis.scard("queued").to_i)
     
-    @statistics = get_statistics
+    statistics = get_statistics
     
-    if @statistics.has_key? :average_response_time
-      @statistics[:average_response_time] = (((@redis.hget("statistics", "average_response_time").to_f*crawl_counter) + content[:response_time].to_f) / (crawl_counter + 1))
+    if statistics.has_key? :average_response_time
+      statistics[:average_response_time] = (((@redis.hget("statistics", "average_response_time").to_f*crawl_counter) + content[:response_time].to_f) / (crawl_counter + 1))
     else
-      @statistics[:average_response_time] = content[:response_time].to_f
+      statistics[:average_response_time] = content[:response_time].to_f
     end
-    @statistics[:maximum_response_time] = content[:response_time].to_f if @statistics[:maximum_response_time].nil? or content[:response_time].to_f > @statistics[:maximum_response_time].to_f
-    @statistics[:minimum_response_time] = content[:response_time].to_f if @statistics[:minimum_response_time].nil? or content[:response_time].to_f < @statistics[:minimum_response_time].to_f
-    if @statistics.has_key? :average_length
-      @statistics[:average_length] = (((@redis.hget("statistics", "average_length").to_i*crawl_counter) + content[:length].to_i) / (crawl_counter + 1))
+    statistics[:maximum_response_time] = content[:response_time].to_f if statistics[:maximum_response_time].nil? or content[:response_time].to_f > statistics[:maximum_response_time].to_f
+    statistics[:minimum_response_time] = content[:response_time].to_f if statistics[:minimum_response_time].nil? or content[:response_time].to_f < statistics[:minimum_response_time].to_f
+    if statistics.has_key? :average_length
+      statistics[:average_length] = (((@redis.hget("statistics", "average_length").to_i*crawl_counter) + content[:length].to_i) / (crawl_counter + 1))
     else
-      @statistics[:average_length] = content[:length].to_i
+      statistics[:average_length] = content[:length].to_i
     end
-    @statistics[:maximum_length] = content[:length].to_i if @redis.hget("statistics", "maximum_length").nil? or content[:length].to_i > @statistics[:maximum_length].to_i
-    @statistics[:minimum_length] = content[:length].to_i if @redis.hget("statistics", "minimum_length").nil? or content[:length].to_i < @statistics[:minimum_length].to_i
+    statistics[:maximum_length] = content[:length].to_i if @redis.hget("statistics", "maximum_length").nil? or content[:length].to_i > statistics[:maximum_length].to_i
+    statistics[:minimum_length] = content[:length].to_i if @redis.hget("statistics", "minimum_length").nil? or content[:length].to_i < statistics[:minimum_length].to_i
     
     if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
-      @statistics[:page_count] = @statistics[:page_count].to_i + 1
-      @statistics[:page_size] = @statistics[:page_size].to_i + content[:length].to_i
+      statistics[:page_count] = statistics[:page_count].to_i + 1
+      statistics[:page_size] = statistics[:page_size].to_i + content[:length].to_i
       increment_time_stat("pages_count")
     else
-      @statistics[:asset_count] = @statistics[:asset_count].to_i + 1
-      @statistics[:asset_size] = @statistics[:asset_size].to_i + content[:length].to_i
+      statistics[:asset_count] = statistics[:asset_count].to_i + 1
+      statistics[:asset_size] = statistics[:asset_size].to_i + content[:length].to_i
       increment_time_stat("assets_count")
     end
     
-    total_redirects = @statistics[:total_redirects].to_i
-    @statistics[:total_redirects] = 0 if total_redirects.nil?
-    @statistics[:total_redirects] = total_redirects += content[:redirect_through].count unless content[:redirect_through].nil?
+    total_redirects = statistics[:total_redirects].to_i
+    statistics[:total_redirects] = 0 if total_redirects.nil?
+    statistics[:total_redirects] = total_redirects += content[:redirect_through].count unless content[:redirect_through].nil?
 
-    @statistics[:crawl_counter] = crawl_counter
-    @statistics[:queue_counter] = queue_counter
+    statistics[:crawl_counter] = crawl_counter
+    statistics[:queue_counter] = queue_counter
     
-    total_length = @statistics[:total_length].to_i
-    @statistics[:total_length] = total_length + content[:length].to_i
+    total_length = statistics[:total_length].to_i
+    statistics[:total_length] = total_length + content[:length].to_i
 
     mime_counts = {}
-    if @statistics.has_key? :mime_counts
-      mime_counts = @statistics[:mime_counts]
+    if statistics.has_key? :mime_counts
+      mime_counts = statistics[:mime_counts]
       if mime_counts.has_key? content[:mime_type]
         mime_counts[content[:mime_type]] += 1
       else
@@ -82,7 +82,10 @@ class Stats
     else
       mime_counts = {content[:mime_type] => 1}
     end
-    @statistics[:mime_counts] = mime_counts.to_json
+    ap mime_counts
+    ap mime_counts.to_json
+    statistics[:mime_counts] = mime_counts.to_json
+    
 
     # record mime categories stats
     if content[:mime_type].cobweb_starts_with? "text"
@@ -104,8 +107,8 @@ class Stats
     end
     
     status_counts = {}
-    if @statistics.has_key? :status_counts
-      status_counts = @statistics[:status_counts]
+    if statistics.has_key? :status_counts
+      status_counts = statistics[:status_counts]
       status_code = content[:status_code].to_i.to_s.to_sym
       if status_counts.has_key? status_code
         status_counts[status_code] += 1
@@ -125,32 +128,32 @@ class Stats
       increment_time_stat("status|_500_count")
     end
     
-    @statistics[:status_counts] = status_counts.to_json
+    statistics[:status_counts] = status_counts.to_json
     
     ## time based statistics
     increment_time_stat("minute_totals", "minute", 60)    
     
-    redis_command = "@redis.hmset 'statistics', #{@statistics.keys.map{|key| "'#{key}', '#{@statistics[key].to_s.gsub("'","''")}'"}.join(", ")}"
+    redis_command = "@redis.hmset 'statistics', #{statistics.keys.map{|key| "'#{key}', '#{statistics[key].to_s.gsub("'","''")}'"}.join(", ")}"
     instance_eval redis_command
     
-    @statistics
+    statistics
   end
   
   # Returns the statistics hash
   def get_statistics
     
-    @statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
-    if @statistics[:status_counts].nil?
-      @statistics[:status_counts]
+    statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
+    if statistics[:status_counts].nil?
+      statistics[:status_counts]
     else
-      @statistics[:status_counts] = JSON.parse(@statistics[:status_counts])
+      statistics[:status_counts] = JSON.parse(statistics[:status_counts])
     end
-    if @statistics[:mime_counts].nil?
-      @statistics[:mime_counts]
+    if statistics[:mime_counts].nil?
+      statistics[:mime_counts]
     else
-      @statistics[:mime_counts] = JSON.parse(@statistics[:mime_counts])
+      statistics[:mime_counts] = JSON.parse(statistics[:mime_counts])
     end
-    @statistics
+    statistics
   end
   
   # Sets the current status of the crawl
