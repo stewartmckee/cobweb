@@ -1,5 +1,6 @@
 
 h1. Cobweb v0.0.65
+
 !https://secure.travis-ci.org/stewartmckee/cobweb.png?branch=master!
 
 h2. Intro 
