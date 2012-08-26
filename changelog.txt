@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.65
+  fixed bug with crawling same page multiple times
+
 0.0.64
   fixed bug if option was array
   updated readme to include cobweb_sample
