@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.0.66
+  updated server monitor to use redis options
+  updated default user agent to include versions of cobweb and relevant modules
+  changed crawl_job to directly use redis counters rather than storing them to more tightly integrate with other processes
+
 0.0.65
   fixed bug with crawling same page multiple times
 

@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.65
+h1. Cobweb v0.0.66
 
 !https://secure.travis-ci.org/stewartmckee/cobweb.png?branch=master!
 
