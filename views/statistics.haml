@@ -40,7 +40,7 @@
 
           %tbody
             - (1..30).each do |minutes|
-              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              - date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
               %tr
                 %th= minutes
                 %td= @crawl[:pages_count][date]
@@ -88,7 +88,7 @@
 
           %tbody
             - (1..30).each do |minutes|
-              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              - date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
               %tr
                 %th= minutes
                 %td= @crawl[:status_200_count][date]
@@ -113,7 +113,7 @@
 
           %tbody
             - (1..30).each do |minutes|
-              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              - date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
               %tr
                 %th= minutes
                 %td= @crawl[:mime_text_count][date]

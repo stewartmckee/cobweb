@@ -27,7 +27,7 @@ class CobwebCrawler
     
     @stats = Stats.new(@options.merge(:crawl_id => @crawl_id))
     if @options[:web_statistics]
-      Server.start
+      Server.start(@options)
     end
     
     @cobweb = Cobweb.new(@options)

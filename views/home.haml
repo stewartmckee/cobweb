@@ -40,6 +40,7 @@
             %thead
               %tr
                 %th Base URL
+                %th Cobweb Version
                 %th Total Pages
                 %th Total Assets
                 %th Queued Objects
@@ -48,6 +49,7 @@
                 %tr
                   %td
                     %a{:href => "/statistics/#{crawl[:crawl_details][:crawl_id]}"}= crawl[:crawl_details][:base_url]
+                  %td= crawl[:cobweb_version]
                   %td= crawl[:statistics][:page_count]
                   %td= crawl[:statistics][:asset_count]
                   %td= crawl[:statistics][:queue_counter]

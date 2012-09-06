@@ -1,4 +1,3 @@
-
 # Stats class is the main statisitics hub for monitoring crawls.  Either can be viewed through the Sinatra interface, or returned from the CobwebCrawler.crawl method or block
 class Stats
   

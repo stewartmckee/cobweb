@@ -10,17 +10,18 @@ class Server < Sinatra::Base
   
   # Sinatra Dashboard
   get '/' do
-    @full_redis = Redis.new
-    
+    @full_redis = Redis.new(redis_options)
     @colors = ["#00366f", "#006ba0", "#3F0BDB", "#396CB3"]
     
     @crawls = []
-    @full_redis.smembers("cobweb_crawls").each do |crawl_id|
-      redis = NamespacedRedis.new({}, "cobweb-#{Cobweb.version}-#{crawl_id}")
+    @full_redis.smembers("cobweb_crawls").each do |crawl_id|      
+      version = cobweb_version(crawl_id)
+      redis = NamespacedRedis.new(redis_options, "cobweb-#{version}-#{crawl_id}")
       stats = HashUtil.deep_symbolize_keys({
-        :crawl_details => redis.hgetall("crawl_details"), 
+        :cobweb_version => version,
+        :crawl_details => redis.hgetall("crawl_details"),
         :statistics => redis.hgetall("statistics"),
-        :minute_totals => redis.hgetall("minute_totals")
+        :minute_totals => redis.hgetall("minute_totals"),
         })
       @crawls << stats
     end
@@ -30,7 +31,9 @@ class Server < Sinatra::Base
   
   # Sinatra Crawl Detail
   get '/statistics/:crawl_id' do
-    redis = NamespacedRedis.new({}, "cobweb-#{Cobweb.version}-#{params[:crawl_id]}")
+    
+    version = cobweb_version(params[:crawl_id])
+    redis = NamespacedRedis.new(redis_options, "cobweb-#{version}-#{params[:crawl_id]}")
     
     @statistics = HashUtil.deep_symbolize_keys(redis.hgetall("statistics"))
     if @statistics[:status_counts].nil?
@@ -44,6 +47,7 @@ class Server < Sinatra::Base
       @statistics[:mime_counts] = JSON.parse(@statistics[:mime_counts])
     end
     @crawl = {
+        :cobweb_version => version,
         :statistics => @statistics,
         :crawl_details => HashUtil.deep_symbolize_keys(redis.hgetall("crawl_details")), 
         :minute_totals => HashUtil.deep_symbolize_keys(redis.hgetall("minute_totals")),
@@ -56,22 +60,49 @@ class Server < Sinatra::Base
         :pages_count => HashUtil.deep_symbolize_keys(redis.hgetall("pages_count")),
         :assets_count => HashUtil.deep_symbolize_keys(redis.hgetall("assets_count"))
     }
-    ap @crawl
+    (1..30).each do |minutes|
+      date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+    end
+    
     haml :statistics
   end
   
+  def cobweb_version(crawl_id)
+    redis = Redis.new(redis_options)
+    key = redis.keys("cobweb-*-#{crawl_id}-crawl_details").first
+    key =~ /cobweb-(.*?)-(.*?)-crawl_details/
+    cobweb_version = $1
+  end
+  
+  def redis_options
+    Server.cobweb_options[:redis_options]
+  end
+  
   # Starts the Sinatra server, and kills the processes when shutdown
-  def self.start
+  def self.start(options={})
+    @options = options
+    @options[:redis_options] = {} unless @options.has_key? :redis_options
+    ap @options
     unless Server.running?
-      thread = Thread.new do
-        puts "Starting Sinatra"
+      if @options[:run_as_server]
+        puts "Starting Sinatra for cobweb v#{Cobweb.version}"
         Server.run!
         puts "Stopping crawl..."
-        ## we need to manually kill the main thread as sinatra traps the interrupts
-        Thread.main.kill
+      else
+        thread = Thread.new do
+          puts "Starting Sinatra"
+          Server.run!
+          puts "Stopping crawl..."
+          ## we need to manually kill the main thread as sinatra traps the interrupts
+          Thread.main.kill
+        end
       end
     end    
-  end  
+  end
+  
+  def self.cobweb_options
+    @options
+  end
   
 end
 
@@ -81,7 +112,6 @@ class Numeric
   #Returns a human readable format for a number representing a data size
   def to_human
     units = %w{B KB MB GB TB}
-    ap self
     e = 0
     e = (Math.log(self)/Math.log(1024)).floor unless self==0
     s = "%.3f" % (to_f / 1024**e)
