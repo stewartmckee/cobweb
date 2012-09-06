@@ -45,7 +45,7 @@ class Cobweb
     default_first_page_redirect_internal_to   true
     default_text_mime_types_to                ["text/*", "application/xhtml+xml"]
     default_obey_robots_to                    false
-    default_user_agent_to                     "cobweb"
+    default_user_agent_to                     "cobweb/#{Cobweb.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"
     
   end
   
