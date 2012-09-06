@@ -10,7 +10,7 @@ GEM
     json (1.6.5)
     mock_redis (0.4.0)
     multi_json (1.0.4)
-    namespaced_redis (1.0.2)
+    namespaced_redis (1.0.4)
       redis
     nokogiri (1.5.0)
     rack (1.4.1)
@@ -54,7 +54,7 @@ DEPENDENCIES
   haml
   json
   mock_redis
-  namespaced_redis (>= 1.0.2)
+  namespaced_redis
   nokogiri
   rake
   redis

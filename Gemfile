@@ -10,8 +10,7 @@ gem 'addressable'
 gem 'json'
 gem 'sinatra'
 gem 'haml'
-gem 'namespaced_redis', ">=1.0.2"
-
+gem 'namespaced_redis'
 gem 'rspec'
 gem 'rspec-core'
 gem 'mock_redis'

@@ -24,12 +24,11 @@ class CrawlJob
     
     @debug = content_request[:debug]
     
-    decrement_queue_counter
-
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
       # if there is no limit or we're still under it lets get the url
       if within_crawl_limits?(content_request[:crawl_limit])
+        puts "cbpl: #{content_request[:url]}" if content_request[:crawl_limit_by_page]
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         if content_request[:url] == @redis.get("original_base_url")
            @redis.set("crawled_base_url", content[:base_url])
@@ -78,7 +77,7 @@ class CrawlJob
             send_to_processing_queue(content, content_request)
 
             #if the enqueue counter has been requested update that
-            if content_request.has_key? :enqueue_counter_key
+            if content_request.has_key?(:enqueue_counter_key)
               enqueue_redis = NamespacedRedis.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
               current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
               enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
@@ -89,14 +88,16 @@ class CrawlJob
 
             # update the queue and crawl counts -- doing this very late in the piece so that the following transaction all occurs at once.
             # really we should do this with a lock https://github.com/PatrickTulskie/redis-lock
+            # stewart: i'm looking at the layout of this, think that there is scope for cleaning up the perform method to be more DRY.
             if content_request[:crawl_limit_by_page]
               if content[:mime_type].match("text/html")
                 increment_crawl_counter
+                ap "clbp: #{crawl_counter}"
               end
             else
               increment_crawl_counter
             end
-            puts "Crawled: #{@crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{@queue_counter} In Progress: #{@crawl_started_counter-@crawl_counter}" if @debug
+            puts "Crawled: #{crawl_counter} Limit: #{content_request[:crawl_limit]} Queued: #{queue_counter} In Progress: #{crawl_started_counter-crawl_counter}" if @debug
           end
         else
           puts "ignoring #{content_request[:url]} as mime_type is #{content[:mime_type]}" if content_request[:debug]
@@ -110,13 +111,15 @@ class CrawlJob
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
     
+    decrement_queue_counter
+    puts content_request[:crawl_limit]
+    print_counters
     # if there's nothing left queued or the crawled limit has been reached
-    refresh_counters
     if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
-      if @queue_counter+@crawl_started_counter-@crawl_counter == 0
+      if queue_counter + crawl_started_counter - crawl_counter == 0
         finished(content_request)
       end
-    elsif (@queue_counter +@crawl_started_counter-@crawl_counter)== 0 || @crawl_counter >= content_request[:crawl_limit].to_i
+    elsif (queue_counter+crawl_started_counter-crawl_counter)== 0 || crawl_counter >= content_request[:crawl_limit].to_i
       finished(content_request)
     end
     
@@ -167,14 +170,12 @@ class CrawlJob
   
   # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
-    refresh_counters
-    crawl_limit.nil? or @crawl_started_counter < crawl_limit.to_i
+    crawl_limit.nil? or crawl_counter < crawl_limit.to_i
   end
   
   # Returns true if the queue count is calculated to be still within limits when complete
   def self.within_queue_limits?(crawl_limit)
-    refresh_counters
-    (@content_request[:crawl_limit_by_page]&& (crawl_limit.nil? or @crawl_counter < crawl_limit.to_i)) || within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_counter) < crawl_limit.to_i)
+    (@content_request[:crawl_limit_by_page]&& (crawl_limit.nil? or crawl_counter < crawl_limit.to_i)) || within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (queue_counter + crawl_counter) < crawl_limit.to_i)
   end
   
   # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
@@ -201,27 +202,27 @@ class CrawlJob
   # Increments the queue counter and refreshes crawl counters
   def self.increment_queue_counter
     @redis.incr "queue-counter"
-    refresh_counters
   end
   # Increments the crawl counter and refreshes crawl counters
   def self.increment_crawl_counter
     @redis.incr "crawl-counter"
-    refresh_counters
   end
   def self.increment_crawl_started_counter
     @redis.incr "crawl-started-counter"
-    refresh_counters
   end
   # Decrements the queue counter and refreshes crawl counters
   def self.decrement_queue_counter
     @redis.decr "queue-counter"
-    refresh_counters
   end
-  # Refreshes the crawl counters
-  def self.refresh_counters
-    @crawl_counter = @redis.get("crawl-counter").to_i
-    @crawl_started_counter = @redis.get("crawl-started-counter").to_i
-    @queue_counter = @redis.get("queue-counter").to_i
+  
+  def self.crawl_counter
+    @redis.get("crawl-counter").to_i
+  end
+  def self.crawl_started_counter
+    @redis.get("crawl-started-counter").to_i
+  end
+  def self.queue_counter
+    @redis.get("queue-counter").to_i
   end
   
   def self.print_counters
@@ -229,7 +230,7 @@ class CrawlJob
   end
 
   def self.counters
-    "@crawl_counter: #{@crawl_counter} @crawl_started_counter: #{@crawl_started_counter} @queue_counter: #{@queue_counter}"
+    "crawl_counter: #{crawl_counter} crawl_started_counter: #{crawl_started_counter} queue_counter: #{queue_counter}"
   end
 
 end
