@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.67
+  changed logo on statistics web interface to cobweb
+
 0.0.66
   updated server monitor to use redis options
   updated default user agent to include versions of cobweb and relevant modules
