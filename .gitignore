@@ -5,3 +5,4 @@ dump.rdb
 .DS_Store
 tmp
 log
+atlassian-ide-plugin.xml
