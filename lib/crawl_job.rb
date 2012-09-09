@@ -196,8 +196,9 @@ class CrawlJob
     new_request = content_request.clone
     new_request[:url] = link
     new_request[:parent] = content_request[:url]
-    Resque.enqueue(CrawlJob, new_request)
+    #to help prevent accidentally double processing a link, let's mark it as queued just before the Resque.enqueue statement, rather than just after.
     @redis.sadd "queued", link
+    Resque.enqueue(CrawlJob, new_request)
     increment_queue_counter
   end
   
