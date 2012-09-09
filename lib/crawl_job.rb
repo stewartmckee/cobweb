@@ -35,6 +35,7 @@ class CrawlJob
         end
         if is_permitted_type(content)
           begin
+            @redis.incr "inprogress"
             # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
             @redis.srem "queued", content_request[:url]
             @redis.sadd "crawled", content_request[:url]
@@ -84,6 +85,7 @@ class CrawlJob
             end
 
           ensure
+            @redis.decr "inprogress"
             #update the queued and crawled lists if we are within the crawl limits.
 
             # update the queue and crawl counts -- doing this very late in the piece so that the following transaction all occurs at once.
@@ -128,7 +130,7 @@ class CrawlJob
   # Sets the crawl status to 'Crawl Finished' and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
-    if @redis.hget("statistics", "current_status")!= "Crawl Finished"
+    if @redis.hget("statistics", "current_status")!= "Crawl Finished" && @redis.get("inprogress")==0
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
       
