@@ -130,7 +130,7 @@ class CrawlJob
   # Sets the crawl status to 'Crawl Finished' and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
-    if @redis.hget("statistics", "current_status")!= "Crawl Finished" && @redis.get("inprogress")==0
+    if @redis.hget("statistics", "current_status")!= "Crawl Finished" && @redis.get("inprogress").to_i==0
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
       
