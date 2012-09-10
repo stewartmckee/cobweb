@@ -68,7 +68,7 @@ h2. Installation
 
 Install crawler as a gem
 
-bq. gem install cobweb
+bc. gem install cobweb
 
 h2. Usage
 
@@ -98,7 +98,7 @@ Creates a new crawler object based on a base_url
     ** :crawl_limit_by_page           - sets the crawl counter to only use html page types when counting objects crawled
     ** :valid_mime_types              - an array of mime types that takes wildcards (eg 'text/*') defaults to ['*/*']
     
-bq. crawler = Cobweb.new(:follow_redirects => false)
+bc. crawler = Cobweb.new(:follow_redirects => false)
 
 h4. start(base_url)
 
@@ -108,7 +108,7 @@ Starts a crawl through resque.  Requires the :processing_queue to be set to a va
   
 Once the crawler starts, if the first page is redirected (eg from http://www.test.com to http://test.com) then the endpoint scheme, host and domain is added to the internal_urls automatically.
 
-bq. crawler.start("http://www.google.com/")
+bc. crawler.start("http://www.google.com/")
 
 h4. get(url)
 
@@ -116,7 +116,7 @@ Simple get that obey's the options supplied in new.
 
   * url - url requested
 
-bq. crawler.get("http://www.google.com/")
+bc. crawler.get("http://www.google.com/")
 
 h4. head(url)
 
@@ -124,13 +124,13 @@ Simple get that obey's the options supplied in new.
 
   * url - url requested
 
-bq. crawler.head("http://www.google.com/")
+bc. crawler.head("http://www.google.com/")
 
 h3. CobwebCrawler
 
 CobwebCrawler is the standalone crawling class.  If you don't want to use redis and just want to crawl the site within your ruby process, you can use this class.
 
-bq. crawler = CobwebCrawler.new(:cache => 600) 
+bc. crawler = CobwebCrawler.new(:cache => 600) 
 statistics = crawler.crawl("http://www.pepsico.com")
 
 
@@ -148,7 +148,7 @@ h3. Crawl
 
 The crawl class is a helper class to assist in getting information about a crawl and to perform functions against the crawl
 
-bq. crawl = Crawl.new(options)
+bc. crawl = Crawl.new(options)
 
   * options - the hash of options passed into Cobweb.new (must include a :crawl_id)
   
