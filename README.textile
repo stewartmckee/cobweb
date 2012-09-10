@@ -131,16 +131,16 @@ h3. CobwebCrawler
 CobwebCrawler is the standalone crawling class.  If you don't want to use redis and just want to crawl the site within your ruby process, you can use this class.
 
 bq. crawler = CobwebCrawler.new(:cache => 600) 
-bq. statistics = crawler.crawl("http://www.pepsico.com")
+statistics = crawler.crawl("http://www.pepsico.com")
 
 
 
 You can also run within a block and get access to each page as it is being crawled.
 
 bq. statistics = CobwebCrawler.new(:cache => 600) do |page|
-bq.   puts "Just crawled #{page[:url]} and got a status of #{page[:status_code]}."
-bq. end
-bq. puts "Finished Crawl in "
+  puts "Just crawled #{page[:url]} and got a status of #{page[:status_code]}."
+end
+puts "Finished Crawl in "
 
 
 
