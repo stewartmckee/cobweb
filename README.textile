@@ -137,7 +137,7 @@ statistics = crawler.crawl("http://www.pepsico.com")
 
 You can also run within a block and get access to each page as it is being crawled.
 
-bq. statistics = CobwebCrawler.new(:cache => 600) do |page|
+bc. statistics = CobwebCrawler.new(:cache => 600) do |page|
   puts "Just crawled #{page[:url]} and got a status of #{page[:status_code]}."
 end
 puts "Finished Crawl in "
