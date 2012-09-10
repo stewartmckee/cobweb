@@ -28,7 +28,7 @@ class CrawlJob
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
       # if there is no limit or we're still under it lets get the url
-      if within_crawl_limits?(content_request[:crawl_limit])
+      if within_crawl_limits?(content_request[:crawl_limit]) and @crawl.status != Crawl::CANCELLED
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         if content_request[:url] == @redis.get("original_base_url")
            @redis.set("crawled_base_url", content[:base_url])

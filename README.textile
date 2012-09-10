@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.67
+h1. Cobweb v0.0.68
 
 !https://secure.travis-ci.org/stewartmckee/cobweb.png?branch=master!
 
@@ -17,13 +17,9 @@ h3. Standalone
   
   CobwebCrawler takes the same options as cobweb itself, so you can use any of the options available for that.  An example is listed below.
 
-bq. crawler = CobwebCrawler.new(:cache => 600);
-
-bq. stats = crawler.crawl("http://www.pepsico.com")
-
   While the crawler is running, you can view statistics on http://localhost:4567
 
-h3. Data Returned
+h3. Data Returned For Each Page
   The data available in the returned hash are:  
   
   * :url - url of the resource requested
@@ -44,6 +40,30 @@ h3. Data Returned
   
   The source for the links can be overridden, contact me for the syntax (don't have time to put it into this documentation, will as soon as i have time!)
 
+h3. Statistics
+
+  Statistics are available during the crawl, you can create a Stats object passing in a hash with redis_options and crawl_id.  Stats has a get_statistics method that returns a hash of the statistics available to you.  It is also returned by default from the CobwebCrawler.crawl standalone crawling method.
+  
+  The data available within statistics is as follows:
+  
+  * :average_length - average size of each objet
+  * :minimum_length - minimum length returned
+  * :queued_at - date and time that the crawl was started at (eg: "2012-09-10T23:10:08+01:00")
+  * :maximum_length - maximum length of object received
+  * :status_counts - hash with the status returned as the key and value as number of pages (eg: {"404" => 1, "200" => 1})
+  * :mime_counts - hash containing the mime type as key and count or pages as value (eg: {"text/html" => 8, "image/jpeg" => 25)})
+  * :queue_counter - size of queue waiting to be processed for crawl
+  * :page_count - number of html pages retrieved
+  * :total_length - total size of data received
+  * :current_status - Current status of crawl
+  * :asset_count - count of non-html objects received
+  * :page_size - total size of pages received
+  * :average_response_time - average response time of all objects
+  * :crawl_counter - number of objects that have been crawled
+  * :minimum_response_time - quickest response time of crawl
+  * :maximum_response_time - longest response time of crawl
+  * :asset_size - total size of all non-assets received
+
 h2. Installation
 
 Install crawler as a gem
@@ -51,6 +71,8 @@ Install crawler as a gem
 bq. gem install cobweb
 
 h2. Usage
+
+h3. Cobweb
 
 h4. new(options)
 
@@ -76,7 +98,7 @@ Creates a new crawler object based on a base_url
     ** :crawl_limit_by_page           - sets the crawl counter to only use html page types when counting objects crawled
     ** :valid_mime_types              - an array of mime types that takes wildcards (eg 'text/*') defaults to ['*/*']
     
-bq. crawler = CobWeb.new(:follow_redirects => false)
+bq. crawler = Cobweb.new(:follow_redirects => false)
 
 h4. start(base_url)
 
@@ -104,8 +126,35 @@ Simple get that obey's the options supplied in new.
 
 bq. crawler.head("http://www.google.com/")
 
+h3. CobwebCrawler
 
-h3. Contributing/Testing
+CobwebCrawler is the standalone crawling class.  If you don't want to use redis and just want to crawl the site within your ruby process, you can use this class.
+
+bq. crawler = CobwebCrawler.new(:cache => 600) 
+bq. statistics = crawler.crawl("http://www.pepsico.com")
+
+
+
+You can also run within a block and get access to each page as it is being crawled.
+
+bq. statistics = CobwebCrawler.new(:cache => 600) do |page|
+bq.   puts "Just crawled #{page[:url]} and got a status of #{page[:status_code]}."
+bq. end
+bq. puts "Finished Crawl in "
+
+
+
+h3. Crawl
+
+The crawl class is a helper class to assist in getting information about a crawl and to perform functions against the crawl
+
+bq. crawl = Crawl.new(options)
+
+  * options - the hash of options passed into Cobweb.new (must include a :crawl_id)
+  
+
+
+h2. Contributing/Testing
 
   Feel free to contribute small or large bits of code, just please make sure that there are rspec test for the features your submitting.  We also test on travis at http://travis-ci.org/#!/stewartmckee/cobweb if you want to see the state of the project.
   

@@ -69,6 +69,7 @@ describe Cobweb, :local_only => true do
       crawl = @cobweb.start(@base_url)
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
+      ap @stat.get_statistics
       Resque.size("cobweb_process_job").should == @base_page_count
     end
     it "detect crawl finished once" do
