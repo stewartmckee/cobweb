@@ -138,8 +138,7 @@ You can also run within a block and get access to each page as it is being crawl
 bc. statistics = CobwebCrawler.new(:cache => 600).crawl("http://www.pepsico.com") do |page|
   puts "Just crawled #{page[:url]} and got a status of #{page[:status_code]}."
 end
-puts "Finished Crawl in "
-
+puts "Finished Crawl with #{statistics[:page_count]} pages and #{statistics[:asset_count]} assets."
 
 h3. CobwebCrawlHelper
 
