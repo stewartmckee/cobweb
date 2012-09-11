@@ -35,6 +35,7 @@ class CrawlJob
         end
         if is_permitted_type(content)
           begin
+            @redis.incr "inprogress"
             # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
             @redis.srem "queued", content_request[:url]
             @redis.sadd "crawled", content_request[:url]
@@ -88,6 +89,7 @@ class CrawlJob
             end
 
           ensure
+            @redis.decr "inprogress"
             #update the queued and crawled lists if we are within the crawl limits.
 
             # update the queue and crawl counts -- doing this very late in the piece so that the following transaction all occurs at once.
@@ -129,7 +131,7 @@ class CrawlJob
   # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
-    if @crawl.status != CobwebCrawlHelper::FINISHED and @crawl.status != CobwebCrawlHelper::CANCELLED
+    if @crawl.status != CobwebCrawlHelper::FINISHED and @crawl.status != CobwebCrawlHelper::CANCELLED && @redis.get("inprogress").to_i==0
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
       
@@ -195,8 +197,9 @@ class CrawlJob
     new_request = content_request.clone
     new_request[:url] = link
     new_request[:parent] = content_request[:url]
-    Resque.enqueue(CrawlJob, new_request)
+    #to help prevent accidentally double processing a link, let's mark it as queued just before the Resque.enqueue statement, rather than just after.
     @redis.sadd "queued", link
+    Resque.enqueue(CrawlJob, new_request)
     increment_queue_counter
   end
   
