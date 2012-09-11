@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Crawl do
+describe CobwebCrawlHelper do
   
   # this spec tests the crawl object
   
@@ -17,7 +17,7 @@ describe Crawl do
         @crawl = CobwebCrawlHelper.new(data)
       end
       it "should create a crawl object" do
-        @crawl.should be_an_instance_of Crawl
+        @crawl.should be_an_instance_of CobwebCrawlHelper
       end
       it "should return an id" do
         @crawl.should respond_to "id"

@@ -28,7 +28,7 @@ class CrawlJob
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
       # if there is no limit or we're still under it lets get the url
-      if within_crawl_limits?(content_request[:crawl_limit]) and @crawl.status != Crawl::CANCELLED
+      if within_crawl_limits?(content_request[:crawl_limit]) and @crawl.status != CobwebCrawlHelper::CANCELLED
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         if content_request[:url] == @redis.get("original_base_url")
            @redis.set("crawled_base_url", content[:base_url])
@@ -70,8 +70,8 @@ class CrawlJob
 
               internal_links.each do |link|
                 puts link
-                puts "Not enqueuing due to cancelled crawl" if @crawl.status == Crawl::CANCELLED
-                if within_queue_limits?(content_request[:crawl_limit]) and @crawl.status != Crawl::CANCELLED
+                puts "Not enqueuing due to cancelled crawl" if @crawl.status == CobwebCrawlHelper::CANCELLED
+                if within_queue_limits?(content_request[:crawl_limit]) and @crawl.status != CobwebCrawlHelper::CANCELLED
                   enqueue_content(content_request, link) 
                 end
               end
@@ -126,10 +126,10 @@ class CrawlJob
     
   end
 
-  # Sets the crawl status to Crawl::FINISHED and enqueues the crawl finished job
+  # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
-    if @crawl.status != Crawl::FINISHED and @crawl.status != Crawl::CANCELLED
+    if @crawl.status != CobwebCrawlHelper::FINISHED and @crawl.status != CobwebCrawlHelper::CANCELLED
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
       

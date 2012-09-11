@@ -16,16 +16,16 @@ class Stats
         @redis.hset "crawl_details", key, options[key].to_s
       end
     end
-    @redis.hset "statistics", "current_status", Crawl::STARTING
+    @redis.hset "statistics", "current_status", CobwebCrawlHelper::STARTING
   end
   
   # Removes the crawl from the running crawls and updates status
   def end_crawl(options, cancelled=false)
     @full_redis.srem "cobweb_crawls", options[:crawl_id]
     if cancelled
-      @redis.hset "statistics", "current_status", Crawl::CANCELLED
+      @redis.hset "statistics", "current_status", CobwebCrawlHelper::CANCELLED
     else
-      @redis.hset "statistics", "current_status", Crawl::FINISHED
+      @redis.hset "statistics", "current_status", CobwebCrawlHelper::FINISHED
     end
     @redis.del "crawl_details"
   end
@@ -158,7 +158,7 @@ class Stats
   
   # Sets the current status of the crawl
   def update_status(status)
-    #@redis.hset("statistics", "current_status", status) unless status == Crawl::CANCELLED
+    #@redis.hset("statistics", "current_status", status) unless status == CobwebCrawlHelper::CANCELLED
   end
   
   # Returns the current status of the crawl
