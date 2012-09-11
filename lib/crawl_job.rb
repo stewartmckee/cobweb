@@ -14,6 +14,7 @@ class CrawlJob
     # change all hash keys to symbols
     content_request = HashUtil.deep_symbolize_keys(content_request)
     @content_request = content_request
+    @crawl = CobwebCrawlHelper.new(content_request)
     
     content_request[:redis_options] = {} unless content_request.has_key? :redis_options
     content_request[:crawl_limit_by_page] = false unless content_request.has_key? :crawl_limit_by_page
@@ -27,8 +28,7 @@ class CrawlJob
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
       # if there is no limit or we're still under it lets get the url
-      if within_crawl_limits?(content_request[:crawl_limit])
-        puts "cbpl: #{content_request[:url]}" if content_request[:crawl_limit_by_page]
+      if within_crawl_limits?(content_request[:crawl_limit]) and @crawl.status != CobwebCrawlHelper::CANCELLED
         content = Cobweb.new(content_request).get(content_request[:url], content_request)
         if content_request[:url] == @redis.get("original_base_url")
            @redis.set("crawled_base_url", content[:base_url])
@@ -56,7 +56,7 @@ class CrawlJob
 
             # set the base url if this is the first page
             set_base_url @redis, content, content_request
-
+            
             @cobweb_links = CobwebLinks.new(content_request)
             if within_queue_limits?(content_request[:crawl_limit])
               internal_links = ContentLinkParser.new(content_request[:url], content[:body], content_request).all_links(:valid_schemes => [:http, :https])
@@ -70,7 +70,11 @@ class CrawlJob
               internal_links.reject! { |link| @redis.sismember("queued", link) }
 
               internal_links.each do |link|
-                enqueue_content(content_request, link) if within_queue_limits?(content_request[:crawl_limit])
+                puts link
+                puts "Not enqueuing due to cancelled crawl" if @crawl.status == CobwebCrawlHelper::CANCELLED
+                if within_queue_limits?(content_request[:crawl_limit]) and @crawl.status != CobwebCrawlHelper::CANCELLED
+                  enqueue_content(content_request, link) 
+                end
               end
             end
 
@@ -94,7 +98,6 @@ class CrawlJob
             if content_request[:crawl_limit_by_page]
               if content[:mime_type].match("text/html")
                 increment_crawl_counter
-                ap "clbp: #{crawl_counter}"
               end
             else
               increment_crawl_counter
@@ -114,8 +117,6 @@ class CrawlJob
     end
     
     decrement_queue_counter
-    puts content_request[:crawl_limit]
-    print_counters
     # if there's nothing left queued or the crawled limit has been reached
     if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
       if queue_counter + crawl_started_counter - crawl_counter == 0
@@ -127,10 +128,10 @@ class CrawlJob
     
   end
 
-  # Sets the crawl status to 'Crawl Finished' and enqueues the crawl finished job
+  # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
   def self.finished(content_request)
     # finished
-    if @redis.hget("statistics", "current_status")!= "Crawl Finished" && @redis.get("inprogress").to_i==0
+    if @crawl.status != CobwebCrawlHelper::FINISHED and @crawl.status != CobwebCrawlHelper::CANCELLED && @redis.get("inprogress").to_i==0
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
       
