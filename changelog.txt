@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.69
+  refactored Crawl class to CobwebCrawlHelper as may cause clashes
+
 0.0.68
   added Crawl class as a helper for crawls
   added destroy method to stop a crawl running that is in progress

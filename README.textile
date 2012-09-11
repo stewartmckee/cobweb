@@ -1,5 +1,5 @@
 
-h1. Cobweb v0.0.68
+h1. Cobweb v0.0.69
 
 !https://secure.travis-ci.org/stewartmckee/cobweb.png?branch=master!
 
@@ -139,7 +139,6 @@ bc. statistics = CobwebCrawler.new(:cache => 600).crawl("http://www.pepsico.com"
   puts "Just crawled #{page[:url]} and got a status of #{page[:status_code]}."
 end
 puts "Finished Crawl in "
-
 
 
 h3. CobwebCrawlHelper
