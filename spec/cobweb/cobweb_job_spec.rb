@@ -33,7 +33,7 @@ describe Cobweb, :local_only => true do
     end
     it "should not crawl anything if nothing has started" do
       crawl = @cobweb.start(@base_url)
-      crawl_obj = Crawl.new(crawl)
+      crawl_obj = CobwebCrawlHelper.new(crawl)
       crawl_obj.destroy
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
@@ -42,7 +42,7 @@ describe Cobweb, :local_only => true do
 
     it "should not complete the crawl when cancelled" do
       crawl = @cobweb.start(@base_url)
-      crawl_obj = Crawl.new(crawl)
+      crawl_obj = CobwebCrawlHelper.new(crawl)
       sleep 6
       crawl_obj.destroy
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})

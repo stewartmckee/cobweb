@@ -7,14 +7,14 @@ describe Crawl do
   describe "initialize" do
     describe "without data" do
       it "should raise an exception" do
-        lambda {Crawl.new}.should raise_exception
+        lambda {CobwebCrawlHelper.new}.should raise_exception
       end
     end
     
     describe "with data" do
       before(:each) do
         data = {:crawl_id => "asdf"}
-        @crawl = Crawl.new(data)
+        @crawl = CobwebCrawlHelper.new(data)
       end
       it "should create a crawl object" do
         @crawl.should be_an_instance_of Crawl
@@ -46,7 +46,7 @@ describe Crawl do
         end
         describe "after called" do
           before(:each) do
-            @crawl = Crawl.new({:crawl_id => "crawl_0_id"})
+            @crawl = CobwebCrawlHelper.new({:crawl_id => "crawl_0_id"})
             @crawl.destroy
           end
           it "should delete only the crawl specified" do

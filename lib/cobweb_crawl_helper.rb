@@ -1,5 +1,5 @@
 # The crawl class gives easy access to information about the crawl, and gives the ability to stop a crawl
-class Crawl
+class CobwebCrawlHelper
   
   attr_accessor :id
   

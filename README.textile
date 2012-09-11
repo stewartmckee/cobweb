@@ -142,11 +142,11 @@ puts "Finished Crawl in "
 
 
 
-h3. Crawl
+h3. CobwebCrawlHelper
 
-The crawl class is a helper class to assist in getting information about a crawl and to perform functions against the crawl
+The CobwebCrawlHelper class is a helper class to assist in getting information about a crawl and to perform functions against the crawl
 
-bc. crawl = Crawl.new(options)
+bc. crawl = CobwebCrawlHelper.new(options)
 
   * options - the hash of options passed into Cobweb.new (must include a :crawl_id)
   

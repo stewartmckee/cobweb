@@ -14,7 +14,7 @@ class CrawlJob
     # change all hash keys to symbols
     content_request = HashUtil.deep_symbolize_keys(content_request)
     @content_request = content_request
-    @crawl = Crawl.new(content_request)
+    @crawl = CobwebCrawlHelper.new(content_request)
     
     content_request[:redis_options] = {} unless content_request.has_key? :redis_options
     content_request[:crawl_limit_by_page] = false unless content_request.has_key? :crawl_limit_by_page
