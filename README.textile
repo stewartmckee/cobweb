@@ -3,6 +3,8 @@ h1. Cobweb v0.0.70
 
 !https://secure.travis-ci.org/stewartmckee/cobweb.png?branch=master!
 
+"@cobweb_gem":https://twitter.com/cobweb_gem
+
 h2. Intro 
   
   CobWeb has three methods of running.  Firstly it is a http client that allows get and head requests returning a hash of data relating to the requested resource.  The second main function is to utilize this combined with the power of Resque to cluster the crawls allowing you crawl quickly.  Lastly you can run the crawler with a block that uses each of the pages found in the crawl.
