@@ -3,7 +3,7 @@ class CobwebVersion
   
   # Returns a string of the current version
   def self.version
-    "0.0.69"
+    "0.0.70"
   end
 
 end

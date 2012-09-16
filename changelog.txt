@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.70
+  updates to detecting the end of a crawl
+
 0.0.69
   refactored Crawl class to CobwebCrawlHelper as may cause clashes
 
