@@ -26,4 +26,5 @@ Gem::Specification.new do |s|
   s.add_dependency('thin')
   s.add_dependency('haml')
   s.add_dependency('namespaced_redis', '>= 1.0.2')
+  s.add_dependency('json')
 end
