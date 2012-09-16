@@ -1,2 +1,12 @@
-tweet "I've just been updated to version $1! Woohoo, break out the champagne!"
+set -e
 
+gem build cobweb.gemspec
+echo "Select the gem you wish to publish"
+select FILENAME in *.gem;
+do
+  VERSION=`ruby -e 'puts ARGV[0][7..-5]' $FILENAME`
+  echo "Publishing version $VERSION.."
+  gem push $FILENAME
+  #tweet "I've just been updated to version $VERSION! Woohoo, break out the champagne!"
+  echo "Published $VERSION."
+done

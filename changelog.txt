@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.71
+  added json to dependancies
+
 0.0.70
   updates to detecting the end of a crawl
 
