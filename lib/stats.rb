@@ -1,6 +1,9 @@
 # Stats class is the main statisitics hub for monitoring crawls.  Either can be viewed through the Sinatra interface, or returned from the CobwebCrawler.crawl method or block
 class Stats
   require 'json'
+  
+  attr_reader :redis
+  
   # Sets up redis usage for statistics
   def initialize(options)
     options[:redis_options] = {} unless options.has_key? :redis_options
@@ -131,7 +134,7 @@ class Stats
     @statistics[:status_counts] = status_counts.to_json
     
     ## time based statistics
-    increment_time_stat("minute_totals", "minute", 60)    
+    increment_time_stat("minute_totals", "minute", 60)
     
     redis_command = "@redis.hmset 'statistics', #{@statistics.keys.map{|key| "'#{key}', '#{@statistics[key].to_s.gsub("'","''")}'"}.join(", ")}"
     instance_eval redis_command
@@ -158,7 +161,7 @@ class Stats
   
   # Sets the current status of the crawl
   def update_status(status)
-    #@redis.hset("statistics", "current_status", status) unless status == CobwebCrawlHelper::CANCELLED
+    @redis.hset("statistics", "current_status", status) unless get_status == CobwebCrawlHelper::CANCELLED
   end
   
   # Returns the current status of the crawl

@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.72
+  updating cancel crawl code
+
 0.0.71
   added json to dependancies
 

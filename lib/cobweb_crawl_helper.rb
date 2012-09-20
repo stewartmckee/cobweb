@@ -10,28 +10,41 @@ class CobwebCrawlHelper
   
   def initialize(data)
     @data = data
+    
+    # TAKING A LONG TIME TO RUN ON PRODUCTION BOX
     @stats = Stats.new(data)
   end
   
-  def destroy
-    queue_name = "cobweb_crawl_job"
+  def destroy(options)
+    
+    options[:queue_name] = "cobweb_crawl_job" unless options.has_key?(:queue_name)
+    options[:finished_resque_queue] = CobwebFinishedJob unless options.has_key?(:finished_resque_queue)
+    
     # set status as cancelled now so that we don't enqueue any further pages
     self.statistics.end_crawl(@data, true)
-    
-    job_items = Resque.peek(queue_name, 0, BATCH_SIZE)
-    batch_count = 0
-    until job_items.empty?
+    puts "end_crawl: #{self.statistics.get_status}"
+    if options[:finished_resque_queue]
+      puts "enqueueing finished job..."
       
+      additional_stats = {:crawl_id => id, :crawled_base_url => @stats.redis.get("crawled_base_url")}
+      additional_stats[:redis_options] = @data[:redis_options] unless @data[:redis_options] == {}
+      additional_stats[:source_id] = options[:source_id] unless options[:source_id].nil?
+      
+      Resque.enqueue(options[:finished_resque_queue], @stats.get_statistics.merge(additional_stats))
+    end
+    
+    position = 0
+    job_items = Resque.peek(options[:queue_name], position, BATCH_SIZE)
+    until job_items.empty?
+      puts "Batch: #{position} : #{job_items.count}"
       job_items.each do |item|
         if item["args"][0]["crawl_id"] == id
-          # remote this job from the queue
+          # remove this job from the queue
           Resque.dequeue(CrawlJob, item["args"][0])
         end
       end
       
-      position = batch_count*BATCH_SIZE
-      batch_count += 1
-      job_items = Resque.peek(queue_name, position, BATCH_SIZE)
+      job_items = Resque.peek(options[:queue_name], position+=BATCH_SIZE, BATCH_SIZE)
     end
     
   end
