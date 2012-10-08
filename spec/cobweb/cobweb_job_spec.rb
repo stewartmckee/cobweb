@@ -95,7 +95,7 @@ describe Cobweb, :local_only => true do
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       Resque.size("cobweb_process_job").should == 8
-
+      
       mime_types = Resque.peek("cobweb_process_job", 0, 100).map{|job| job["args"][0]["mime_type"]}
       mime_types.count.should == 8
       mime_types.map{|m| m.should == "text/html"}
@@ -111,7 +111,7 @@ describe Cobweb, :local_only => true do
         :cache => nil
       }
     end
-
+    
     describe "limit to 1" do
       before(:each) do
         @request[:crawl_limit] = 1

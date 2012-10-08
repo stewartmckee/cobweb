@@ -76,11 +76,9 @@ describe ContentLinkParser do
           links.length.should == 3
         end
       end
-      describe "returning unknown link type" do
+      describe "returning unknown link type should raise an error" do
         it "should return an empty array" do
-          links = @content_parser.asdfasdfsadf
-          links.should_not be_nil
-          links.should be_an_instance_of Array
+          lambda {@content_parser.asdfasdfsadf}.should raise_error
         end
       end
     end
