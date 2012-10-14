@@ -24,24 +24,34 @@ class CrawlJob
         @crawl.process_links do |link|
 
           # enqueue the links to resque
+          puts "ENQUEUED LINK: #{link}"
           enqueue_content(content_request, link) 
 
         end
         
         
-        # enqueue to processing queue
-        send_to_processing_queue(@crawl.content.to_hash, content_request)
+        if !@crawl.finished? || @crawl.first_to_finish? || @crawl.within_crawl_limits?
+          # enqueue to processing queue
+          puts "ENQUEUEING #{@crawl.content.url}"
+          send_to_processing_queue(@crawl.content.to_hash, content_request) unless 
       
-        #if the enqueue counter has been requested update that
-        if content_request.has_key?(:enqueue_counter_key)
-          enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
-          current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
-          enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
+          #if the enqueue counter has been requested update that
+          if content_request.has_key?(:enqueue_counter_key)
+            enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
+            current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
+            enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
+          end
+        else
+          ap "@crawl.finished? #{@crawl.finished?}"
+          ap "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+          ap "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
       end
     end
 
     # test queue and crawl sizes to see if we have completed the crawl
+    ap "finished? #{@crawl.finished?}"
+    ap "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
     if @crawl.finished? && @crawl.first_to_finish?
       finished(content_request)
     end
