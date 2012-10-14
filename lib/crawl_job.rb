@@ -5,7 +5,6 @@ class CrawlJob
   require "net/https"  
   require "uri"
   require "redis"
-  require 'namespaced_redis'
   
   @queue = :cobweb_crawl_job
   
@@ -13,7 +12,7 @@ class CrawlJob
   def self.perform(content_request)
     
     # setup the crawl class to manage the crawl of this object
-    @crawl = Cobweb::Crawl.new(content_request)
+    @crawl = CobwebModule::Crawl.new(content_request)
     
     # update the counters and then perform the get, returns false if we are outwith limits
     if @crawl.retrieve
@@ -28,13 +27,14 @@ class CrawlJob
           enqueue_content(content_request, link) 
 
         end
-      
+        
+        
         # enqueue to processing queue
-        send_to_processing_queue(content, content_request)
+        send_to_processing_queue(@crawl.content.to_hash, content_request)
       
         #if the enqueue counter has been requested update that
         if content_request.has_key?(:enqueue_counter_key)
-          enqueue_redis = NamespacedRedis.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
+          enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
           current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
           enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
         end
@@ -42,27 +42,19 @@ class CrawlJob
     end
 
     # test queue and crawl sizes to see if we have completed the crawl
-    if @crawl.finished?
-      finished(content_request)      
+    if @crawl.finished? && @crawl.first_to_finish?
+      finished(content_request)
     end
     
   end
 
   # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
   def self.finished(content_request)
-    # finished
-    if @crawl_helper.status != CobwebCrawlHelper::FINISHED and @crawl_helper.status != CobwebCrawlHelper::CANCELLED && @redis.get("inprogress").to_i==0
-      ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
-      @stats.end_crawl(content_request)
-      
-      additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @redis.get("crawled_base_url")}
-      additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
-      additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
-      
-      Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge(additional_stats))
-    else
-      # nothing to report here, we're skipping the remaining urls as we're outside of the crawl limit
-    end
+    additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url}
+    additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
+    additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
+    
+    Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end
   
   # Enqueues the content to the processing queue setup in options

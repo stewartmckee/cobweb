@@ -1,13 +1,13 @@
-module Cobweb
+module CobwebModule
   class Crawl
     
     def initialize(options={})
       @options = HashUtil.deep_symbolize_keys(options)
       
       setup_defaults
-      @redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{@options[:crawl_id]}")
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@options[:crawl_id]}", Redis.new(@options[:redis_options]))
       @stats = Stats.new(@options)
-      @debug = content_request[:debug]
+      @debug = @options[:debug]
       
     end
     
@@ -16,36 +16,48 @@ module Cobweb
        @redis.sismember "crawled", @options[:url]
     end
     
+    def already_queued?(link)
+      @redis.sismember "queued", link
+    end
+    
     # Returns true if the crawl count is within limits
     def within_crawl_limits?
-      @options[:crawl_limit].nil? or crawl_counter < @options[:crawl_limit].to_i
+      @options[:crawl_limit].nil? || crawl_counter < @options[:crawl_limit].to_i
     end
 
     # Returns true if the queue count is calculated to be still within limits when complete
     def within_queue_limits?
-      (@options[:crawl_limit_by_page]&& (@options[:crawl_limit].nil? or crawl_counter < @options[:crawl_limit].to_i)) || within_crawl_limits? && (@options[:crawl_limit].nil? || (queue_counter + crawl_counter) < @options[:crawl_limit].to_i)
+      (@options[:crawl_limit_by_page] && (@options[:crawl_limit].nil? or crawl_counter < @options[:crawl_limit].to_i)) || within_crawl_limits? && (@options[:crawl_limit].nil? || (queue_counter + crawl_counter) < @options[:crawl_limit].to_i)
     end
     
     def retrieve
-      if within_crawl_limit?
-        @stats.update_status("Retrieving #{content_request[:url]}...")
-        @content = Cobweb.new(@options).get(@options[:url], @options)
-        if @options[:url] == @redis.get("original_base_url")
-           @redis.set("crawled_base_url", @content[:base_url])
-        end
       
-        ## update statistics
-        @stats.update_statistics(@content)
-        true
-      else
-        false
+      unless already_crawled?
+        if within_crawl_limits?
+          @stats.update_status("Retrieving #{@options[:url]}...")
+          @content = Cobweb.new(@options).get(@options[:url], @options)
+          if @options[:url] == @redis.get("original_base_url")
+             @redis.set("crawled_base_url", @content[:base_url])
+          end
+        
+          if content.permitted_type?
+            ## update statistics
+            update_queues
+            
+            @stats.update_statistics(@content)
+            return true
+          end
+        end
       end
+      update_queues
+      
+      false
     end
     
     def process_links &block
       
       # set the base url if this is the first page
-      set_base_url @redis, content, @options
+      set_base_url @redis
       
       @cobweb_links = CobwebLinks.new(@options)
       if within_queue_limits?
@@ -60,15 +72,15 @@ module Cobweb
         internal_links.reject! { |link| @redis.sismember("queued", link) }
 
         internal_links.each do |link|
-          if within_queue_limits?
-            if @crawl_helper.status != CobwebCrawlHelper::CANCELLED
-              yield link if block_given
+          if within_queue_limits? && !already_queued?(link)
+            if status != CobwebCrawlHelper::CANCELLED
+              yield link if block_given?
               unless link.nil?
                 @redis.sadd "queued", link
                 increment_queue_counter
               end
             else
-              puts "Cannot enqueue new content as crawl has been cancelled." if content_request[:debug]
+              puts "Cannot enqueue new content as crawl has been cancelled." if @options[:debug]
             end
           end
         end
@@ -76,39 +88,59 @@ module Cobweb
     end
     
     def content
-      unless defined? @content || !@content.nil?
-        retrieve
-      end
-      @content
+      raise "Content is not available" if @content.nil?
+      CobwebModule::CrawlObject.new(@content, @options) 
     end
     
     def update_queues
-      @redis.incr "inprogress"
+      #@redis.incr "inprogress"
       # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
-      @redis.srem "queued", content_request[:url]
-      @redis.sadd "crawled", content_request[:url]
-      @redis.srem "queued", content[:url]
-      @redis.sadd "crawled", content[:url]
+      @redis.srem "queued", @options[:url]
+      @redis.sadd "crawled", @options[:url]
+      @redis.srem "queued", content.url
+      @redis.sadd "crawled", content.url
       # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
-      if content_request[:crawl_limit_by_page]
-        if content[:mime_type].match("text/html")
-          increment_crawl_started_counter
+      if @options[:crawl_limit_by_page]
+        if content.mime_type.match("text/html")
+          increment_crawl_counter
         end
       else
-        increment_crawl_started_counter
+        increment_crawl_counter
       end
+      decrement_queue_counter
+      
+      print_counters
+      
+      if finished?
+        ap "CRAWL FINISHED  #{@options[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if @options[:debug]
+        @stats.end_crawl(@options)
+      end
+      
     end
     
     def finished?
       # if there's nothing left queued or the crawled limit has been reached
       if @options[:crawl_limit].nil? || @options[:crawl_limit] == 0
-        if queue_counter + crawl_started_counter - crawl_counter == 0
+        if queue_counter == 0
           return true
         end
-      elsif (queue_counter+crawl_started_counter-crawl_counter)== 0 || crawl_counter >= @options[:crawl_limit].to_i
+      elsif (queue_counter) == 0 || crawl_counter >= @options[:crawl_limit].to_i
         return true
       end
+      @redis.set("first_to_finish", 1) unless @redis.exists("first_to_finish")
       false
+    end
+    
+    def first_to_finish?
+      @redis.exists("first_to_finish")
+    end
+    
+    def crawled_base_url
+      @redis.get("crawled_base_url")
+    end
+    
+    def statistics
+      @stats.get_statistics
     end
     
     private
@@ -117,46 +149,50 @@ module Cobweb
       @options[:crawl_limit_by_page] = false unless @options.has_key? :crawl_limit_by_page
       @options[:valid_mime_types] = ["*/*"] unless @options.has_key? :valid_mime_types
     end
-
+    
     # Increments the queue counter and refreshes crawl counters
-    def self.increment_queue_counter
+    def increment_queue_counter
       @redis.incr "queue-counter"
     end
     # Increments the crawl counter and refreshes crawl counters
-    def self.increment_crawl_counter
+    def increment_crawl_counter
       @redis.incr "crawl-counter"
     end
-    def self.increment_crawl_started_counter
+    def increment_crawl_started_counter
       @redis.incr "crawl-started-counter"
     end
     # Decrements the queue counter and refreshes crawl counters
-    def self.decrement_queue_counter
+    def decrement_queue_counter
       @redis.decr "queue-counter"
     end
-
-    def self.crawl_counter
+    
+    def crawl_counter
       @redis.get("crawl-counter").to_i
     end
-    def self.queue_counter
+    def queue_counter
       @redis.get("queue-counter").to_i
     end
-
-    def self.print_counters
+    
+    def status
+      @stats.get_status
+    end
+    
+    def print_counters
       puts counters
     end
-
-    def self.counters
-      "crawl_counter: #{crawl_counter} crawl_started_counter: #{crawl_started_counter} queue_counter: #{queue_counter}"
+    
+    def counters
+      "crawl_counter: #{crawl_counter} queue_counter: #{queue_counter} crawl_limit: #{@options[:crawl_limit]}"
     end
-
+    
     # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
-    def self.set_base_url(redis, content, content_request)
+    def set_base_url(redis)
       if redis.get("base_url").nil?
-        unless content[:redirect_through].nil? || content[:redirect_through].empty? || !content_request[:first_page_redirect_internal]
-          uri = Addressable::URI.parse(content[:redirect_through].last)
+        unless !defined?(content.redirect_through) || content.redirect_through.empty? || !@options[:first_page_redirect_internal]
+          uri = Addressable::URI.parse(content.redirect_through.last)
           redis.sadd("internal_urls", [uri.scheme, "://", uri.host, "/*"].join)
         end
-        redis.set("base_url", content[:url])
+        redis.set("base_url", content.url)
       end
     end
 

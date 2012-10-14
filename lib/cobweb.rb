@@ -4,7 +4,6 @@ require 'resque'
 require "addressable/uri"
 require 'digest/sha1'
 require 'base64'
-require 'namespaced_redis'
 
 Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
   require file
@@ -46,6 +45,7 @@ class Cobweb
     default_text_mime_types_to                ["text/*", "application/xhtml+xml"]
     default_obey_robots_to                    false
     default_user_agent_to                     "cobweb/#{Cobweb.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"
+    default_valid_mime_types_to                ["*/*"]
     
   end
   
@@ -65,7 +65,7 @@ class Cobweb
     end
     
     request.merge!(@options)
-    @redis = NamespacedRedis.new(request[:redis_options], "cobweb-#{Cobweb.version}-#{request[:crawl_id]}")
+    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{request[:crawl_id]}", :redis => Redis.new(request[:redis_options]))
     @redis.set("original_base_url", base_url)
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
@@ -110,9 +110,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
     else
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
     end
 
     content = {:base_url => url}
@@ -269,9 +269,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
     else
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
+      redis = Redis::Namespace.new(@options[:redis_options], "cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
     end
     
     content = {:base_url => url}

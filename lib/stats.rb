@@ -8,7 +8,7 @@ class Stats
   def initialize(options)
     options[:redis_options] = {} unless options.has_key? :redis_options
     @full_redis = Redis.new(options[:redis_options])
-    @redis = NamespacedRedis.new(options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
+    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => @full_redis)
   end
   
   # Sets up the crawl in statistics
