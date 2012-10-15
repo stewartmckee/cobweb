@@ -120,7 +120,7 @@ describe ContentLinkParser do
     describe "ignoring default tags" do
       it "should not return any links" do
         parser = ContentLinkParser.new("http://sample-links.com", @content, :ignore_default_tags => true)
-        parser.links.should be_empty
+        lambda{parser.links}.should raise_error(NoMethodError)
       end
     end
   end

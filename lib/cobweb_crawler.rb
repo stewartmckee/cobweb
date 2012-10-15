@@ -1,7 +1,7 @@
 require 'digest/md5'
 require 'date'
 require 'ap'
-#require 'namespaced_redis'
+require 'redis-namespace'
 
 # CobwebCrawler is a standalone crawler, it includes a built in statistics monitor using Sinatra.
 class CobwebCrawler
@@ -20,7 +20,7 @@ class CobwebCrawler
       @options[:crawl_id] = @crawl_id
     end
     
-    @redis = Redis::Namespaced.new("cobweb-#{Cobweb.version}-#{@crawl_id}", :redis => Redis.new(@options[:redis_options]))
+    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@crawl_id}", :redis => Redis.new(@options[:redis_options]))
     @options[:internal_urls] = [] if @options[:internal_urls].nil?
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
     @debug = @options[:debug]
