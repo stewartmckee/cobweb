@@ -30,11 +30,15 @@ class CrawlJob
         end
         
         
-        if !@crawl.finished? || @crawl.first_to_finish? || @crawl.within_crawl_limits?
+        if @crawl.to_be_processed?
+          @crawl.process
+          
           # enqueue to processing queue
-          puts "ENQUEUEING #{@crawl.content.url}"
-          send_to_processing_queue(@crawl.content.to_hash, content_request) unless 
-      
+          @crawl.redis.incr("crawl_job_enqueued_count")
+          puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
+          send_to_processing_queue(@crawl.content.to_hash, content_request)
+          
+          
           #if the enqueue counter has been requested update that
           if content_request.has_key?(:enqueue_counter_key)
             enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
@@ -64,6 +68,7 @@ class CrawlJob
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
     
+    @crawl.redis.incr("crawl_finished_enqueued_count")
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end
   

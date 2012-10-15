@@ -26,6 +26,11 @@ module CobwebModule
       @options[:crawl_limit].nil? || crawl_counter < @options[:crawl_limit].to_i
     end
 
+    # Returns true if the processed count is within limits
+    def within_process_limits?
+      @options[:crawl_limit].nil? || process_counter < @options[:crawl_limit].to_i
+    end
+
     # Returns true if the queue count is calculated to be still within limits when complete
     def within_queue_limits?
       
@@ -107,39 +112,54 @@ module CobwebModule
     end
     
     def update_queues
-      #@redis.incr "inprogress"
-      # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
-      @redis.srem "queued", @options[:url]
-      @redis.sadd "crawled", @options[:url]
-      if content.url != @options[:url]
-        @redis.srem "queued", content.url
-        @redis.sadd "crawled", content.url
-      end
-      # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
-      if @options[:crawl_limit_by_page]
-        if content.mime_type.match("text/html")
+      @redis.multi do
+        #@redis.incr "inprogress"
+        # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
+        @redis.srem "queued", @options[:url]
+        @redis.sadd "crawled", @options[:url]
+        if content.url != @options[:url]
+          @redis.srem "queued", content.url
+          @redis.sadd "crawled", content.url
+        end
+        # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
+        if @options[:crawl_limit_by_page]
+          ap "#{content.mime_type} - #{content.url}"
+          if content.mime_type.match("text/html")
+            increment_crawl_counter
+          end
+        else
           increment_crawl_counter
         end
-      else
-        increment_crawl_counter
+        decrement_queue_counter
       end
-      decrement_queue_counter
-      
+    end
+    
+    def to_be_processed?
+      !finished? || first_to_finish? || within_process_limits?
+    end
+    
+    def process
+      if @options[:crawl_limit_by_page]
+        if content.mime_type.match("text/html")
+          increment_process_counter
+        end
+      else
+        increment_process_counter
+      end
     end
     
     def finished?
       print_counters
       # if there's nothing left queued or the crawled limit has been reached
       if @options[:crawl_limit].nil? || @options[:crawl_limit] == 0
-        if queue_counter == 0
+        if queue_counter.to_i == 0
           finished
           return true
         end
-      elsif (queue_counter) == 0 || crawl_counter >= @options[:crawl_limit].to_i
+      elsif (queue_counter.to_i) == 0 || crawl_counter.to_i >= @options[:crawl_limit].to_i
         finished
         return true
       end
-      
       false
     end
     
@@ -150,9 +170,19 @@ module CobwebModule
     end
     
     def set_first_to_finish
-      @first_to_finish = true
-      @redis.set("first_to_finish", 1)
+      @redis.watch("first_to_finish") do
+        if !@redis.exists("first_to_finish")
+          @redis.multi do
+            puts "set first to finish"
+            @first_to_finish = true
+            @redis.set("first_to_finish", 1)
+          end
+        else
+          @redis.unwatch
+        end
+      end
     end
+    
     
     def first_to_finish? 
       @first_to_finish
@@ -185,8 +215,9 @@ module CobwebModule
     def increment_crawl_counter
       @redis.incr "crawl-counter"
     end
-    def increment_crawl_started_counter
-      @redis.incr "crawl-started-counter"
+    # Increments the process counter
+    def increment_process_counter
+      @redis.incr "process-counter"
     end
     # Decrements the queue counter and refreshes crawl counters
     def decrement_queue_counter
@@ -199,6 +230,9 @@ module CobwebModule
     def queue_counter
       @redis.get("queue-counter").to_i
     end
+    def process_counter
+      @redis.get("process-counter").to_i
+    end
     
     def status
       @stats.get_status
@@ -209,7 +243,7 @@ module CobwebModule
     end
     
     def counters
-      "crawl_counter: #{crawl_counter} queue_counter: #{queue_counter} crawl_limit: #{@options[:crawl_limit]}"
+      "crawl_counter: #{crawl_counter} queue_counter: #{queue_counter} process_counter: #{process_counter} crawl_limit: #{@options[:crawl_limit]}"
     end
     
     # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
