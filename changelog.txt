@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.74
+  Major refactor of CrawlJob moved logic out into CobwebModule::Crawl
+
 0.0.73
   fixed bug in cancel crawl that didn't remove all items from queue
   
