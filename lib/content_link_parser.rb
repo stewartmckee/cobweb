@@ -13,6 +13,7 @@ class ContentLinkParser
     base_url = @url.to_s
     if @doc.at("base[href]")
       base_url = @doc.at("base[href]").attr("href").to_s
+      @url = base_url if base_url
     end
 
     @options[:tags] = {}
