@@ -9,7 +9,7 @@ describe Cobweb, :local_only => true do
     # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
     puts "Starting Workers... Please Wait..."
     `mkdir log`
-    io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=3 QUEUE=cobweb_crawl_job > log/output.log &")
+    io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=10 QUEUE=cobweb_crawl_job > log/output.log &")
     puts "Workers Started."
 
   end
@@ -42,16 +42,16 @@ describe Cobweb, :local_only => true do
       @redis.get("crawl_job_enqueued_count").to_i.should == 0
     end
 
-    it "should not complete the crawl when cancelled" do
-      crawl = @cobweb.start(@base_url)
-      crawl_obj = CobwebCrawlHelper.new(crawl)
-      sleep 6
-      crawl_obj.destroy
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
-      wait_for_crawl_finished crawl[:crawl_id]
-      @redis.get("crawl_job_enqueued_count").to_i.should > 0
-      @redis.get("crawl_job_enqueued_count").to_i.should_not == @base_page_count
-    end
+    # it "should not complete the crawl when cancelled" do
+    #   crawl = @cobweb.start(@base_url)
+    #   crawl_obj = CobwebCrawlHelper.new(crawl)
+    #   sleep 6
+    #   crawl_obj.destroy
+    #   @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+    #   wait_for_crawl_finished crawl[:crawl_id]
+    #   @redis.get("crawl_job_enqueued_count").to_i.should > 0
+    #   @redis.get("crawl_job_enqueued_count").to_i.should_not == @base_page_count
+    # end
 
   end
   describe "with no crawl limit" do
@@ -60,7 +60,7 @@ describe Cobweb, :local_only => true do
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :crawl_limit => nil,
         :quiet => false,
-        :debug => false,
+        :debug => true,
         :cache => nil
       }
       @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)
@@ -83,11 +83,13 @@ describe Cobweb, :local_only => true do
       @redis.get("crawl_finished_enqueued_count").to_i.should == 1
     end
   end
+
   describe "with limited mime_types" do
     before(:each) do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
-        :quiet => true,
+        :quiet => false,
+        :debug => true,
         :cache => nil,
         :valid_mime_types => ["text/html"]
       }
@@ -112,12 +114,26 @@ describe Cobweb, :local_only => true do
     before(:each) do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
-        :quiet => true,
+        :quiet => false,
+        :debug => true,
         :cache => nil
       }
       @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)
     end
 
+    # describe "crawling http://yepadeperrors.wordpress.com/ with limit of 20" do
+    #   before(:each) do
+    #     @request[:crawl_limit] = 20
+    #     @cobweb = Cobweb.new @request
+    #   end
+    #   it "should crawl exactly 20" do
+    #     crawl = @cobweb.start("http://yepadeperrors.wordpress.com/")
+    #     @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+    #     wait_for_crawl_finished crawl[:crawl_id]
+    #     @redis.get("crawl_job_enqueued_count").to_i.should == 20
+    #   end
+    # 
+    # end
     describe "limit to 1" do
       before(:each) do
         @request[:crawl_limit] = 1
@@ -245,12 +261,17 @@ def running?(crawl_id)
     result = true
   else
     if status == @last_stat
-      if @counter > 5
+      if @counter > 20
+        puts ""
         raise "Static status: #{status}"
       else
         @counter += 1
       end
-      puts "Static Status.. #{6-@counter}"
+      if @counter == 1
+        print "Static Status.. #{21-@counter}"
+      else
+        print ".#{21-@counter}"
+      end
     else
       result = status != CobwebCrawlHelper::FINISHED && status != CobwebCrawlHelper::CANCELLED
     end

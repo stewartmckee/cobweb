@@ -29,35 +29,44 @@ class CrawlJob
 
         end
         
-        
-        if @crawl.to_be_processed?
-          @crawl.process
-          
-          # enqueue to processing queue
-          @crawl.redis.incr("crawl_job_enqueued_count")
-          puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
-          send_to_processing_queue(@crawl.content.to_hash, content_request)
-          
-          
-          #if the enqueue counter has been requested update that
-          if content_request.has_key?(:enqueue_counter_key)
-            enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
-            current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
-            enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
+        @crawl.lock("crawl_job_process") do
+          if @crawl.to_be_processed?
+            
+            @crawl.process do
+
+              # enqueue to processing queue
+              puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
+              send_to_processing_queue(@crawl.content.to_hash, content_request)
+
+              #if the enqueue counter has been requested update that
+              if content_request.has_key?(:enqueue_counter_key)
+                enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
+                current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
+                enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
+              end
+              
+            end
+          else
+            ap "@crawl.finished? #{@crawl.finished?}"
+            ap "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+            ap "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
           end
-        else
-          ap "@crawl.finished? #{@crawl.finished?}"
-          ap "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
-          ap "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
+          
         end
       end
     end
+    
+    @crawl.lock("finished") do
+      # let the crawl know we're finished with this object
+      @crawl.finished_processing
 
-    # test queue and crawl sizes to see if we have completed the crawl
-    ap "finished? #{@crawl.finished?}"
-    ap "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
-    if @crawl.finished? && @crawl.first_to_finish?
-      finished(content_request)
+      # test queue and crawl sizes to see if we have completed the crawl
+      ap "finished? #{@crawl.finished?}"
+      ap "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
+      if @crawl.finished? && @crawl.first_to_finish?
+        puts "Calling crawl_job finished"
+        finished(content_request)
+      end
     end
     
   end
@@ -68,6 +77,7 @@ class CrawlJob
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
     
+    puts "increment crawl_finished_enqueued_count"
     @crawl.redis.incr("crawl_finished_enqueued_count")
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end
