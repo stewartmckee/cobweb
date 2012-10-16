@@ -60,7 +60,7 @@ describe Cobweb, :local_only => true do
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :crawl_limit => nil,
         :quiet => false,
-        :debug => true,
+        :debug => false,
         :cache => nil
       }
       @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)
@@ -89,7 +89,7 @@ describe Cobweb, :local_only => true do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => false,
-        :debug => true,
+        :debug => false,
         :cache => nil,
         :valid_mime_types => ["text/html"]
       }
@@ -115,7 +115,7 @@ describe Cobweb, :local_only => true do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => false,
-        :debug => true,
+        :debug => false,
         :cache => nil
       }
       @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)

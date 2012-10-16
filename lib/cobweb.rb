@@ -124,7 +124,7 @@ class Cobweb
     else
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
-        puts "Creating connection to #{uri.host}..." unless @options[:quiet]
+        puts "Creating connection to #{uri.host}..." if @options[:debug]
         @http = Net::HTTP.new(uri.host, uri.inferred_port)
       end
       if uri.scheme == "https"

@@ -24,7 +24,7 @@ class CrawlJob
         @crawl.process_links do |link|
 
           # enqueue the links to resque
-          puts "ENQUEUED LINK: #{link}"
+          @crawl.debug_puts "ENQUEUED LINK: #{link}" 
           enqueue_content(content_request, link) 
 
         end
@@ -35,7 +35,7 @@ class CrawlJob
             @crawl.process do
 
               # enqueue to processing queue
-              puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
+              @crawl.debug_puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
               send_to_processing_queue(@crawl.content.to_hash, content_request)
 
               #if the enqueue counter has been requested update that
@@ -47,9 +47,9 @@ class CrawlJob
               
             end
           else
-            ap "@crawl.finished? #{@crawl.finished?}"
-            ap "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
-            ap "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
+            @crawl.debug_puts "@crawl.finished? #{@crawl.finished?}"
+            @crawl.debug_puts "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+            @crawl.debug_puts "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
           end
           
         end
@@ -61,10 +61,10 @@ class CrawlJob
       @crawl.finished_processing
 
       # test queue and crawl sizes to see if we have completed the crawl
-      ap "finished? #{@crawl.finished?}"
-      ap "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
+      @crawl.debug_puts "finished? #{@crawl.finished?}"
+      @crawl.debug_puts "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
       if @crawl.finished? && @crawl.first_to_finish?
-        puts "Calling crawl_job finished"
+        @crawl.debug_puts "Calling crawl_job finished"
         finished(content_request)
       end
     end
@@ -77,7 +77,7 @@ class CrawlJob
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
     
-    puts "increment crawl_finished_enqueued_count"
+    @crawl.debug_puts "increment crawl_finished_enqueued_count"
     @crawl.redis.incr("crawl_finished_enqueued_count")
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end
@@ -95,7 +95,7 @@ class CrawlJob
     else
       Resque.enqueue(const_get(content_request[:processing_queue]), content_to_send)
     end
-    puts "#{content_request[:url]} has been sent for processing. use_encoding_safe_process_job: #{content_request[:use_encoding_safe_process_job]}" if content_request[:debug]
+    @crawl.debug_puts "#{content_request[:url]} has been sent for processing. use_encoding_safe_process_job: #{content_request[:use_encoding_safe_process_job]}"
   end
 
   private

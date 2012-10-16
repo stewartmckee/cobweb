@@ -74,8 +74,8 @@ module CobwebModule
             decrement_queue_counter
           end
         else
-          puts "\n\nDETECTED DUPLICATE JOB for #{@options[:url]}\n"
-          ap @redis.smembers("currently_running")
+          debug_puts "\n\nDETECTED DUPLICATE JOB for #{@options[:url]}\n"
+          debug_ap @redis.smembers("currently_running")
           decrement_queue_counter
         end
         false
@@ -108,7 +108,7 @@ module CobwebModule
                 increment_queue_counter
               end
             else
-              puts "Cannot enqueue new content as crawl has been cancelled." if @options[:debug]
+              debug_puts "Cannot enqueue new content as crawl has been cancelled."
             end
           end
         end
@@ -181,7 +181,7 @@ module CobwebModule
 
     def finished
       set_first_to_finish 
-      ap "CRAWL FINISHED  #{@options[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if @options[:debug]
+      debug_ap "CRAWL FINISHED  #{@options[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}"
       @stats.end_crawl(@options)
     end
 
@@ -189,7 +189,7 @@ module CobwebModule
       @redis.watch("first_to_finish") do
         if !@redis.exists("first_to_finish")
           @redis.multi do
-            puts "set first to finish"
+            debug_puts "set first to finish"
             @first_to_finish = true
             @redis.set("first_to_finish", 1)
           end
@@ -217,27 +217,33 @@ module CobwebModule
     end
 
     def lock(key, &block)
-      puts "REQUESTING LOCK [#{key}]"
+      debug_puts "REQUESTING LOCK [#{key}]"
       set_nx = @redis.setnx("#{key}_lock", "locked")
-      puts "LOCK:#{key}:#{set_nx}"
+      debug_puts "LOCK:#{key}:#{set_nx}"
       while !set_nx
-        puts "===== WAITING FOR LOCK [#{key}] ====="
+        debug_puts "===== WAITING FOR LOCK [#{key}] ====="
         sleep 0.01
         set_nx = @redis.setnx("#{key}_lock", "locked")
       end
 
-      puts "RECEIVED LOCK [#{key}]"
+      debug_puts "RECEIVED LOCK [#{key}]"
       begin
         result = yield
       ensure
         @redis.del("#{key}_lock")
-        puts "LOCK RELEASED [#{key}]"
+        debug_puts "LOCK RELEASED [#{key}]"
       end
       result
     end
-
-
-
+    
+    def debug_ap(value)
+      ap(value) if @options[:debug]
+    end
+    
+    def debug_puts(value)
+      puts(value) if @options[:debug]
+    end
+    
     private
     def setup_defaults
       @options[:redis_options] = {} unless @options.has_key? :redis_options
@@ -277,7 +283,7 @@ module CobwebModule
     end
 
     def print_counters
-      puts counters
+      debug_puts counters
     end
 
     def counters
