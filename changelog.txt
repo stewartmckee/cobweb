@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+0.0.76
+  fixed bug with connecting to redis
+
 0.0.75
   Content link parser now uses the base tag if it is available
   added locking to crawl to get correct count of pages and limits
