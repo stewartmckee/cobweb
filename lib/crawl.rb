@@ -5,7 +5,8 @@ module CobwebModule
       @options = HashUtil.deep_symbolize_keys(options)
 
       setup_defaults
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@options[:crawl_id]}", Redis.new(@options[:redis_options]))
+
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
       @stats = Stats.new(@options)
       @debug = @options[:debug]
       @first_to_finish = false

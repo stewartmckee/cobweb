@@ -30,7 +30,7 @@ describe Cobweb, :local_only => true do
         :debug => false,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
       @cobweb = Cobweb.new @request
     end
     it "should not crawl anything if nothing has started" do
@@ -63,7 +63,7 @@ describe Cobweb, :local_only => true do
         :debug => false,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
 
       @cobweb = Cobweb.new @request
     end
@@ -93,7 +93,7 @@ describe Cobweb, :local_only => true do
         :cache => nil,
         :valid_mime_types => ["text/html"]
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
       @cobweb = Cobweb.new @request
     end
 
@@ -118,7 +118,7 @@ describe Cobweb, :local_only => true do
         :debug => false,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
     end
 
     # describe "crawling http://yepadeperrors.wordpress.com/ with limit of 20" do
