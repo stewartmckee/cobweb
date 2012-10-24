@@ -29,30 +29,28 @@ class CrawlJob
 
         end
         
-        @crawl.lock("crawl_job_process") do
-          if @crawl.to_be_processed?
-            
-            @crawl.process do
-
-              # enqueue to processing queue
-              @crawl.debug_puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
-              send_to_processing_queue(@crawl.content.to_hash, content_request)
-
-              #if the enqueue counter has been requested update that
-              if content_request.has_key?(:enqueue_counter_key)
-                enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
-                current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
-                enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
-              end
-              
-            end
-          else
-            @crawl.debug_puts "@crawl.finished? #{@crawl.finished?}"
-            @crawl.debug_puts "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
-            @crawl.debug_puts "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
-          end
+        if @crawl.to_be_processed?
           
+          @crawl.process do
+
+            # enqueue to processing queue
+            @crawl.debug_puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
+            send_to_processing_queue(@crawl.content.to_hash, content_request)
+
+            #if the enqueue counter has been requested update that
+            if content_request.has_key?(:enqueue_counter_key)
+              enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
+              current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
+              enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
+            end
+            
+          end
+        else
+          @crawl.debug_puts "@crawl.finished? #{@crawl.finished?}"
+          @crawl.debug_puts "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+          @crawl.debug_puts "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
+        
       end
     end
     

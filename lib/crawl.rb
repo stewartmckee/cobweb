@@ -50,37 +50,35 @@ module CobwebModule
     end
 
     def retrieve
-      lock("retrieve") do
-        unless @redis.sismember("currently_running", @options[:url])
-          @redis.sadd("currently_running", @options[:url])
-          unless already_crawled?
-            if within_crawl_limits?
-              @stats.update_status("Retrieving #{@options[:url]}...")
-              @content = Cobweb.new(@options).get(@options[:url], @options)
-              if @options[:url] == @redis.get("original_base_url")
-                @redis.set("crawled_base_url", @content[:base_url])
-              end
-              update_queues
+      unless @redis.sismember("currently_running", @options[:url])
+        @redis.sadd("currently_running", @options[:url])
+        unless already_crawled?
+          if within_crawl_limits?
+            @stats.update_status("Retrieving #{@options[:url]}...")
+            @content = Cobweb.new(@options).get(@options[:url], @options)
+            if @options[:url] == @redis.get("original_base_url")
+              @redis.set("crawled_base_url", @content[:base_url])
+            end
+            update_queues
 
-              if content.permitted_type?
-                ## update statistics
+            if content.permitted_type?
+              ## update statistics
 
-                @stats.update_statistics(@content)
-                return true
-              end
-            else
-              decrement_queue_counter
+              @stats.update_statistics(@content)
+              return true
             end
           else
             decrement_queue_counter
           end
         else
-          debug_puts "\n\nDETECTED DUPLICATE JOB for #{@options[:url]}\n"
-          debug_ap @redis.smembers("currently_running")
           decrement_queue_counter
         end
-        false
+      else
+        debug_puts "\n\nDETECTED DUPLICATE JOB for #{@options[:url]}\n"
+        debug_ap @redis.smembers("currently_running")
+        decrement_queue_counter
       end
+      false
     end
 
     def process_links &block
@@ -156,7 +154,7 @@ module CobwebModule
         increment_process_counter
       end
       @redis.sadd "enqueued", @options[:url]
-      
+
       yield if block_given?
       @redis.incr("crawl_job_enqueued_count")
     end
@@ -181,7 +179,7 @@ module CobwebModule
     end
 
     def finished
-      set_first_to_finish 
+      set_first_to_finish
       debug_ap "CRAWL FINISHED  #{@options[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}"
       @stats.end_crawl(@options)
     end
@@ -204,7 +202,7 @@ module CobwebModule
     def first_to_finish?
       @first_to_finish
     end
-    
+
     def crawled_base_url
       @redis.get("crawled_base_url")
     end
@@ -228,6 +226,7 @@ module CobwebModule
       end
 
       debug_puts "RECEIVED LOCK [#{key}]"
+      @redis.expire("#{key}_lock", 10)
       begin
         result = yield
       ensure
@@ -236,15 +235,15 @@ module CobwebModule
       end
       result
     end
-    
+
     def debug_ap(value)
       ap(value) if @options[:debug]
     end
-    
+
     def debug_puts(value)
       puts(value) if @options[:debug]
     end
-    
+
     private
     def setup_defaults
       @options[:redis_options] = {} unless @options.has_key? :redis_options

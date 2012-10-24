@@ -1,0 +1,10 @@
+COUNTER=$1
+until [  $COUNTER -lt 1 ]; do
+	rspec $2
+        if [ $? -eq 1 ]
+        then
+        	break
+        fi
+	let COUNTER-=1
+done
+

@@ -262,15 +262,9 @@ def running?(crawl_id)
   else
     if status == @last_stat
       if @counter > 20
-        puts ""
         raise "Static status: #{status}"
       else
         @counter += 1
-      end
-      if @counter == 1
-        print "Static Status.. #{21-@counter}"
-      else
-        print ".#{21-@counter}"
       end
     else
       result = status != CobwebCrawlHelper::FINISHED && status != CobwebCrawlHelper::CANCELLED
