@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.0.77
+  removed some redundant locks
+  fixed bug where some locks deadlock
+  removed lock debug being output by default
+
 0.0.76
   fixed bug with connecting to redis
 
