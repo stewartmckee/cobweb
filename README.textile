@@ -100,6 +100,8 @@ Creates a new crawler object based on a base_url
     ** :user_agent                    - user agent string to match in robots.txt (not sent as user_agent of requests yet) (default: cobweb)
     ** :crawl_limit_by_page           - sets the crawl counter to only use html page types when counting objects crawled
     ** :valid_mime_types              - an array of mime types that takes wildcards (eg 'text/*') defaults to ['*/*']
+    ** :direct_call_process_job       - boolean that specifies whether objects should be passed directly to a processing method or should be put onto a queue
+    
     
 bc. crawler = Cobweb.new(:follow_redirects => false)
 
@@ -128,6 +130,12 @@ Simple get that obey's the options supplied in new.
   * url - url requested
 
 bc. crawler.head("http://www.google.com/")
+
+
+h4. Processing Queue
+
+The :processing_queue option is used to specify the class that contains the resque perform method to pass the content onto.  This class should be defined in your application to perform any tasks you wish to the content.  There are two options however, for running this.  Firstly, the default settings will push the content crawled onto a resque queue for that class.  This allows you the flexibility of running in queues on seperate machines etc.  The main drawback to this is that all your content is stored in redis within the queue.  This can be memory intensive if you are crawling large sites, or have large content that is being crawled.  To get around this you can specify that the crawl_job calls the perform method on the processing queue class directly, thereby not using memory in redis for the content.  This is performed by using the :direct_call_process_job. If you set that option to 'true' then instead of the job being queued, it will be executed within the crawl_job queue.
+
 
 h3. CobwebCrawler
 
