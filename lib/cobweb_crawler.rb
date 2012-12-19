@@ -87,8 +87,8 @@ class CobwebCrawler
                   queue_counter += 1
                 end
               
-                crawl_counter = crawl_counter + 1 #@redis.scard("crawled").to_i
-                queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
+                crawl_counter = @redis.scard("crawled").to_i
+                queue_counter = @redis.scard("queued").to_i
               
                 @stats.update_statistics(content, crawl_counter, queue_counter)
                 @stats.update_status("Completed #{url}.")

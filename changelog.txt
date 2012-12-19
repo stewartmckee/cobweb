@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.1
+  fixed bug where CobwebCrawler was going beyond the end of the queued urls 
+
 1.0.0
   released version 1... yay!
   some bug fixes
