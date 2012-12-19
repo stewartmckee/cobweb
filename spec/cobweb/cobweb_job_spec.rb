@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Cobweb, :local_only => true do
+describe Cobweb, :local_only => true, :disabled => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards

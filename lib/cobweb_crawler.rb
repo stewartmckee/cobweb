@@ -42,7 +42,7 @@ class CobwebCrawler
     
     @crawl_options = crawl_options
     
-    @redis.sadd("queued", base_url) unless @redis.sismember("crawled", base_url) || @redis.sismember("queued", base_url)
+    @redis.sadd("queued", base_url) unless base_url.nil? || @redis.sismember("crawled", base_url) || @redis.sismember("queued", base_url)
     crawl_counter = @redis.scard("crawled").to_i
     queue_counter = @redis.scard("queued").to_i
 
@@ -58,34 +58,42 @@ class CobwebCrawler
             begin
               @stats.update_status("Requesting #{url}...")
               content = @cobweb.get(url)
-              @stats.update_status("Processing #{url}...")
+              if content.nil?
+                queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
+              else
+                @stats.update_status("Processing #{url}...")
 
-              @redis.sadd "crawled", url.to_s
-              @redis.incr "crawl-counter" 
+                @redis.sadd "crawled", url.to_s
+                @redis.incr "crawl-counter" 
               
-              internal_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
+                internal_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
 
-              # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
-              cobweb_links = CobwebLinks.new(@options)
-              internal_links = internal_links.select{|link| cobweb_links.internal?(link)}
+                # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
+                cobweb_links = CobwebLinks.new(@options)
+                internal_links = internal_links.select{|link| cobweb_links.internal?(link)}
               
-              # reject the link if we've crawled it or queued it
-              internal_links.reject!{|link| @redis.sismember("crawled", link)}
-              internal_links.reject!{|link| @redis.sismember("queued", link)}
+                # reject the link if we've crawled it or queued it
+                internal_links.reject!{|link| @redis.sismember("crawled", link)}
+                internal_links.reject!{|link| @redis.sismember("queued", link)}
+                internal_links.reject!{|link| link.nil? || link.empty?}
               
-              internal_links.each do |link|
-                puts "Added #{link.to_s} to queue" if @debug
-                @redis.sadd "queued", link
-                queue_counter += 1
+                internal_links.each do |link|
+                  puts "Added #{link.to_s} to queue" if @debug
+                  @redis.sadd "queued", link unless link.nil?
+                  children = @redis.hget("navigation", url)
+                  children = [] if children.nil?
+                  children << link
+                  @redis.hset "navigation", url, children
+                  queue_counter += 1
+                end
+              
+                crawl_counter = crawl_counter + 1 #@redis.scard("crawled").to_i
+                queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
+              
+                @stats.update_statistics(content, crawl_counter, queue_counter)
+                @stats.update_status("Completed #{url}.")
+                yield content, @stats.get_statistics if block_given?
               end
-              
-              crawl_counter = crawl_counter + 1 #@redis.scard("crawled").to_i
-              queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
-              
-              @stats.update_statistics(content, crawl_counter, queue_counter)
-              @stats.update_status("Completed #{url}.")
-              yield content, @stats.get_statistics if block_given?
-
             rescue => e
               puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
               ap e

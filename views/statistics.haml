@@ -136,11 +136,12 @@
               %th Count
 
           %tbody
-            - @crawl[:statistics][:status_counts].keys.each do |status|
-              - unless status.nil? || status == ""
-                %tr
-                  %td= status
-                  %td= @crawl[:statistics][:status_counts][status]
+            - if @crawl[:statistics] && @crawl[:statistics][:status_counts]
+              - @crawl[:statistics][:status_counts].keys.each do |status|
+                - unless status.nil? || status == ""
+                  %tr
+                    %td= status
+                    %td= @crawl[:statistics][:status_counts][status]
 
   .medium
     .box
@@ -156,10 +157,11 @@
               %th Count
 
           %tbody
-            - @crawl[:statistics][:mime_counts].keys.each do |mime_type|
-              %tr
-                %td= mime_type
-                %td= @crawl[:statistics][:mime_counts][mime_type]
+            - if @crawl[:statistics][:mime_counts]
+              - @crawl[:statistics][:mime_counts].keys.each do |mime_type|
+                %tr
+                  %td= mime_type
+                  %td= @crawl[:statistics][:mime_counts][mime_type]
   
   
 

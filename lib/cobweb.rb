@@ -116,7 +116,7 @@ class Cobweb
     end
 
     content = {:base_url => url}
-  
+
     # check if it has already been cached
     if redis.get(unique_id) and @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
@@ -162,7 +162,7 @@ class Cobweb
           content[:url] = uri.to_s
           content[:redirect_through] = [] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
-        
+          
           content[:response_time] = Time.now.to_f - request_time
         else
           content[:response_time] = Time.now.to_f - request_time
@@ -231,7 +231,7 @@ class Cobweb
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
-      
+        
       rescue Timeout::Error => e
         puts "ERROR Timeout::Error: #{e.message}"
         
@@ -247,8 +247,8 @@ class Cobweb
         content[:headers] = {}
         content[:links] = {}
       end
+      content
     end
-    content  
   end
 
   # Performs a HTTP HEAD request to the specified url applying the options supplied
@@ -368,7 +368,7 @@ class Cobweb
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
-      
+        
       rescue Timeout::Error => e
         puts "ERROR Timeout::Error: #{e.message}"
         

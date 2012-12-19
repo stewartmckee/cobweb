@@ -14,7 +14,7 @@ class Server < Sinatra::Base
     @colors = ["#00366f", "#006ba0", "#3F0BDB", "#396CB3"]
     
     @crawls = []
-    @full_redis.smembers("cobweb_crawls").each do |crawl_id|      
+    @full_redis.smembers("cobweb_crawls").each do |crawl_id|
       version = cobweb_version(crawl_id)
       redis = Redis::Namespace.new("cobweb-#{version}-#{crawl_id}", :redis => Redis.new(redis_options))
       stats = HashUtil.deep_symbolize_keys({
@@ -69,8 +69,9 @@ class Server < Sinatra::Base
   
   def cobweb_version(crawl_id)
     redis = Redis.new(redis_options)
-    key = redis.keys("cobweb-*-#{crawl_id}-crawl_details").first
-    key =~ /cobweb-(.*?)-(.*?)-crawl_details/
+    key = redis.keys("cobweb-*-#{crawl_id}:queued").first
+    
+    key =~ /cobweb-(.*?)-(.*?):queued/
     cobweb_version = $1
   end
   
@@ -82,7 +83,6 @@ class Server < Sinatra::Base
   def self.start(options={})
     @options = options
     @options[:redis_options] = {} unless @options.has_key? :redis_options
-    ap @options
     unless Server.running?
       if @options[:run_as_server]
         puts "Starting Sinatra for cobweb v#{Cobweb.version}"

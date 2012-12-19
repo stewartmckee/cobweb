@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+1.0.0
+  released version 1... yay!
+  some bug fixes
+
 0.0.77
   removed some redundant locks
   fixed bug where some locks deadlock
