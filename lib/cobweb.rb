@@ -138,9 +138,9 @@ class Cobweb
       begin
         print "Retrieving #{url }... " unless @options[:quiet]
         request_options={}
-        if options[:cookies]
-          request_options[ 'Cookie']= options[:cookies]
-        end
+        request_options['Cookie']= options[:cookies] if options.has_key?(:cookies)
+        request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
+
         request = Net::HTTP::Get.new uri.request_uri, request_options
 
         response = @http.request request
