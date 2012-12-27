@@ -1,5 +1,5 @@
 
-h1. Cobweb v1.0.1
+h1. Cobweb v1.0.2
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 
