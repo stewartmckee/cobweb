@@ -186,7 +186,7 @@ describe Cobweb do
     describe "location setting" do
       it "Get should strip fragments" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/", {"User-Agent"=>"cobweb/1.0.1 (ruby/1.9.3 nokogiri/1.5.0)"})
+        Net::HTTP::Get.should_receive(:new).with("/", {"User-Agent"=>"cobweb/1.0.1 (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"})
         @cobweb.get("http://www.google.com/#ignore")
       end
       it "head should strip fragments" do
@@ -196,12 +196,12 @@ describe Cobweb do
       end
       it "get should not strip path" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff", {"User-Agent"=>"cobweb/1.0.1 (ruby/1.9.3 nokogiri/1.5.0)"})
+        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff", {"User-Agent"=>"cobweb/1.0.1 (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"})
         @cobweb.get("http://www.google.com/path/to/stuff#ignore")
       end
       it "get should not strip query string" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff?query_string", {"User-Agent"=>"cobweb/1.0.1 (ruby/1.9.3 nokogiri/1.5.0)"})
+        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff?query_string", {"User-Agent"=>"cobweb/1.0.1 (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"})
         @cobweb.get("http://www.google.com/path/to/stuff?query_string#ignore")
       end
     end
