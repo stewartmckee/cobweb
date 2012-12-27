@@ -8,12 +8,12 @@ class Robots
     raise ":url is required" unless @options.has_key? :url
     @options[:file] = "robots.txt" unless @options.has_key? :file
     @options[:user_agent] = "cobweb" unless @options.has_key? :user_agent
-    
+
     uri = URI.parse(@options[:url])
     content = Cobweb.new(:cache => nil, :text_mime_types => ["text/html", "application/xhtml+xml", "text/plain"]).get([uri.scheme, "://", uri.host, ":", uri.port, "/", @options[:file]].join)
     if content[:mime_type][0..4] == "text/"
       @raw_data = parse_data(content[:body])
-      
+
       if @options.has_key?(:user_agent) && @raw_data.has_key?(@options[:user_agent].to_s.downcase.to_sym)
         @params = @raw_data[@options[:user_agent].to_s.downcase.to_sym]
       else

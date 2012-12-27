@@ -38,6 +38,7 @@ class Cobweb
     default_quiet_to                          true
     default_debug_to                          false
     default_cache_to                          300
+    default_cache_type_to                     :crawl_based # other option is :full
     default_timeout_to                        10
     default_redis_options_to                  Hash.new
     default_internal_urls_to                  []
@@ -114,11 +115,12 @@ class Cobweb
     else
       redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
     end
+    full_redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
 
     content = {:base_url => url}
 
     # check if it has already been cached
-    if redis.get(unique_id) and @options[:cache]
+    if ((@options[:cache_type] == :crawl_based && redis.get(unique_id)) || (@options[:cache_type] == :full && full_redis.get(unique_id))) && @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
       content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
@@ -138,9 +140,9 @@ class Cobweb
       begin
         print "Retrieving #{url }... " unless @options[:quiet]
         request_options={}
-        if options[:cookies]
-          request_options[ 'Cookie']= options[:cookies]
-        end
+        request_options['Cookie']= options[:cookies] if options.has_key?(:cookies)
+        request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
+
         request = Net::HTTP::Get.new uri.request_uri, request_options
 
         response = @http.request request

@@ -23,6 +23,9 @@ class CobwebCrawler
     @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@crawl_id}", :redis => Redis.new(@options[:redis_options]))
     @options[:internal_urls] = [] if @options[:internal_urls].nil?
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
+
+    @options[:crawl_linked_external] = false unless @options.has_key? :crawl_linked_external
+    
     @debug = @options[:debug]
     
     @stats = Stats.new(@options.merge(:crawl_id => @crawl_id))
@@ -52,7 +55,8 @@ class CobwebCrawler
         thread = Thread.new do
         
           url = @redis.spop "queued"
-        
+          queue_counter = 0 if url.nil?
+
           @options[:url] = url
           unless @redis.sismember("crawled", url.to_s)
             begin
@@ -70,8 +74,9 @@ class CobwebCrawler
 
                 # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
                 cobweb_links = CobwebLinks.new(@options)
-                internal_links = internal_links.select{|link| cobweb_links.internal?(link)}
-              
+
+                internal_links = internal_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s))}
+                
                 # reject the link if we've crawled it or queued it
                 internal_links.reject!{|link| @redis.sismember("crawled", link)}
                 internal_links.reject!{|link| @redis.sismember("queued", link)}
@@ -95,9 +100,13 @@ class CobwebCrawler
                 yield content, @stats.get_statistics if block_given?
               end
             rescue => e
-              puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
-              ap e
-              ap e.backtrace
+              puts "Error loading #{url}: #{e}"
+              #puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
+              #ap e
+              #ap e.backtrace
+            ensure
+              crawl_counter = @redis.scard("crawled").to_i
+              queue_counter = @redis.scard("queued").to_i
             end
           else
             puts "Already crawled #{@options[:url]}" if @debug
