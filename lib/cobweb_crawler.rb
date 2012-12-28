@@ -61,7 +61,7 @@ class CobwebCrawler
           unless @redis.sismember("crawled", url.to_s)
             begin
               @stats.update_status("Requesting #{url}...")
-              content = @cobweb.get(url)
+              content = @cobweb.get(url) unless url.nil?
               if content.nil?
                 queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
               else
