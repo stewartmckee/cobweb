@@ -63,9 +63,9 @@ RSpec.configure do |config|
     
     Net::HTTP.stub!(:new).and_return(@mock_http_client)
     Net::HTTP::Get.stub!(:new).and_return(@mock_http_request)
-    Net::HTTP::Get.stub!(:new).with("/redirect.html", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"}).and_return(@mock_http_redirect_request)
-    Net::HTTP::Get.stub!(:new).with("/robots.txt", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"}).and_return(@mock_http_robot_request)
-    Net::HTTP::Get.stub!(:new).with("/redirect2.html", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"}).and_return(@mock_http_redirect_request2)
+    Net::HTTP::Get.stub!(:new).with("/redirect.html", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"}).and_return(@mock_http_redirect_request)
+    Net::HTTP::Get.stub!(:new).with("/robots.txt", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"}).and_return(@mock_http_robot_request)
+    Net::HTTP::Get.stub!(:new).with("/redirect2.html", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"}).and_return(@mock_http_redirect_request2)
 
     Net::HTTP::Head.stub!(:new).and_return(@mock_http_request)
 

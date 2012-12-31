@@ -5,6 +5,8 @@ describe Cobweb do
   before(:each) do
     @base_url = "http://www.baseurl.com/"
     @cobweb = Cobweb.new :quiet => true, :cache => nil
+
+    @default_options = {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"}
   end
   
   it "should generate a cobweb object" do
@@ -186,7 +188,7 @@ describe Cobweb do
     describe "location setting" do
       it "Get should strip fragments" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"})
+        Net::HTTP::Get.should_receive(:new).with("/", @default_options)
         @cobweb.get("http://www.google.com/#ignore")
       end
       it "head should strip fragments" do
@@ -196,12 +198,12 @@ describe Cobweb do
       end
       it "get should not strip path" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"})
+        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff", @default_options)
         @cobweb.get("http://www.google.com/path/to/stuff#ignore")
       end
       it "get should not strip query string" do
         Net::HTTP.should_receive(:new).with("www.google.com", 80)
-        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff?query_string", {"User-Agent"=>"cobweb/#{CobwebVersion.version} (ruby/#{RUBY_VERSION} nokogiri/1.5.0)"})
+        Net::HTTP::Get.should_receive(:new).with("/path/to/stuff?query_string", @default_options)
         @cobweb.get("http://www.google.com/path/to/stuff?query_string#ignore")
       end
     end
