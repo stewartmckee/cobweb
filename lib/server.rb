@@ -4,6 +4,7 @@ require 'haml'
 # Sinatra server to host the statistics for the CobwebCrawler
 class Server < Sinatra::Base
 
+  set :root, File.dirname(__FILE__)
   set :views, settings.root + '/../views'
   set :public_folder, settings.root + '/../public'
   enable :static

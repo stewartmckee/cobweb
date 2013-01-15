@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.4
+  fixed bug.. sinatra settings.root missing
+
 1.0.3
   added ability to set exceptions to be raised in host application
   
