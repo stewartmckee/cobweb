@@ -47,6 +47,7 @@ class Cobweb
     default_obey_robots_to                    false
     default_user_agent_to                     "cobweb/#{Cobweb.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"
     default_valid_mime_types_to                ["*/*"]
+    default_raise_exceptions_to               false
     
   end
   
@@ -205,6 +206,7 @@ class Cobweb
           redis.expire unique_id, @options[:cache].to_i
         end
       rescue RedirectError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR RedirectError: #{e.message}"
         
         ## generate a blank content
@@ -220,6 +222,7 @@ class Cobweb
         content[:links] = {}
         
       rescue SocketError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
@@ -235,6 +238,7 @@ class Cobweb
         content[:links] = {}
         
       rescue Timeout::Error => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
@@ -342,6 +346,7 @@ class Cobweb
           end
         end
       rescue RedirectError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR RedirectError: #{e.message}"
 
         ## generate a blank content
@@ -357,6 +362,7 @@ class Cobweb
         content[:links] = {}
 
       rescue SocketError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
@@ -372,6 +378,7 @@ class Cobweb
         content[:links] = {}
         
       rescue Timeout::Error => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content

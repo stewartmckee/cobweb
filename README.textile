@@ -1,5 +1,5 @@
 
-h1. Cobweb v1.0.2
+h1. Cobweb v1.0.3
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 
@@ -101,6 +101,7 @@ Creates a new crawler object based on a base_url
     ** :crawl_limit_by_page           - sets the crawl counter to only use html page types when counting objects crawled
     ** :valid_mime_types              - an array of mime types that takes wildcards (eg 'text/*') defaults to ['*/*']
     ** :direct_call_process_job       - boolean that specifies whether objects should be passed directly to a processing method or should be put onto a queue
+    ** :raise_exceptions              - defaults to handling exceptions with debug output, setting this to true will raise exceptions in your app
     
     
 bc. crawler = Cobweb.new(:follow_redirects => false)
