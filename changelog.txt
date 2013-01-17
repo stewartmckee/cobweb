@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+1.0.4
+  fixed bug.. sinatra settings.root missing
+
+1.0.3
+  added ability to set exceptions to be raised in host application
+  
 1.0.2
   added user-agent to options passed through
   updated specs to accept the new default user-agent
