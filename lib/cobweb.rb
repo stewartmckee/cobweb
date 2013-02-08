@@ -139,21 +139,20 @@ class Cobweb
       @http.read_timeout = @options[:timeout].to_i
       @http.open_timeout = @options[:timeout].to_i
       begin
-        print "Retrieving #{url }... " unless @options[:quiet]
+        puts "Retrieving #{url }... " unless @options[:quiet]
         request_options={}
         request_options['Cookie']= options[:cookies] if options.has_key?(:cookies)
         request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
 
         request = Net::HTTP::Get.new uri.request_uri, request_options
-
         response = @http.request request
-        
+
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
           puts "redirected... " unless @options[:quiet]
-          
+
           # get location to redirect to
           uri = UriHelper.join_no_fragment(uri, response['location'])
-          
+
           # decrement redirect limit
           redirect_limit = redirect_limit - 1
 
@@ -162,9 +161,10 @@ class Cobweb
 
           # get the content from redirect location
           content = get(uri, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
-          content[:url] = uri.to_s
-          content[:redirect_through] = [] if content[:redirect_through].nil?
+
+          content[:redirect_through] = [uri.to_s] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
+          content[:url] = content[:redirect_through].last
           
           content[:response_time] = Time.now.to_f - request_time
         else

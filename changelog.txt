@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.5
+  fixed bug in following redirects where the :redirect_through response wasn't correct
+
 1.0.4
   fixed bug.. sinatra settings.root missing
 
