@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+1.0.5
+  changed CobwebCrawler to output stats class rather than hash
+  added ability to store inbound links for pages
+
 1.0.4
   fixed bug.. sinatra settings.root missing
 

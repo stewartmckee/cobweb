@@ -36,7 +36,11 @@ class Stats
   def get_crawled
     @redis.smembers "crawled"
   end
-  
+
+  def inbound_links_for(url, redis=@redis)
+    @redis.smembers("inbound_links_#{Digest::MD5.hexdigest(url)}")
+  end
+
   # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  
   def update_statistics(content, crawl_counter=@redis.scard("crawled").to_i, queue_counter=@redis.scard("queued").to_i)
     

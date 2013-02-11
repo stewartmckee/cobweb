@@ -54,6 +54,7 @@ class CobwebCrawler
       while queue_counter>0 && (@options[:crawl_limit].to_i == 0 || @options[:crawl_limit].to_i > crawl_counter)      
         thread = Thread.new do
         
+
           url = @redis.spop "queued"
           queue_counter = 0 if url.nil?
 
@@ -76,6 +77,8 @@ class CobwebCrawler
                 cobweb_links = CobwebLinks.new(@options)
 
                 internal_links = internal_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s))}
+
+                all_internal_links = internal_links
                 
                 # reject the link if we've crawled it or queued it
                 internal_links.reject!{|link| @redis.sismember("crawled", link)}
@@ -90,6 +93,12 @@ class CobwebCrawler
                   children << link
                   @redis.hset "navigation", url, children
                   queue_counter += 1
+                end
+
+                if @options[:store_refered_url]
+                  all_internal_links.each do |link|
+                    @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(link)}", url)
+                  end
                 end
               
                 crawl_counter = @redis.scard("crawled").to_i
@@ -117,7 +126,7 @@ class CobwebCrawler
     ensure
       @stats.end_crawl(@options)
     end
-    @stats.get_statistics
+    @stats
   end
   
 end

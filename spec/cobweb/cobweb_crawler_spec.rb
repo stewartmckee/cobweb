@@ -32,7 +32,7 @@ describe CobwebCrawler do
       statistics = crawler.crawl(@base_url)
       
       statistics.should_not be_nil
-      statistics.should be_an_instance_of Hash
+      statistics.get_statistics.should be_an_instance_of Hash
       
     end
     
@@ -48,7 +48,7 @@ describe CobwebCrawler do
       end
       
       statistics.should_not be_nil
-      statistics.should be_an_instance_of Hash
+      statistics.get_statistics.should be_an_instance_of Hash
       
     end
   end  
