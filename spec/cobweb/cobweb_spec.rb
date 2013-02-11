@@ -90,34 +90,21 @@ describe Cobweb do
       before(:each) do
         @base_url = "http://redirect-me.com/redirect.html"
         @cobweb = Cobweb.new(:follow_redirects => true, :quiet => true, :cache => nil)
-        
-        @mock_http_response.stub!(:[]).with("location").and_return("http://google.com/")
-        @mock_http_redirect_response.stub!(:[]).with("location").and_return("http://redirected-to.com/redirect2.html")
-        @mock_http_redirect_response2.stub!(:[]).with("location").and_return("http://redirected-to.com/redirected.html")
-        
       end
       
-      it "should flow through redirect" #do
+      it "should return final page from redirects" do
+        content = @cobweb.get(@base_url)
+        content.should be_an_instance_of Hash
+        content[:url].should == "http://redirected-to.com/redirected.html"
+        content[:mime_type].should == "text/html"
+        content[:body].should == "asdf"
+      end
+      it "should return the path followed" do
         
-        #@mock_http_client.should_receive(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)
-        #@mock_http_client.should_receive(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)
-        #
-        #content = @cobweb.get(@base_url)
-        #content.should be_an_instance_of HashHelper
-        #ap content
-        #content[:url].should == "http://redirect-me.com/redirect.html"
-        #content[:redirect_through].length.should == 2
-        #content[:mime_type].should == "text/html"
-        #content[:body].should == "asdf"
+        content = @cobweb.get(@base_url)
+        content[:redirect_through].should == ["http://redirect-me.com/redirect.html", "http://redirected-to.com/redirect2.html", "http://redirected-to.com/redirected.html"]
         
-      #end
-      it "should return the path followed" #do
-        #@mock_http_client.should_receive(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)
-        #
-        #content = @cobweb.get(@base_url)
-        #content[:redirect_through].should == ["http://redirected-to.com/redirect2.html", "http://redirected-to.com/redirected.html"]
-        
-      #end
+      end
       it "should not follow with redirect disabled" do
         @cobweb = Cobweb.new(:follow_redirects => false, :cache => 3)
         @mock_http_client.should_receive(:request).with(@mock_http_redirect_request).and_return(@mock_http_redirect_response)

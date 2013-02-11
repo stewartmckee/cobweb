@@ -3,8 +3,8 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe CobwebModule::Crawl, :local_only => true do
 
   before(:each) do
-    @local_redis = {:host => "127.0.0.1", :port => 6379}
-    @remote_redis = {:host => "192.168.100.16", :port => 6379}
+    @local_redis = {:host => "localhost", :port => 6379}
+    @remote_redis = {:host => "remote-redis", :port => 6379}
     
     @request = {:crawl_id => "test_crawl_id"}
   end
