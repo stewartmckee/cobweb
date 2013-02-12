@@ -39,6 +39,7 @@ class CobwebCrawler
   # Initiates a crawl starting at the base_url and applying the options supplied. Can also take a block that is executed and passed content hash and statistic hash'
   def crawl(base_url, crawl_options = {}, &block)
     @options[:base_url] = base_url unless @options.has_key? :base_url
+    @options[:thread_count] = 1 unless @options.has_key? :thread_count
     
     @options[:internal_urls] << base_url if @options[:internal_urls].empty?
     @redis.sadd("internal_urls", base_url) if @options[:internal_urls].empty?
@@ -46,87 +47,110 @@ class CobwebCrawler
     @crawl_options = crawl_options
     
     @redis.sadd("queued", base_url) unless base_url.nil? || @redis.sismember("crawled", base_url) || @redis.sismember("queued", base_url)
-    crawl_counter = @redis.scard("crawled").to_i
-    queue_counter = @redis.scard("queued").to_i
+    @crawl_counter = @redis.scard("crawled").to_i
+    @queue_counter = @redis.scard("queued").to_i
 
+    @threads = []
     begin
       @stats.start_crawl(@options)
-      while queue_counter>0 && (@options[:crawl_limit].to_i == 0 || @options[:crawl_limit].to_i > crawl_counter)      
-        thread = Thread.new do
-        
+      
+      @threads << Thread.new do
+        Thread.abort_on_exception = true
+        spawn_thread(&block)
+      end
 
-          url = @redis.spop "queued"
-          queue_counter = 0 if url.nil?
-
-          @options[:url] = url
-          unless @redis.sismember("crawled", url.to_s)
-            begin
-              @stats.update_status("Requesting #{url}...")
-              content = @cobweb.get(url) unless url.nil?
-              if content.nil?
-                queue_counter = queue_counter - 1 #@redis.scard("queued").to_i
-              else
-                @stats.update_status("Processing #{url}...")
-
-                @redis.sadd "crawled", url.to_s
-                @redis.incr "crawl-counter" 
-              
-                internal_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
-
-                # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
-                cobweb_links = CobwebLinks.new(@options)
-
-                internal_links = internal_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s))}
-
-                all_internal_links = internal_links
-                
-                # reject the link if we've crawled it or queued it
-                internal_links.reject!{|link| @redis.sismember("crawled", link)}
-                internal_links.reject!{|link| @redis.sismember("queued", link)}
-                internal_links.reject!{|link| link.nil? || link.empty?}
-              
-                internal_links.each do |link|
-                  puts "Added #{link.to_s} to queue" if @debug
-                  @redis.sadd "queued", link unless link.nil?
-                  children = @redis.hget("navigation", url)
-                  children = [] if children.nil?
-                  children << link
-                  @redis.hset "navigation", url, children
-                  queue_counter += 1
-                end
-
-                if @options[:store_refered_url]
-                  all_internal_links.each do |link|
-                    @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(link)}", url)
-                  end
-                end
-              
-                crawl_counter = @redis.scard("crawled").to_i
-                queue_counter = @redis.scard("queued").to_i
-              
-                @stats.update_statistics(content, crawl_counter, queue_counter)
-                @stats.update_status("Completed #{url}.")
-                yield content, @stats.get_statistics if block_given?
-              end
-            rescue => e
-              puts "Error loading #{url}: #{e}"
-              #puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
-              #ap e
-              #ap e.backtrace
-            ensure
-              crawl_counter = @redis.scard("crawled").to_i
-              queue_counter = @redis.scard("queued").to_i
+      sleep 5
+      while running_thread_count > 0
+        if @queue_counter > 0
+          (@options[:thread_count]-running_thread_count).times.each do
+            @threads << Thread.new do
+              Thread.abort_on_exception = true
+              spawn_thread(&block)
             end
-          else
-            puts "Already crawled #{@options[:url]}" if @debug
           end
         end
-        thread.join
+        sleep 1
       end
+      
     ensure
       @stats.end_crawl(@options)
     end
     @stats
+  end
+
+  def spawn_thread(&block)
+      while @queue_counter>0 && (@options[:crawl_limit].to_i == 0 || @options[:crawl_limit].to_i > @crawl_counter)
+        url = @redis.spop "queued"
+      @queue_counter = 0 if url.nil?
+
+      @options[:url] = url
+      unless @redis.sismember("crawled", url.to_s)
+        begin
+          @stats.update_status("Requesting #{url}...")
+          content = @cobweb.get(url) unless url.nil?
+          if content.nil?
+            @queue_counter = @queue_counter - 1 #@redis.scard("queued").to_i
+          else
+            @stats.update_status("Processing #{url}...")
+
+            @redis.sadd "crawled", url.to_s
+            @redis.incr "crawl-counter" 
+          
+            internal_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
+
+            # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
+            cobweb_links = CobwebLinks.new(@options)
+
+            internal_links = internal_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s))}
+
+            all_internal_links = internal_links
+            
+            # reject the link if we've crawled it or queued it
+            internal_links.reject!{|link| @redis.sismember("crawled", link)}
+            internal_links.reject!{|link| @redis.sismember("queued", link)}
+            internal_links.reject!{|link| link.nil? || link.empty?}
+          
+            internal_links.each do |link|
+              puts "Added #{link.to_s} to queue" if @debug
+              @redis.sadd "queued", link unless link.nil?
+              children = @redis.hget("navigation", url)
+              children = [] if children.nil?
+              children << link
+              @redis.hset "navigation", url, children
+              @queue_counter += 1
+            end
+
+            if @options[:store_refered_url]
+              all_internal_links.each do |link|
+                @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(link)}", url)
+              end
+            end
+          
+            @crawl_counter = @redis.scard("crawled").to_i
+            @queue_counter = @redis.scard("queued").to_i
+          
+            @stats.update_statistics(content, @crawl_counter, @queue_counter)
+            @stats.update_status("Completed #{url}.")
+            yield content, @stats.get_statistics if block_given?
+          end
+        rescue => e
+          puts "Error loading #{url}: #{e}"
+          #puts "!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!"
+          #ap e
+          #ap e.backtrace
+        ensure
+          @crawl_counter = @redis.scard("crawled").to_i
+          @queue_counter = @redis.scard("queued").to_i
+        end
+      else
+        puts "Already crawled #{@options[:url]}" if @debug
+      end
+    end
+    Thread.exit
+  end
+
+  def running_thread_count
+    @threads.map{|t| t.status}.select{|status| status=="run" || status == "sleep"}.count
   end
   
 end

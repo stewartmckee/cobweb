@@ -1,5 +1,5 @@
 
-h1. Cobweb v1.0.6
+h1. Cobweb v1.0.8
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 
@@ -151,6 +151,10 @@ bc. statistics = CobwebCrawler.new(:cache => 600).crawl("http://www.pepsico.com"
   puts "Just crawled #{page[:url]} and got a status of #{page[:status_code]}."
 end
 puts "Finished Crawl with #{statistics[:page_count]} pages and #{statistics[:asset_count]} assets."
+
+There are some specific options for CobwebCrawler in addition to the normal cobweb options
+
+  * thread_count - specifies the number of threads used by the crawler, defaults to 1
 
 h3. CobwebCrawlHelper
 

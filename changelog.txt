@@ -1,5 +1,10 @@
 Change Log
 ==========
+1.0.8
+  fixed threading for cobwebcrawler
+
+1.0.7
+  added thread_count as an option for cobweb crawler (defaults to 1)
 
 1.0.6
   changed CobwebCrawler to output stats class rather than hash

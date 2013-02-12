@@ -127,10 +127,10 @@ class Cobweb
       content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
       # retrieve data
-      unless @http && @http.address == uri.host && @http.port == uri.inferred_port
+      #unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." if @options[:debug]
         @http = Net::HTTP.new(uri.host, uri.inferred_port)
-      end
+      #end
       if uri.scheme == "https"
         @http.use_ssl = true
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
