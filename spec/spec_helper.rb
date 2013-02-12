@@ -12,16 +12,17 @@ RSpec.configure do |config|
   if ENV["TRAVIS_RUBY_VERSION"] || ENV['CI']
     config.filter_run_excluding :local_only => true
   end
+
+  Thread.new do
+    @thin ||= Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
+  end
+
+  # WAIT FOR START TO COMPLETE
+  sleep 1
+
   
   config.before(:all) {
     # START THIN SERVER TO HOST THE SAMPLE SITE FOR CRAWLING
-    @thin = nil
-    Thread.new do
-      @thin = Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
-    end
-  
-    # WAIT FOR START TO COMPLETE
-    sleep 1
   }
   
   config.before(:each) {
