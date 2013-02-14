@@ -42,6 +42,7 @@ class Cobweb
     default_timeout_to                        10
     default_redis_options_to                  Hash.new
     default_internal_urls_to                  []
+    default_external_urls_to                  []
     default_first_page_redirect_internal_to   true
     default_text_mime_types_to                ["text/*", "application/xhtml+xml"]
     default_obey_robots_to                    false
@@ -49,7 +50,7 @@ class Cobweb
     default_valid_mime_types_to                ["*/*"]
     default_raise_exceptions_to               false
     default_store_refered_url_to              false
-    
+
   end
   
   # This method starts the resque based crawl and enqueues the base_url

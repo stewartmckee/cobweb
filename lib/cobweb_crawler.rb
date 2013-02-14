@@ -101,7 +101,7 @@ class CobwebCrawler
             # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
             cobweb_links = CobwebLinks.new(@options)
 
-            internal_links = internal_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s))}
+            internal_links = internal_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s) && !cobweb_links.matches_external?(link))}
 
             all_internal_links = internal_links
             
