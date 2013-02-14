@@ -17,14 +17,16 @@ class Server < Sinatra::Base
     @crawls = []
     @full_redis.smembers("cobweb_crawls").each do |crawl_id|
       version = cobweb_version(crawl_id)
-      redis = Redis::Namespace.new("cobweb-#{version}-#{crawl_id}", :redis => Redis.new(redis_options))
-      stats = HashUtil.deep_symbolize_keys({
-        :cobweb_version => version,
-        :crawl_details => redis.hgetall("crawl_details"),
-        :statistics => redis.hgetall("statistics"),
-        :minute_totals => redis.hgetall("minute_totals"),
-        })
-      @crawls << stats
+      if version == Cobweb.version
+        redis = Redis::Namespace.new("cobweb-#{version}-#{crawl_id}", :redis => Redis.new(redis_options))
+        stats = HashUtil.deep_symbolize_keys({
+          :cobweb_version => version,
+          :crawl_details => redis.hgetall("crawl_details"),
+          :statistics => redis.hgetall("statistics"),
+          :minute_totals => redis.hgetall("minute_totals"),
+          })
+        @crawls << stats
+      end
     end
     
     haml :home
