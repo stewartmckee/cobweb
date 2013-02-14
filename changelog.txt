@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.10
+  only show current version's crawls in statitics
+
 1.0.9
   improvements to external_urls
 
