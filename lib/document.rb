@@ -39,6 +39,14 @@ class DocumentScope
     @context.each(&block)
   end
 
+  def map(&block)
+    @context.map(&block)
+  end
+
+  def select(&block)
+    @context.select(&block)
+  end
+
   def [](value)
     @context ? @context[value] : ""
   end
