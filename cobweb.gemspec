@@ -27,4 +27,5 @@ Gem::Specification.new do |s|
   s.add_dependency('haml')
   s.add_dependency('namespaced_redis')
   s.add_dependency('json')
+  s.add_dependency('slop')
 end

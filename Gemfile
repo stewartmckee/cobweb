@@ -13,6 +13,7 @@ gem 'redis-namespace'
 gem 'rspec'
 gem 'rspec-core'
 gem 'mock_redis'
+gem 'slop'
 if ENV["TRAVIS_RUBY_VERSION"].nil?
   gem 'thin'
 end
