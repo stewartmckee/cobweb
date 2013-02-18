@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+1.0.11
+  added command line options report, export
+  report allows you to generate a csv with various data from your site
+  export downloads your site to your filesystem with page being stored as yaml
+
 1.0.10
   only show current version's crawls in statitics
 
