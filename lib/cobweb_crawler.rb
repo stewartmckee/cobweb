@@ -96,7 +96,7 @@ class CobwebCrawler
             @redis.sadd "crawled", url.to_s
             @redis.incr "crawl-counter" 
           
-            document_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
+            document_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https]).uniq
 
             # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
             cobweb_links = CobwebLinks.new(@options)
