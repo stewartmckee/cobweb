@@ -96,14 +96,12 @@ class CobwebCrawler
             @redis.sadd "crawled", url.to_s
             @redis.incr "crawl-counter" 
           
-            internal_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
+            document_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https])
 
             # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
             cobweb_links = CobwebLinks.new(@options)
 
-            internal_links = internal_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s) && !cobweb_links.matches_external?(link))}
-
-            all_internal_links = internal_links
+            internal_links = document_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s) && !cobweb_links.matches_external?(link))}
             
             # reject the link if we've crawled it or queued it
             internal_links.reject!{|link| @redis.sismember("crawled", link)}
@@ -120,8 +118,8 @@ class CobwebCrawler
               @queue_counter += 1
             end
 
-            if @options[:store_refered_url]
-              all_internal_links.each do |link|
+            if @options[:store_inbound_links]
+              document_links.each do |link|
                 @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(link)}", url)
               end
             end

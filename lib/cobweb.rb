@@ -49,7 +49,7 @@ class Cobweb
     default_user_agent_to                     "cobweb/#{Cobweb.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"
     default_valid_mime_types_to                ["*/*"]
     default_raise_exceptions_to               false
-    default_store_refered_url_to              false
+    default_store_inbound_links_to            false
 
   end
   
