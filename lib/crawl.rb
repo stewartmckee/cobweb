@@ -88,11 +88,12 @@ module CobwebModule
 
       @cobweb_links = CobwebLinks.new(@options)
       if within_queue_limits?
-        internal_links = ContentLinkParser.new(@options[:url], content.body, @options).all_links(:valid_schemes => [:http, :https])
+        document_links = ContentLinkParser.new(@options[:url], content.body, @options).all_links(:valid_schemes => [:http, :https])
         #get rid of duplicate links in the same page.
-        internal_links.uniq!
+        document_link.uniq!
+        
         # select the link if its internal
-        internal_links.select! { |link| @cobweb_links.internal?(link) }
+        internal_links = document_links.select! { |link| @cobweb_links.internal?(link) }
 
         # reject the link if we've crawled it or queued it
         internal_links.reject! { |link| @redis.sismember("crawled", link) }
@@ -109,6 +110,13 @@ module CobwebModule
             else
               debug_puts "Cannot enqueue new content as crawl has been cancelled."
             end
+          end
+        end
+
+        if @options[:store_inbound_links]
+          document_links.each do |link|
+            uri = URI.parse(link)
+            @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}", url)
           end
         end
       end

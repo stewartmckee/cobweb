@@ -120,7 +120,8 @@ class CobwebCrawler
 
             if @options[:store_inbound_links]
               document_links.each do |link|
-                @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(link)}", url)
+                uri = URI.parse(link)
+                @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}", url)
               end
             end
           

@@ -39,7 +39,8 @@ class Stats
   end
 
   def inbound_links_for(url, redis=@redis)
-    @redis.smembers("inbound_links_#{Digest::MD5.hexdigest(url)}")
+    uri = URI.parse(url)
+    @redis.smembers("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}")
   end
 
   # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  
