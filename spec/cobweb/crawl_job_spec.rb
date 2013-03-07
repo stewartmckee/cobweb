@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe Cobweb, :local_only => true, :disabled => true do
+describe CrawlJob, :local_only => true, :disabled => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards
@@ -251,7 +251,7 @@ def wait_for_crawl_finished(crawl_id, timeout=20)
   @counter = 0
   start_time = Time.now
   while(running?(crawl_id) && Time.now < start_time + timeout) do
-    sleep 0.5
+    sleep 1
   end
   if Time.now > start_time + timeout
     raise "End of crawl not detected"

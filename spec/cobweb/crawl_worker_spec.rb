@@ -1,18 +1,19 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 #require 'sidekiq/testing'
 
-describe Cobweb, :local_only => true do
+describe CrawlWorker, :local_only => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards
-    @existing_processes = `ps aux | grep sidekiq | grep -v grep | grep -v sidekiq-web | awk '{print $2}'`.split("\n")
+    @existing_processes = `ps aux | grep sidekiq | grep -v grep | awk '{print $2}'`.split("\n")
+    puts @existing_processes
     @existing_processes.should be_empty
   
     # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
     puts "Starting Workers... Please Wait..."
-    #{}`mkdir log`
-    #{}`rm -rf output.log`
-    #io = IO.popen("nohup sidekiq -r ./lib/crawl_worker.rb -q crawl_worker > ./log/output.log &")
+    `mkdir log`
+    `rm -rf output.log`
+    io = IO.popen("nohup sidekiq -r ./lib/crawl_worker.rb -q crawl_worker > ./log/output.log &")
     puts "Workers Started."
   
   end
@@ -130,8 +131,8 @@ describe Cobweb, :local_only => true do
           @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
           wait_for_crawl_finished crawl[:crawl_id]
         
-        
-          mime_types = CrawlProcessWorker.queue_items(0, 200).map{|job| job["args"][0]["mime_type"]}
+          mime_types = CrawlProcessWorker.queue_items(0, 200).map{|job| job["args"][0]["base_url"]}
+          puts mime_types
           mime_types.count.should == 70
           mime_types.select{|m| m=="text/html"}.count.should == 5
         end
@@ -203,10 +204,10 @@ describe Cobweb, :local_only => true do
 end
 
 def wait_for_crawl_finished(crawl_id, timeout=20)
-  counter = 0
+  @counter = 0
   start_time = Time.now
   while(running?(crawl_id) && Time.now < start_time + timeout) do
-    sleep 0.5
+    sleep 1
   end
   if Time.now > start_time + timeout
     raise "End of crawl not detected"
@@ -214,14 +215,30 @@ def wait_for_crawl_finished(crawl_id, timeout=20)
 end
 
 def running?(crawl_id)
-  @stat.get_status != "Crawl Finished"
+  status = @stat.get_status
+  result = true
+  if status == CobwebCrawlHelper::STARTING
+    result = true
+  else
+    if status == @last_stat
+      if @counter > 20
+        raise "Static status: #{status}"
+      else
+        @counter += 1
+      end
+    else
+      result = status != CobwebCrawlHelper::FINISHED && status != CobwebCrawlHelper::CANCELLED
+    end
+  end
+  @last_stat = @stat.get_status
+  result
 end
 
 def clear_queues
   Sidekiq.redis do |conn|
     conn.smembers("queues").each do |queue_name|
       conn.del("queue:#{queue_name}")
-      #conn.srem("queues", queue_name)
+      conn.srem("queues", queue_name)
     end
   end
   sleep 2

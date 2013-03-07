@@ -3,7 +3,7 @@ source 'http://rubygems.org'
 gem 'rake'
 gem 'redis'
 gem 'resque'
-gem 'sidekiq', :git => "git://github.com/mperham/sidekiq.git"
+gem 'sidekiq'
 gem 'awesome_print'
 gem 'nokogiri'
 gem 'addressable'

@@ -89,12 +89,7 @@ class Cobweb
     if @options[:queue_system] == :resque
       Resque.enqueue(CrawlJob, request)
     elsif @options[:queue_system] == :sidekiq
-      puts "Queueing Start on Sidekiq"
-      if CrawlWorker.perform_async(request)
-        puts "Queued."
-      else
-        puts "Queue Failed"
-      end
+      CrawlWorker.perform_async(request)
     else
       raise "Unknown queue system: #{content_request[:queue_system]}"
     end
