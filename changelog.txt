@@ -1,6 +1,92 @@
 Change Log
 ==========
 
+1.0.11
+  added command line options report, export
+  report allows you to generate a csv with various data from your site
+  export downloads your site to your filesystem with page being stored as yaml
+
+1.0.10
+  only show current version's crawls in statitics
+
+1.0.9
+  improvements to external_urls
+
+1.0.8
+  fixed threading for cobwebcrawler
+
+1.0.7
+  added thread_count as an option for cobweb crawler (defaults to 1)
+
+1.0.6
+  changed CobwebCrawler to output stats class rather than hash
+  added ability to store inbound links for pages
+
+1.0.5
+  fixed bug in following redirects where the :redirect_through response wasn't correct
+
+1.0.4
+  fixed bug.. sinatra settings.root missing
+
+1.0.3
+  added ability to set exceptions to be raised in host application
+  
+1.0.2
+  added user-agent to options passed through
+  updated specs to accept the new default user-agent
+
+1.0.1
+  fixed bug where CobwebCrawler was going beyond the end of the queued urls 
+
+1.0.0
+  released version 1... yay!
+  some bug fixes
+
+0.0.77
+  removed some redundant locks
+  fixed bug where some locks deadlock
+  removed lock debug being output by default
+
+0.0.76
+  fixed bug with connecting to redis
+
+0.0.75
+  Content link parser now uses the base tag if it is available
+  added locking to crawl to get correct count of pages and limits
+
+0.0.74
+  Major refactor of CrawlJob moved logic out into CobwebModule::Crawl
+
+0.0.73
+  fixed bug in cancel crawl that didn't remove all items from queue
+  
+0.0.72
+  updating cancel crawl code
+
+0.0.71
+  added json to dependancies
+
+0.0.70
+  updates to detecting the end of a crawl
+
+0.0.69
+  refactored Crawl class to CobwebCrawlHelper as may cause clashes
+
+0.0.68
+  added Crawl class as a helper for crawls
+  added destroy method to stop a crawl running that is in progress
+
+0.0.67
+  changed logo on statistics web interface to cobweb
+
+0.0.66
+  updated server monitor to use redis options
+  updated default user agent to include versions of cobweb and relevant modules
+  changed crawl_job to directly use redis counters rather than storing them to more tightly integrate with other processes
+
+0.0.65
+  fixed bug with crawling same page multiple times
+
 0.0.64
   fixed bug if option was array
   updated readme to include cobweb_sample

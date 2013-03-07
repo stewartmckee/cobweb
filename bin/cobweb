@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+
+lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
+$LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
+
+require 'cobweb'
+require 'csv'
+require 'slop'
+
+include CobwebDSL
+
+opts = Slop.parse(:help => true) do
+  banner 'Usage: cobweb <command> [options]'
+
+  command :report do
+    banner 'Usage: cobweb report [options]'
+
+    on 'output=', 'Path to output data to'
+    on 'script=', "Script to generate report"
+  
+    on 'url=', 'URL to start crawl from'
+    on 'internal_urls=', 'Url patterns to include', :as => Array
+    on 'external_urls=', 'Url patterns to exclude', :as => Array
+    on 'seed_urls=', "Seed urls", :as => Array
+    on 'crawl_limit=', 'Limit the crawl to a number of urls', :as => Integer
+    on 'thread_count=', "Set the number of threads used", :as => Integer
+    on 'timeout=', "Sets the timeout for http requests", :as => Integer
+    on 'v', 'verbose', 'Display crawl information'
+    on 'd', 'debug', 'Display debug information'
+    on 'w', 'web_statistics', 'Start web stats server'
+
+    run do |opts, args|
+      ReportCommand.start(opts.to_hash.delete_if{|k,v| v.nil?})
+    end
+  end
+
+  command :export do
+    banner 'Usage: cobweb export [options]'
+
+    on 'url=', 'URL to start crawl from'
+    on 'internal_urls=', 'Url patterns to include', :as => Array
+    on 'external_urls=', 'Url patterns to exclude', :as => Array
+    on 'seed_urls=', "Seed urls", :as => Array
+    on 'crawl_limit=', 'Limit the crawl to a number of urls', :as => Integer
+    on 'thread_count=', "Set the number of threads used", :as => Integer
+    on 'timeout=', "Sets the timeout for http requests", :as => Integer
+    on 'v', 'verbose', 'Display crawl information'
+    on 'd', 'debug', 'Display debug information'
+    on 'w', 'web_statistics', 'Start web stats server'
+
+    run do |opts, args|
+      ExportCommand.start(opts.to_hash.delete_if{|k,v| v.nil?}, args[0])
+    end
+  end
+
+end

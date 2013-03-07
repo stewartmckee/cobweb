@@ -4,7 +4,6 @@ require 'resque'
 require "addressable/uri"
 require 'digest/sha1'
 require 'base64'
-require 'namespaced_redis'
 
 Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
   require file
@@ -45,14 +44,19 @@ class Cobweb
     default_quiet_to                          true
     default_debug_to                          false
     default_cache_to                          300
+    default_cache_type_to                     :crawl_based # other option is :full
     default_timeout_to                        10
     default_redis_options_to                  Hash.new
     default_internal_urls_to                  []
+    default_external_urls_to                  []
     default_first_page_redirect_internal_to   true
     default_text_mime_types_to                ["text/*", "application/xhtml+xml"]
     default_obey_robots_to                    false
-    default_user_agent_to                     "cobweb/#{CobwebVersion.version}} (ruby#{RUBY_VERSION}; nokogiri#{Nokogiri::VERSION})"
-    
+    default_user_agent_to                     "cobweb/#{Cobweb.version} (ruby/#{RUBY_VERSION} nokogiri/#{Nokogiri::VERSION})"
+    default_valid_mime_types_to                ["*/*"]
+    default_raise_exceptions_to               false
+    default_store_inbound_links_to            false
+
   end
   
   # This method starts the resque based crawl and enqueues the base_url
@@ -71,7 +75,7 @@ class Cobweb
     end
     
     request.merge!(@options)
-    @redis = NamespacedRedis.new(request[:redis_options], "cobweb-#{Cobweb.version}-#{request[:crawl_id]}")
+    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{request[:crawl_id]}", :redis => Redis.new(request[:redis_options]))
     @redis.set("original_base_url", base_url)
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
@@ -128,23 +132,24 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
     else
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
     end
+    full_redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
 
     content = {:base_url => url}
-  
+
     # check if it has already been cached
-    if redis.get(unique_id) and @options[:cache]
+    if ((@options[:cache_type] == :crawl_based && redis.get(unique_id)) || (@options[:cache_type] == :full && full_redis.get(unique_id))) && @options[:cache]
       puts "Cache hit for #{url}" unless @options[:quiet]
       content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
     else
       # retrieve data
-      unless @http && @http.address == uri.host && @http.port == uri.inferred_port
-        puts "Creating connection to #{uri.host}..." unless @options[:quiet]
+      #unless @http && @http.address == uri.host && @http.port == uri.inferred_port
+        puts "Creating connection to #{uri.host}..." if @options[:debug]
         @http = Net::HTTP.new(uri.host, uri.inferred_port)
-      end
+      #end
       if uri.scheme == "https"
         @http.use_ssl = true
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -154,21 +159,20 @@ class Cobweb
       @http.read_timeout = @options[:timeout].to_i
       @http.open_timeout = @options[:timeout].to_i
       begin
-        print "Retrieving #{url }... " unless @options[:quiet]
+        puts "Retrieving #{uri}... " unless @options[:quiet]
         request_options={}
-        if options[:cookies]
-          request_options[ 'Cookie']= options[:cookies]
-        end
-        request = Net::HTTP::Get.new uri.request_uri, request_options
+        request_options['Cookie']= options[:cookies] if options[:cookies]
+        request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
 
+        request = Net::HTTP::Get.new uri.request_uri, request_options
         response = @http.request request
-        
+
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
-          puts "redirected... " unless @options[:quiet]
-          
+
           # get location to redirect to
           uri = UriHelper.join_no_fragment(uri, response['location'])
-          
+          puts "Following Redirect to #{uri}... " unless @options[:quiet]
+
           # decrement redirect limit
           redirect_limit = redirect_limit - 1
 
@@ -177,10 +181,11 @@ class Cobweb
 
           # get the content from redirect location
           content = get(uri, options.merge(:redirect_limit => redirect_limit, :cookies => cookies))
-          content[:url] = uri.to_s
-          content[:redirect_through] = [] if content[:redirect_through].nil?
+
+          content[:redirect_through] = [uri.to_s] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
-        
+          content[:url] = content[:redirect_through].last
+          
           content[:response_time] = Time.now.to_f - request_time
         else
           content[:response_time] = Time.now.to_f - request_time
@@ -221,6 +226,7 @@ class Cobweb
           redis.expire unique_id, @options[:cache].to_i
         end
       rescue RedirectError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR RedirectError: #{e.message}"
         
         ## generate a blank content
@@ -236,6 +242,7 @@ class Cobweb
         content[:links] = {}
         
       rescue SocketError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
@@ -249,8 +256,9 @@ class Cobweb
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
-      
+        
       rescue Timeout::Error => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
@@ -265,8 +273,8 @@ class Cobweb
         content[:headers] = {}
         content[:links] = {}
       end
+      content
     end
-    content  
   end
 
   # Performs a HTTP HEAD request to the specified url applying the options supplied
@@ -287,9 +295,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}-#{options[:crawl_id]}")
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
     else
-      redis = NamespacedRedis.new(@options[:redis_options], "cobweb-#{Cobweb.version}")
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
     end
     
     content = {:base_url => url}
@@ -358,6 +366,7 @@ class Cobweb
           end
         end
       rescue RedirectError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR RedirectError: #{e.message}"
 
         ## generate a blank content
@@ -373,6 +382,7 @@ class Cobweb
         content[:links] = {}
 
       rescue SocketError => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
@@ -386,8 +396,9 @@ class Cobweb
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
-      
+        
       rescue Timeout::Error => e
+        raise e if @options[:raise_exceptions]
         puts "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
@@ -407,7 +418,7 @@ class Cobweb
     end
     
   end
-  
+
   # escapes characters with meaning in regular expressions and adds wildcard expression
   def self.escape_pattern_for_regex(pattern)
     pattern = pattern.gsub(".", "\\.")

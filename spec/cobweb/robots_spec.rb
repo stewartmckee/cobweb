@@ -8,7 +8,7 @@ describe Robots do
   
   describe "default user-agent" do
     before(:each) do
-      @options = {:url => "http://localhost/"}
+      @options = {:url => "http://localhost:3532/"}
     end
     
     it "should parse a valid robots.txt" do

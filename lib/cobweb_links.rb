@@ -35,6 +35,10 @@ class CobwebLinks
   def external?(link)
     @internal_patterns.select{|pattern| link.match(pattern)}.empty? || !@external_patterns.select{|pattern| link.match(pattern)}.empty?
   end
+
+  def matches_external?(link)
+    !@external_patterns.select{|pattern| link.match(pattern)}.empty?
+  end
   
 end
 

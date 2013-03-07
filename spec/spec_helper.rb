@@ -11,19 +11,20 @@ APP_ROOT = File.expand_path(File.dirname(__FILE__) + '/../')
 
 RSpec.configure do |config|
   
-  unless ENV["TRAVIS_RUBY_VERSION"].nil?
+  if ENV["TRAVIS_RUBY_VERSION"] || ENV['CI']
     config.filter_run_excluding :local_only => true
   end
+
+  Thread.new do
+    @thin ||= Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
+  end
+
+  # WAIT FOR START TO COMPLETE
+  sleep 1
+
   
   config.before(:all) {
     # START THIN SERVER TO HOST THE SAMPLE SITE FOR CRAWLING
-    @thin = nil
-    Thread.new do
-      @thin = Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
-    end
-  
-    # WAIT FOR START TO COMPLETE
-    sleep 1
   }
   
   config.before(:each) {
@@ -65,9 +66,10 @@ RSpec.configure do |config|
     
     Net::HTTP.stub!(:new).and_return(@mock_http_client)
     Net::HTTP::Get.stub!(:new).and_return(@mock_http_request)
-    Net::HTTP::Get.stub!(:new).with("/redirect.html", {}).and_return(@mock_http_redirect_request)
-    Net::HTTP::Get.stub!(:new).with("/robots.txt", {}).and_return(@mock_http_robot_request)
-    Net::HTTP::Get.stub!(:new).with("/redirect2.html", {}).and_return(@mock_http_redirect_request2)
+    Net::HTTP::Get.stub!(:new).with("/redirect.html", an_instance_of(Hash)).and_return(@mock_http_redirect_request)
+    Net::HTTP::Get.stub!(:new).with("/robots.txt", an_instance_of(Hash)).and_return(@mock_http_robot_request)
+    Net::HTTP::Get.stub!(:new).with("/redirect2.html", an_instance_of(Hash)).and_return(@mock_http_redirect_request2)
+    Net::HTTP::Get.stub!(:new).with("/redirected.html", an_instance_of(Hash)).and_return(@mock_http_request)
 
     Net::HTTP::Head.stub!(:new).and_return(@mock_http_request)
 
@@ -79,7 +81,7 @@ RSpec.configure do |config|
     @mock_http_client.stub!(:open_timeout=).and_return(nil)      
     @mock_http_client.stub!(:start).and_return(@mock_http_response)
     @mock_http_client.stub!(:address).and_return("www.baseurl.com")
-    @mock_http_client.stub!(:port).and_return("80 ")
+    @mock_http_client.stub!(:port).and_return("80")
     
     @mock_http_robot_response.stub!(:code).and_return(200)
     @mock_http_robot_response.stub!(:body).and_return(File.open(File.dirname(__FILE__) + '/../spec/samples/robots.txt', "r").read)

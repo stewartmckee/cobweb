@@ -3,6 +3,7 @@ class HashUtil
   
   # Returns a hash with the keys converted to symbols
   def self.deep_symbolize_keys(hash)
+    raise "Cannot symbolize keys for a nil object" if hash.nil?
     hash.keys.each do |key|
       value = hash[key]
       hash.delete(key)
