@@ -38,8 +38,8 @@ class Stats
     @redis.smembers "crawled"
   end
 
-  def inbound_links_for(url, redis=@redis)
-    uri = URI.parse(url)
+  def inbound_links_for(url)
+    uri = UriHelper.parse(url)
     @redis.smembers("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}")
   end
 

@@ -119,12 +119,12 @@ class CobwebCrawler
             end
 
             if @options[:store_inbound_links]
-              document_links.each do |link|
-                uri = URI.parse(link)
-                @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}", url)
+              document_links.each do |target_link|
+                target_uri = UriHelper.parse(target_link)
+                @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(target_uri.to_s)}", UriHelper.parse(url).to_s)
               end
             end
-          
+            
             @crawl_counter = @redis.scard("crawled").to_i
             @queue_counter = @redis.scard("queued").to_i
           

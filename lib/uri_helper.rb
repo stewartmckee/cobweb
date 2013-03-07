@@ -7,4 +7,12 @@ class UriHelper
     new_link
   end
 
+  def self.parse(url)
+    begin
+      URI.parse(url)
+    rescue URI::InvalidURIError
+      URI.parse(URI.escape(url))
+    end
+  end
+
 end
