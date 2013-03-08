@@ -17,15 +17,13 @@ describe CrawlJob, :local_only => true, :disabled => true do
     end
 
     # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
-    puts "Starting Workers... Please Wait..."
-    `mkdir log`
-    `mkdir tmp`
-    `mkdir tmp/pids`
+    `mkdir log` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../log'))
+    `mkdir tmp` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../tmp'))
+    `mkdir tmp/pids` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../tmp/pids'))
     io = IO.popen("nohup rake resque:workers INTERVAL=1 PIDFILE=./tmp/pids/resque.pid COUNT=#{RESQUE_WORKER_COUNT} QUEUE=cobweb_crawl_job > log/output.log &")
-    puts "Workers Starting..."
 
     counter = 0
-    print "Waiting for processes"
+    print "Starting Resque Processes"
     until counter > 10 || workers_processes_started?
       print "."
       counter += 1
@@ -35,7 +33,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
 
     counter = 0
-    print "Waiting for workers"
+    print "Waiting for Resque Workers"
     until counter > 50 || workers_running?
       print "."
       counter += 1

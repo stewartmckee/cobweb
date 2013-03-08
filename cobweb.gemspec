@@ -16,7 +16,6 @@ Gem::Specification.new do |s|
   s.require_path      = "lib"
   s.has_rdoc          = false
   s.extra_rdoc_files  = ["README.textile"]
-  s.add_dependency('resque')
   s.add_dependency('redis')
   s.add_dependency('nokogiri')
   s.add_dependency('addressable')

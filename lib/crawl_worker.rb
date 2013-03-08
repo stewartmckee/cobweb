@@ -85,7 +85,7 @@ class CrawlWorker
     additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url}
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
-    
+
     @crawl.finished
 
     @crawl.debug_puts "increment crawl_finished_enqueued_count"

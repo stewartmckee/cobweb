@@ -25,6 +25,8 @@ describe CobwebCrawler do
   describe "crawl" do
 
     it "should crawl a site" do
+      Net::HTTP.rspec_reset
+
       @crawler = CobwebCrawler.new({:cache => false, :quiet => true, :debug => false})
       @statistics = @crawler.crawl(@base_url)
 

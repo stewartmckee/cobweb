@@ -1,8 +1,6 @@
 RSpec.configure do |config|  
   config.before(:each) {
 
-    puts "Stubbing HTTP"
-
     @default_headers = {"Cache-Control" => "private, max-age=0",
                         "Date" => "Wed, 10 Nov 2010 09:06:17 GMT",
                         "Expires" => "-1",

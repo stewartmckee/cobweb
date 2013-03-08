@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require File.expand_path(File.dirname(__FILE__) + '/../../lib/content_link_parser.rb')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_http_stubs')
 
 describe ContentLinkParser do
 

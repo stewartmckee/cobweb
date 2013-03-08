@@ -68,8 +68,9 @@ describe CrawlWorker, :local_only => true do
       @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       CrawlProcessWorker.queue_size.should == 8
-      
-      mime_types = CrawlProcessWorker.queue_items(0, 100).map{|job| job["args"][0]["mime_type"]}
+
+      mime_types = CrawlProcessWorker.queue_items(0, 100).map{|job| JSON.parse(job)["args"][0]["mime_type"]}
+
       mime_types.count.should == 8
       mime_types.map{|m| m.should == "text/html"}
       mime_types.select{|m| m=="text/html"}.count.should == 8
@@ -131,9 +132,8 @@ describe CrawlWorker, :local_only => true do
           @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
           wait_for_crawl_finished crawl[:crawl_id]
         
-          mime_types = CrawlProcessWorker.queue_items(0, 200).map{|job| job["args"][0]["base_url"]}
-          puts mime_types
-          mime_types.count.should == 70
+          mime_types = CrawlProcessWorker.queue_items(0, 200).map{|job| JSON.parse(job)["args"][0]["mime_type"]}
+          ap mime_types
           mime_types.select{|m| m=="text/html"}.count.should == 5
         end
       end
