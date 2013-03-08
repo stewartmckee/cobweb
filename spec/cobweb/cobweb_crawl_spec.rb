@@ -1,10 +1,10 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
-require File.expand_path(File.dirname(__FILE__) + '/../spec_http_stubs')
 require 'resolv'
 
 describe CobwebModule::Crawl, :local_only => true do
-
+  include HttpStubs
   before(:each) do
+    setup_stubs
     
     @local_redis = {:host => "localhost", :port => 6379}
     @remote_redis = {:host => "remote-redis", :port => 6379}

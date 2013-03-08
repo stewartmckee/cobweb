@@ -1,9 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
-require File.expand_path(File.dirname(__FILE__) + '/../spec_http_stubs')
 
 describe Robots do
-
+  include HttpStubs
   before(:each) do
+    setup_stubs
     @cobweb = Cobweb.new :quiet => true, :cache => nil
   end
   

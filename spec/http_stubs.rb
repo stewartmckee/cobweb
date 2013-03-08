@@ -1,5 +1,6 @@
-RSpec.configure do |config|  
-  config.before(:each) {
+module HttpStubs
+
+  def setup_stubs
 
     @default_headers = {"Cache-Control" => "private, max-age=0",
                         "Date" => "Wed, 10 Nov 2010 09:06:17 GMT",
@@ -90,5 +91,5 @@ RSpec.configure do |config|
     @mock_http_redirect_response2.stub!(:body).and_return("redirected body")
     @mock_http_redirect_response2.stub!(:get_fields).with('set-cookie').and_return(["session=al98axx; expires=Fri, 31-Dec-1999 23:58:23", "query=rubyscript; expires=Fri, 31-Dec-1999 23:58:23"])
     @mock_http_redirect_response2.stub!(:to_hash).and_return(@default_headers)
-  }
+  end
 end
