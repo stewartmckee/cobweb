@@ -1,20 +1,53 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
+RESQUE_WORKER_COUNT = 10
+
 describe CrawlJob, :local_only => true, :disabled => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards
-    @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
 
-    @existing_processes.should be_empty
+    @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
+    if Resque.workers.count > 0 && @existing_processes.empty?
+      raise "Ghost workers present in resque, please clear before running specs"
+    elsif Resque.workers.count == 0 && !@existing_processes.empty?
+      raise "Ghost worker processes present (#{@existing_processes.join(',')})"
+    elsif Resque.workers.count > 0 && !@existing_processes.empty?
+      raise "Resque workers present, please end other resque processes before running this spec"
+    end
 
     # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
     puts "Starting Workers... Please Wait..."
     `mkdir log`
     `mkdir tmp`
     `mkdir tmp/pids`
-    io = IO.popen("nohup rake resque:workers INTERVAL=1 PIDFILE=./tmp/pids/resque.pid COUNT=10 QUEUE=cobweb_crawl_job > log/output.log &")
-    puts "Workers Started."
+    io = IO.popen("nohup rake resque:workers INTERVAL=1 PIDFILE=./tmp/pids/resque.pid COUNT=#{RESQUE_WORKER_COUNT} QUEUE=cobweb_crawl_job > log/output.log &")
+    puts "Workers Starting..."
+
+    counter = 0
+    print "Waiting for processes"
+    until counter > 10 || workers_processes_started?
+      print "."
+      counter += 1
+      sleep 0.5
+    end
+    puts ""
+
+
+    counter = 0
+    print "Waiting for workers"
+    until counter > 50 || workers_running?
+      print "."
+      counter += 1
+      sleep 0.5
+    end
+    puts ""
+
+    if Resque.workers.count == RESQUE_WORKER_COUNT
+      puts "Workers Running."
+    else
+      raise "Workers didn't appear, please check environment"
+    end
 
   end
 
@@ -239,7 +272,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
   after(:all) do
 
     @all_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
-    command = "kill -9 #{(@all_processes - @existing_processes).join(" ")}"
+    command = "kill -s QUIT #{(@all_processes - @existing_processes).join(" ")}"
     IO.popen(command)
 
     clear_queues
@@ -256,6 +289,16 @@ def wait_for_crawl_finished(crawl_id, timeout=20)
   if Time.now > start_time + timeout
     raise "End of crawl not detected"
   end
+end
+
+def workers_processes_started?
+  @all_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
+  @new_processes = @all_processes - @existing_processes
+  @new_processes.count == RESQUE_WORKER_COUNT
+end
+
+def workers_running?
+  Resque.workers.count > 0
 end
 
 def running?(crawl_id)
