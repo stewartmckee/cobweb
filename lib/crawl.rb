@@ -188,7 +188,6 @@ module CobwebModule
 
     def finished
       set_first_to_finish
-      debug_ap "CRAWL FINISHED  #{@options[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}"
       @stats.end_crawl(@options)
     end
 

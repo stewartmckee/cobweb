@@ -45,7 +45,6 @@ class Stats
 
   # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  
   def update_statistics(content, crawl_counter=@redis.scard("crawled").to_i, queue_counter=@redis.scard("queued").to_i)
-    
     @lock.synchronize {
       @statistics = get_statistics
       
@@ -95,6 +94,7 @@ class Stats
       else
         mime_counts = {content[:mime_type] => 1}
       end
+
       @statistics[:mime_counts] = mime_counts.to_json
 
       # record mime categories stats
@@ -152,18 +152,18 @@ class Stats
   # Returns the statistics hash
   def get_statistics
     
-    @statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
-    if @statistics[:status_counts].nil?
-      @statistics[:status_counts]
+    statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
+    if statistics[:status_counts].nil?
+      statistics[:status_counts]
     else
-      @statistics[:status_counts] = JSON.parse(@statistics[:status_counts])
+      statistics[:status_counts] = JSON.parse(statistics[:status_counts])
     end
-    if @statistics[:mime_counts].nil?
-      @statistics[:mime_counts]
+    if statistics[:mime_counts].nil?
+      statistics[:mime_counts]
     else
-      @statistics[:mime_counts] = JSON.parse(@statistics[:mime_counts])
+      statistics[:mime_counts] = JSON.parse(statistics[:mime_counts])
     end
-    @statistics
+    statistics
   end
   
   # Sets the current status of the crawl

@@ -1,16 +1,23 @@
+require 'sidekiq'
+require File.expand_path(File.dirname(__FILE__) + '/cobweb')
+require File.expand_path(File.dirname(__FILE__) + '/sidekiq/cobweb_helper')
 
-# CrawlJob defines a resque job to perform the crawl
-class CrawlJob
+# If your client is single-threaded, we just need a single connection in our Redis connection pool
+#Sidekiq.configure_client do |config|
+#  config.redis = { :namespace => 'x', :size => 1, :url => 'redis://localhost:6379/14' }
+#end
+
+# Sidekiq server is multi-threaded so our Redis connection pool size defaults to concurrency (-c)
+#Sidekiq.configure_server do |config|
+#  config.redis = { :namespace => 'x', :url => 'redis://localhost:6379/14' }
+#end
+
+class CrawlWorker
+  include Sidekiq::Worker
+  sidekiq_options queue: "crawl_worker"
+  sidekiq_options retry: false
   
-  require "net/https"  
-  require "uri"
-  require "redis"
-  
-  @queue = :cobweb_crawl_job
-  
-  # Resque perform method to maintain the crawl, enqueue found links and detect the end of crawl
-  def self.perform(content_request)
-    
+  def perform(content_request)
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
     
@@ -23,7 +30,6 @@ class CrawlJob
         # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
         @crawl.process_links do |link|
 
-          # enqueue the links to resque
           @crawl.debug_puts "ENQUEUED LINK: #{link}" 
           enqueue_content(content_request, link) 
 
@@ -66,47 +72,47 @@ class CrawlJob
         finished(content_request)
       end
     end
-    
   end
+  def self.jobs
+    Sidekiq.redis do |conn|
+      conn.smembers(get_sidekiq_options[:queue]).count
+    end
+  end
+  
 
-  # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
-  def self.finished(content_request)
+    # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
+  def finished(content_request)
     additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url}
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
     
+    @crawl.finished
+
     @crawl.debug_puts "increment crawl_finished_enqueued_count"
     @crawl.redis.incr("crawl_finished_enqueued_count")
-    Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
+    content_request[:crawl_finished_queue].constantize.perform_async(@crawl.statistics.merge(additional_stats))
   end
   
   # Enqueues the content to the processing queue setup in options
-  def self.send_to_processing_queue(content, content_request)
+  def send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
     if content_request[:direct_call_process_job]
-      #clazz = content_request[:processing_queue].to_s.constantize
-      clazz = const_get(content_request[:processing_queue])
+      clazz = content_request[:processing_queue].constantize
       clazz.perform(content_to_send)
-    elsif content_request[:use_encoding_safe_process_job]
-      content_to_send[:body] = Base64.encode64(content[:body])
-      content_to_send[:processing_queue] = content_request[:processing_queue]
-      Resque.enqueue(EncodingSafeProcessJob, content_to_send)
     else
-      Resque.enqueue(const_get(content_request[:processing_queue]), content_to_send)
+      content_request[:processing_queue].constantize.perform_async(content_to_send)
     end
     @crawl.debug_puts "#{content_request[:url]} has been sent for processing. use_encoding_safe_process_job: #{content_request[:use_encoding_safe_process_job]}"
   end
 
   private
   
-  
   # Enqueues content to the crawl_job queue
-  def self.enqueue_content(content_request, link)
+  def enqueue_content(content_request, link)
     new_request = content_request.clone
     new_request[:url] = link
     new_request[:parent] = content_request[:url]
-    #to help prevent accidentally double processing a link, let's mark it as queued just before the Resque.enqueue statement, rather than just after.
-    Resque.enqueue(CrawlJob, new_request)
+    CrawlWorker.perform_async(new_request)
   end
 
 end
