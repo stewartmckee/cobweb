@@ -11,7 +11,7 @@ describe Cobweb, :local_only => true, :disabled => true do
     `mkdir log`
     `mkdir tmp`
     `mkdir tmp/pids`
-    io = IO.popen("nohup rake resque:workers PIDFILE=./tmp/pids/resque.pid COUNT=10 QUEUE=cobweb_crawl_job > log/output.log &")
+    io = IO.popen("nohup rake resque:workers INTERVAL=1 PIDFILE=./tmp/pids/resque.pid COUNT=10 QUEUE=cobweb_crawl_job > log/output.log &")
     puts "Workers Started."
 
   end

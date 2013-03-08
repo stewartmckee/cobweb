@@ -84,6 +84,7 @@ class CrawlJob
   def self.send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
     if content_request[:direct_call_process_job]
+      #clazz = content_request[:processing_queue].to_s.constantize
       clazz = const_get(content_request[:processing_queue])
       clazz.perform(content_to_send)
     elsif content_request[:use_encoding_safe_process_job]

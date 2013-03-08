@@ -90,10 +90,10 @@ module CobwebModule
       if within_queue_limits?
         document_links = ContentLinkParser.new(@options[:url], content.body, @options).all_links(:valid_schemes => [:http, :https])
         #get rid of duplicate links in the same page.
-        document_link.uniq!
+        document_links.uniq!
         
         # select the link if its internal
-        internal_links = document_links.select! { |link| @cobweb_links.internal?(link) }
+        internal_links = document_links.select{ |link| @cobweb_links.internal?(link) }
 
         # reject the link if we've crawled it or queued it
         internal_links.reject! { |link| @redis.sismember("crawled", link) }
