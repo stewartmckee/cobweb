@@ -17,3 +17,7 @@ gem 'slop'
 if ENV["TRAVIS_RUBY_VERSION"].nil?
   gem 'thin'
 end
+
+group :test do
+  gem 'coveralls', require: false
+end
