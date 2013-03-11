@@ -2,7 +2,7 @@
 h1. Cobweb v1.0.11
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
-
+!https://badge.fury.io/rb/cobweb.png!:http://badge.fury.io/rb/cobweb
 !https://gemnasium.com/stewartmckee/cobweb.png!
 !https://coveralls.io/repos/stewartmckee/cobweb/badge.png?branch=master(Coverage Status)!:https://coveralls.io/r/stewartmckee/cobweb
 
