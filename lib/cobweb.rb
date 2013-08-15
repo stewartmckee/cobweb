@@ -137,8 +137,13 @@ class Cobweb
 
     # check if it has already been cached
     if ((@options[:cache_type] == :crawl_based && redis.get(unique_id)) || (@options[:cache_type] == :full && full_redis.get(unique_id))) && @options[:cache]
-      puts "Cache hit for #{url}" unless @options[:quiet]
-      content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
+      if @options[:cache_type] == :crawl_based 
+        puts "Cache hit for #{url}" unless @options[:quiet]
+        content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
+      else
+        puts "Cache hit for #{url}" unless @options[:quiet]
+        content = HashUtil.deep_symbolize_keys(Marshal.load(full_redis.get(unique_id)))
+      end
     else
       # retrieve data
       #unless @http && @http.address == uri.host && @http.port == uri.inferred_port
@@ -217,8 +222,13 @@ class Cobweb
         end
         # add content to cache if required
         if @options[:cache]
-          redis.set(unique_id, Marshal.dump(content))
-          redis.expire unique_id, @options[:cache].to_i
+          if @options[:cache_type] == :crawl_based
+            redis.set(unique_id, Marshal.dump(content))
+            redis.expire unique_id, @options[:cache].to_i
+          else
+            full_redis.set(unique_id, Marshal.dump(content))
+            full_redis.expire unique_id, @options[:cache].to_i
+          end
         end
       rescue RedirectError => e
         raise e if @options[:raise_exceptions]
