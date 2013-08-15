@@ -138,7 +138,7 @@ class Cobweb
     # check if it has already been cached
     if ((@options[:cache_type] == :crawl_based && redis.get(unique_id)) || (@options[:cache_type] == :full && full_redis.get(unique_id))) && @options[:cache]
       if @options[:cache_type] == :crawl_based 
-        puts "Cache hit for #{url}" unless @options[:quiet]
+        puts "Cache hit in crawl for #{url}" unless @options[:quiet]
         content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
       else
         puts "Cache hit for #{url}" unless @options[:quiet]
