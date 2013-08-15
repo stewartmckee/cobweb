@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+1.0.13
+  changed order of crawls listed in web statistics to be oldest last
+  fixed bug in time statitstcs on web view, they were an hour out of date.
+
 1.0.12
   added sidekiq support for processing
   fixed bug around full cache being set into crawl-based cache

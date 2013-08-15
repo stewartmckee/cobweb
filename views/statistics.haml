@@ -30,7 +30,7 @@
         %h2 Pages and Assets
         %span.hide
       .content
-        .caption Counts of assets and pages that have been crawled
+        .caption Counts of assets and pages that have been crawled over the last 30 mins
         %table.statics{:style => "width : 100%;"}
           %thead
             %tr
@@ -39,8 +39,7 @@
               %th{:style => "color: #006ba0;"} Assets
 
           %tbody
-            - (1..30).each do |minutes|
-              - date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+            - @dates.each do |date, minutes|
               %tr
                 %th= minutes
                 %td= @crawl[:pages_count][date]
@@ -88,7 +87,7 @@
 
           %tbody
             - (1..30).each do |minutes|
-              - date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
               %tr
                 %th= minutes
                 %td= @crawl[:status_200_count][date]
@@ -113,7 +112,7 @@
 
           %tbody
             - (1..30).each do |minutes|
-              - date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
+              - date = (DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
               %tr
                 %th= minutes
                 %td= @crawl[:mime_text_count][date]

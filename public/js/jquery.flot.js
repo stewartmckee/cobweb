@@ -56,7 +56,7 @@
                 xaxis: {
                     show: null, // null = auto-detect, true = always, false = never
                     position: "bottom", // or "top"
-                    mode: null, // null or "time"
+                    mode: "time", // null or "time"
                     color: null, // base color, labels, ticks
                     tickColor: null, // possibly different color of ticks, e.g. "rgba(0,0,0,0.15)"
                     transform: null, // null or f: number -> number to transform axis
@@ -77,7 +77,7 @@
                     tickSize: null, // number or [number, "unit"]
                     minTickSize: null, // number or [number, "unit"]
                     monthNames: null, // list of names of months
-                    timeformat: null, // format string to use
+                    timeformat: "%H:%M", // format string to use
                     twelveHourClock: false // 12 or 24 time in time mode
                 },
                 yaxis: {

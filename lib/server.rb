@@ -26,6 +26,7 @@ class Server < Sinatra::Base
           :minute_totals => redis.hgetall("minute_totals"),
           })
         @crawls << stats
+        @crawls.sort!{|a,b| b[:statistics][:crawl_started_at] <=> a[:statistics][:crawl_started_at]}
       end
     end
     
@@ -63,10 +64,8 @@ class Server < Sinatra::Base
         :pages_count => HashUtil.deep_symbolize_keys(redis.hgetall("pages_count")),
         :assets_count => HashUtil.deep_symbolize_keys(redis.hgetall("assets_count"))
     }
-    (1..30).each do |minutes|
-      date = (DateTime.now.new_offset(0) - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym
-    end
-    
+
+    @dates = (1..30).to_a.reverse.map{|minutes| [(DateTime.now - (minutes/1440.0)).strftime("%Y-%m-%d %H:%M").to_sym, minutes] }
     haml :statistics
   end
   

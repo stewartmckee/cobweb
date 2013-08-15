@@ -20,6 +20,7 @@ class Stats
         @redis.hset "crawl_details", key, options[key].to_s
       end
     end
+    @redis.hset "statistics", "crawl_started_at", DateTime.now
     @redis.hset "statistics", "current_status", CobwebCrawlHelper::STARTING
   end
   
@@ -31,6 +32,7 @@ class Stats
     else
       @redis.hset "statistics", "current_status", CobwebCrawlHelper::FINISHED
     end
+    @redis.hset "statistics", "crawl_finished_at", DateTime.now
     #@redis.del "crawl_details"
   end
   
