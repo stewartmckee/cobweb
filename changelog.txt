@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+1.0.12
+  added sidekiq support for processing
+  fixed bug around full cache being set into crawl-based cache
+
 1.0.11
   added command line options report, export
   report allows you to generate a csv with various data from your site
