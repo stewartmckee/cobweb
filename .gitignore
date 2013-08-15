@@ -6,3 +6,4 @@ dump.rdb
 tmp
 log
 atlassian-ide-plugin.xml
+coverage

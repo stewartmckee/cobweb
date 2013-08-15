@@ -6,6 +6,9 @@ require 'mock_redis'
 require 'thin' if ENV["TRAVIS_RUBY_VERSION"].nil?
 require 'sidekiq'
 
+require 'coveralls'
+Coveralls.wear!
+
 # Sets up the environment as test so that exceptions are raised
 ENVIRONMENT = "test"
 APP_ROOT = File.expand_path(File.dirname(__FILE__) + '/../')
