@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+1.0.14
+  added seed_list functionality
+  binding web statistics to 0.0.0.0 instead of 127.0.0.1
+  updated debug info for cache hits
+
 1.0.13
   changed order of crawls listed in web statistics to be oldest last
   fixed bug in time statitstcs on web view, they were an hour out of date.

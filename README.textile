@@ -1,5 +1,5 @@
 
-h1. Cobweb v1.0.13
+h1. Cobweb v1.0.14
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 !https://badge.fury.io/rb/cobweb.png!:http://badge.fury.io/rb/cobweb
@@ -106,6 +106,7 @@ Creates a new crawler object based on a base_url
     ** :crawl_id                      - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
     ** :internal_urls                 - an array of urls with * wildcards that represent urls internal to the site (ie pages within the same domain)
     ** :external_urls                 - an array of urls with * wildcards that represent urls external to the site (overrides internal_urls)
+    ** :seed_urls                     - an array of urls that are put into the queue regardless of any other setting, combine with {:external_urls => "*"} to limit to seed urls
     ** :obey_robots                   - boolean determining if robots.txt should be honoured. (default: false)
     ** :user_agent                    - user agent string to match in robots.txt (not sent as user_agent of requests yet) (default: cobweb)
     ** :crawl_limit_by_page           - sets the crawl counter to only use html page types when counting objects crawled
