@@ -49,6 +49,7 @@ class Cobweb
     default_redis_options_to                  Hash.new
     default_internal_urls_to                  []
     default_external_urls_to                  []
+    default_seed_urls_to                  []
     default_first_page_redirect_internal_to   true
     default_text_mime_types_to                ["text/*", "application/xhtml+xml"]
     default_obey_robots_to                    false
