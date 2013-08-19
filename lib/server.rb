@@ -7,6 +7,7 @@ class Server < Sinatra::Base
   set :root, File.dirname(__FILE__)
   set :views, settings.root + '/../views'
   set :public_folder, settings.root + '/../public'
+  set :bind, '0.0.0.0'
   enable :static
   
   # Sinatra Dashboard

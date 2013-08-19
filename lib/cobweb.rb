@@ -80,6 +80,8 @@ class Cobweb
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
     @redis.set("queue-counter", 1)
+
+    @options[:seed_urls].map{|link| @redis.sadd "queued", link }
     
     @stats = Stats.new(request)
     @stats.start_crawl(request)
@@ -138,10 +140,10 @@ class Cobweb
     # check if it has already been cached
     if ((@options[:cache_type] == :crawl_based && redis.get(unique_id)) || (@options[:cache_type] == :full && full_redis.get(unique_id))) && @options[:cache]
       if @options[:cache_type] == :crawl_based 
-        puts "Cache hit in crawl for #{url}" unless @options[:quiet]
+        puts "Cache hit in crawl for #{url}" #unless @options[:quiet]
         content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
       else
-        puts "Cache hit for #{url}" unless @options[:quiet]
+        puts "Cache hit for #{url}" #unless @options[:quiet]
         content = HashUtil.deep_symbolize_keys(Marshal.load(full_redis.get(unique_id)))
       end
     else

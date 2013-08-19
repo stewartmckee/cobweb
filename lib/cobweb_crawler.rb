@@ -23,7 +23,8 @@ class CobwebCrawler
     @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@crawl_id}", :redis => Redis.new(@options[:redis_options]))
     @options[:internal_urls] = [] if @options[:internal_urls].nil?
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
-
+    @options[:seed_urls].map{|link| @redis.sadd "queued", link }
+    
     @options[:crawl_linked_external] = false unless @options.has_key? :crawl_linked_external
     
     @debug = @options[:debug]
