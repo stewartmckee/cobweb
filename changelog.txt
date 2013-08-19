@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.15
+  post bug fix version bump... 
+
 1.0.14
   added seed_list functionality
   binding web statistics to 0.0.0.0 instead of 127.0.0.1
