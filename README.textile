@@ -1,5 +1,5 @@
 
-h1. Cobweb v1.0.15
+h1. Cobweb v1.0.16
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 !https://badge.fury.io/rb/cobweb.png!:http://badge.fury.io/rb/cobweb

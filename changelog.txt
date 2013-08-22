@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.16
+  remove forced output of cache hit notifications
+
 1.0.15
   post bug fix version bump... 
 
