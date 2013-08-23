@@ -157,7 +157,7 @@ class Cobweb
         @http.use_ssl = true
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
-      
+
       request_time = Time.now.to_f
       @http.read_timeout = @options[:timeout].to_i
       @http.open_timeout = @options[:timeout].to_i
@@ -168,6 +168,12 @@ class Cobweb
         request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
 
         request = Net::HTTP::Get.new uri.request_uri, request_options
+        # authentication
+        if @options[:authentication] == "basic"
+          raise ":username and :password are required if using basic authentication" unless @options[:username] && @options[:password]
+          request.basic_auth @options[:username], @options[:password]
+        end
+      
         response = @http.request request
 
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
@@ -324,7 +330,7 @@ class Cobweb
         @http.use_ssl = true
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
-      
+
       request_time = Time.now.to_f
       @http.read_timeout = @options[:timeout].to_i
       @http.open_timeout = @options[:timeout].to_i
@@ -335,6 +341,11 @@ class Cobweb
           request_options[ 'Cookie']= options[:cookies]
         end
         request = Net::HTTP::Head.new uri.request_uri, request_options
+        # authentication
+        if @options[:authentication] == "basic"
+          raise ":username and :password are required if using basic authentication" unless @options[:username] && @options[:password]
+          request.basic_auth @options[:username], @options[:password]
+        end
 
         response = @http.request request
 
