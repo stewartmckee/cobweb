@@ -1,4 +1,3 @@
-require 'sidekiq'
 require File.expand_path(File.dirname(__FILE__) + '/cobweb')
 require File.expand_path(File.dirname(__FILE__) + '/sidekiq/cobweb_helper')
 
@@ -14,8 +13,7 @@ require File.expand_path(File.dirname(__FILE__) + '/sidekiq/cobweb_helper')
 
 class CrawlWorker
   include Sidekiq::Worker
-  sidekiq_options queue: "crawl_worker"
-  sidekiq_options retry: false
+  sidekiq_options :queue => "crawl_worker", :retry => false if SIDEKIQ_INSTALLED
   
   def perform(content_request)
     # setup the crawl class to manage the crawl of this object

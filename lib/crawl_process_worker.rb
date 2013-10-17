@@ -1,5 +1,4 @@
 
-require 'sidekiq'
 require File.expand_path(File.dirname(__FILE__) + '/sidekiq/cobweb_helper')
 
 # If your client is single-threaded, we just need a single connection in our Redis connection pool
@@ -16,7 +15,7 @@ class CrawlProcessWorker
   
   include Sidekiq::Worker
 
-  sidekiq_options queue: "crawl_process_worker"
+  sidekiq_options queue: "crawl_process_worker" if SIDEKIQ_INSTALLED
   
   def perform(content)
     content = HashUtil.deep_symbolize_keys(content)
