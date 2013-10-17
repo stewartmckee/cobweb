@@ -1,4 +1,4 @@
-require 'sidekiq'
+
 require File.expand_path(File.dirname(__FILE__) + '/sidekiq/cobweb_helper')
 
 # If your client is single-threaded, we just need a single connection in our Redis connection pool
@@ -15,8 +15,7 @@ class CrawlFinishedWorker
   
   include Sidekiq::Worker
 
-  sidekiq_options queue: "crawl_finished_worker"
-  
+  sidekiq_options queue: "crawl_finished_worker" if SIDEKIQ_INSTALLED
   
   def perform(statistics)
     puts "Dummy Finished Job"

@@ -94,7 +94,6 @@ DEPENDENCIES
   resque
   rspec
   rspec-core
-  sidekiq
   sinatra
   slop
   thin

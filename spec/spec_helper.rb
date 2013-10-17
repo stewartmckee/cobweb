@@ -4,7 +4,6 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec/samples/sample_serve
 require File.expand_path(File.dirname(__FILE__) + '/../spec/http_stubs')
 require 'mock_redis'
 require 'thin' if ENV["TRAVIS_RUBY_VERSION"].nil?
-require 'sidekiq'
 
 require 'coveralls'
 Coveralls.wear!
