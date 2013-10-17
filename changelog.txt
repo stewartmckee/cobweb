@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.18
+  sidekiq gem now optional
+
 1.0.17
   added basic authentication support
 
