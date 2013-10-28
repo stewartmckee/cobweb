@@ -1,4 +1,5 @@
-if Gem::Specification.find_all_by_name("sidekiq", ">=3.0.0").count > 1
+
+if Gem::Specification.find_all_by_name("sidekiq", ">=1.0.0").count >= 1
   SIDEKIQ_INSTALLED = true
   require 'sidekiq'
 else

@@ -9,6 +9,9 @@ Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
   require file
 end
 
+puts Gem::Specification.find_all_by_name("sidekiq", ">=3.0.0") 
+
+
 # Cobweb class is used to perform get and head requests.  You can use this on its own if you wish without the crawler
 class Cobweb
   
