@@ -115,6 +115,8 @@ Creates a new crawler object based on a base_url
     ** :direct_call_process_job       - boolean that specifies whether objects should be passed directly to a processing method or should be put onto a queue
     ** :raise_exceptions              - defaults to handling exceptions with debug output, setting this to true will raise exceptions in your app
     ** :use_encoding_safe_process_job - Base64-encode the body when storing job in queue; set to true when you are expecting non-ASCII content (Default: false)
+    ** :proxy_addr                    - hostname of a proxy to use for crawling (e. g., 'myproxy.example.net', default: nil)
+    ** :proxy_port                    - port number of the proxy (default: nil)
     
     
 bc. crawler = Cobweb.new(:follow_redirects => false)

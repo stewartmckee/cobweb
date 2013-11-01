@@ -60,6 +60,8 @@ class Cobweb
     default_valid_mime_types_to                ["*/*"]
     default_raise_exceptions_to               false
     default_store_inbound_links_to            false
+    default_proxy_addr_to                     nil
+    default_proxy_port_to                     nil
 
   end
   
@@ -154,7 +156,7 @@ class Cobweb
       # retrieve data
       #unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." if @options[:debug]
-        @http = Net::HTTP.new(uri.host, uri.inferred_port)
+        @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
       #end
       if uri.scheme == "https"
         @http.use_ssl = true
@@ -327,7 +329,7 @@ class Cobweb
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." unless @options[:quiet]
-        @http = Net::HTTP.new(uri.host, uri.inferred_port)
+        @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
       end
       if uri.scheme == "https"
         @http.use_ssl = true
