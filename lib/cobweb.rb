@@ -221,11 +221,12 @@ class Cobweb
           if text_content?(content[:mime_type])
             if response["Content-Encoding"]=="gzip"
               content[:body] = Zlib::GzipReader.new(StringIO.new(response.body)).read
-            else
-              content[:body] = response.body
+            else              
+              content[:body] = response.body.force_encoding("ISO-8859-1").encode("UTF-8")
             end
           else
-            content[:body] = Base64.encode64(response.body)
+            content[:body] = response.body.force_encoding("ISO-8859-1").encode("UTF-8")
+            content[:body] = Base64.encode64(content[:body])
           end
           content[:location] = response["location"]
           content[:headers] = HashUtil.deep_symbolize_keys(response.to_hash)
