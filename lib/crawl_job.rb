@@ -23,12 +23,15 @@ class CrawlJob
         # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
         @crawl.process_links do |link|
 
-          # enqueue the links to resque
-          @crawl.debug_puts "ENQUEUED LINK: #{link}" 
-          enqueue_content(content_request, link) 
+          if @crawl.within_crawl_limits?
+            # enqueue the links to resque
+            @crawl.debug_puts "ENQUEUED LINK: #{link}" 
+            enqueue_content(content_request, link)
+          end
 
         end
-        
+    
+        @crawl.debug_puts "====== @crawl.to_be_processed?: #{@crawl.to_be_processed?}"
         if @crawl.to_be_processed?
           
           @crawl.process do
@@ -58,10 +61,10 @@ class CrawlJob
       # let the crawl know we're finished with this object
       @crawl.finished_processing
 
+
       # test queue and crawl sizes to see if we have completed the crawl
       @crawl.debug_puts "finished? #{@crawl.finished?}"
-      @crawl.debug_puts "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
-      if @crawl.finished? && @crawl.first_to_finish?
+      if @crawl.finished?
         @crawl.debug_puts "Calling crawl_job finished"
         finished(content_request)
       end
@@ -75,7 +78,9 @@ class CrawlJob
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
     
-    @crawl.debug_puts "increment crawl_finished_enqueued_count"
+    @crawl.finish
+
+    @crawl.debug_puts "increment crawl_finished_enqueued_count from #{@crawl.redis.get("crawl_finished_enqueued_count")}"
     @crawl.redis.incr("crawl_finished_enqueued_count")
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end

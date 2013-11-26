@@ -9,7 +9,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
     @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
     if Resque.workers.count > 0 && @existing_processes.empty?
-      raise "Ghost workers present in resque, please clear before running specs"
+      raise "Ghost workers present in resque, please clear before running specs (Resque::Worker.all.first.prune_dead_workers)"
     elsif Resque.workers.count == 0 && !@existing_processes.empty?
       raise "Ghost worker processes present (#{@existing_processes.join(',')})"
     elsif Resque.workers.count > 0 && !@existing_processes.empty?
@@ -23,25 +23,23 @@ describe CrawlJob, :local_only => true, :disabled => true do
     io = IO.popen("nohup rake resque:workers INTERVAL=1 PIDFILE=./tmp/pids/resque.pid COUNT=#{RESQUE_WORKER_COUNT} QUEUE=cobweb_crawl_job > log/output.log &")
 
     counter = 0
-    print "Starting Resque Processes"
     until counter > 10 || workers_processes_started?
-      print "."
+      print "\rStarting Resque Processes... #{10-counter} "
       counter += 1
-      sleep 0.5
+      sleep 1
     end
     puts ""
 
 
     counter = 0
-    print "Waiting for Resque Workers"
-    until counter > 50 || workers_running?
-      print "."
+    until counter > 30 || workers_running?
+      print "\rWaiting for Resque Workers... #{30-counter} "
       counter += 1
-      sleep 0.5
+      sleep 1
     end
     puts ""
 
-    if Resque.workers.count == RESQUE_WORKER_COUNT
+    if workers_running?
       puts "Workers Running."
     else
       raise "Workers didn't appear, please check environment"
@@ -62,10 +60,10 @@ describe CrawlJob, :local_only => true, :disabled => true do
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :crawl_limit => nil,
         :quiet => false,
-        :debug => false,
+        :debug => true,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
       @cobweb = Cobweb.new @request
     end
     it "should not crawl anything if nothing has started" do
@@ -95,10 +93,10 @@ describe CrawlJob, :local_only => true, :disabled => true do
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :crawl_limit => nil,
         :quiet => false,
-        :debug => false,
+        :debug => true,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
 
       @cobweb = Cobweb.new @request
     end
@@ -124,11 +122,11 @@ describe CrawlJob, :local_only => true, :disabled => true do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => false,
-        :debug => false,
+        :debug => true,
         :cache => nil,
         :valid_mime_types => ["text/html"]
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
       @cobweb = Cobweb.new @request
     end
 
@@ -150,10 +148,10 @@ describe CrawlJob, :local_only => true, :disabled => true do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => false,
-        :debug => false,
+        :debug => true,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => Redis.new)
+      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
     end
 
     # describe "crawling http://yepadeperrors.wordpress.com/ with limit of 20" do
@@ -226,6 +224,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
         @redis.get("crawl_job_enqueued_count").to_i.should_not == @base_page_count
       end
       it "should notify of crawl finished once" do
+        @redis.get("crawl_finished_enqueued_count").to_i.should == 0
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
@@ -280,11 +279,13 @@ end
 
 def wait_for_crawl_finished(crawl_id, timeout=20)
   @counter = 0
+  @timeout = timeout unless @timeout
   start_time = Time.now
   while(running?(crawl_id) && Time.now < start_time + timeout) do
     sleep 1
   end
-  if Time.now > start_time + timeout
+  if Time.now > start_time + @timeout
+    @timeout = 5
     raise "End of crawl not detected"
   end
 end
@@ -296,7 +297,7 @@ def workers_processes_started?
 end
 
 def workers_running?
-  Resque.workers.count > 0
+  Resque.workers.count == RESQUE_WORKER_COUNT
 end
 
 def running?(crawl_id)

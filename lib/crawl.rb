@@ -150,7 +150,7 @@ module CobwebModule
     end
 
     def to_be_processed?
-      (!finished? || within_process_limits?) && !@redis.sismember("enqueued", @options[:url])
+      !finished? && within_process_limits? && !@redis.sismember("enqueued", @options[:url])
     end
 
     def process(&block)
@@ -173,20 +173,33 @@ module CobwebModule
 
     def finished?
       print_counters
+      debug_puts @stats.get_status
+      if @stats.get_status == CobwebCrawlHelper::FINISHED
+        debug_puts "Already Finished!"
+      end  
       # if there's nothing left queued or the crawled limit has been reached and we're not still processing something
       if @options[:crawl_limit].nil? || @options[:crawl_limit] == 0
         if queue_counter == 0 && @redis.smembers("currently_running").empty?
-          finished
+          debug_puts "queue_counter is 0 and currently_running is empty so we're done"
+          #finished
           return true
         end
-      elsif (queue_counter == 0 && @redis.smembers("currently_running").empty?) || process_counter >= @options[:crawl_limit].to_i
-        finished
+      elsif (queue_counter == 0 || process_counter >= @options[:crawl_limit].to_i) && @redis.smembers("currently_running").empty?
+        #finished
+        debug_puts "queue_counter: #{queue_counter}, @redis.smembers(\"currently_running\").empty?: #{@redis.smembers("currently_running").empty?}, process_counter: #{process_counter}, @options[:crawl_limit].to_i: #{@options[:crawl_limit].to_i}"
         return true
       end
       false
     end
 
-    def finished
+    def finish
+      debug_puts ""
+      debug_puts "========================================================================"
+      debug_puts "finished crawl on #{@options[:url]}"
+      print_counters
+      debug_puts "========================================================================"
+      debug_puts ""
+
       set_first_to_finish
       @stats.end_crawl(@options)
     end
@@ -223,22 +236,22 @@ module CobwebModule
     end
 
     def lock(key, &block)
-      debug_puts "REQUESTING LOCK [#{key}]"
+      #debug_puts "REQUESTING LOCK [#{key}]"
       set_nx = @redis.setnx("#{key}_lock", "locked")
-      debug_puts "LOCK:#{key}:#{set_nx}"
+      #debug_puts "LOCK:#{key}:#{set_nx}"
       while !set_nx
-        debug_puts "===== WAITING FOR LOCK [#{key}] ====="
+        #debug_puts "===== WAITING FOR LOCK [#{key}] ====="
         sleep 0.01
         set_nx = @redis.setnx("#{key}_lock", "locked")
       end
 
-      debug_puts "RECEIVED LOCK [#{key}]"
+      #debug_puts "RECEIVED LOCK [#{key}]"
       @redis.expire("#{key}_lock", 10)
       begin
         result = yield
       ensure
         @redis.del("#{key}_lock")
-        debug_puts "LOCK RELEASED [#{key}]"
+        #debug_puts "LOCK RELEASED [#{key}]"
       end
       result
     end

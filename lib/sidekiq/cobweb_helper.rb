@@ -4,7 +4,7 @@ if Gem::Specification.find_all_by_name("sidekiq", ">=1.0.0").count >= 1
   require 'sidekiq'
 else
   SIDEKIQ_INSTALLED = false
-  puts "can't find sidekiq gem"
+  puts "sidekiq gem not installed, skipping crawl_worker specs"
 end
 
 module Sidekiq
