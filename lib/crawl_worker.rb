@@ -43,7 +43,7 @@ class CrawlWorker
 
             #if the enqueue counter has been requested update that
             if content_request.has_key?(:enqueue_counter_key)
-              enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
+              enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => RedisConnection.new(content_request[:redis_options]))
               current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
               enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
             end

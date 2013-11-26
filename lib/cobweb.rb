@@ -79,7 +79,7 @@ class Cobweb
     end
     
     request.merge!(@options)
-    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{request[:crawl_id]}", :redis => Redis.new(request[:redis_options]))
+    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{request[:crawl_id]}", :redis => RedisConnection.new(request[:redis_options]))
     @redis.set("original_base_url", base_url)
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
@@ -133,11 +133,11 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
     else
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
     end
-    full_redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
+    full_redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
 
     content = {:base_url => url}
 
@@ -312,9 +312,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
     else
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
     end
     
     content = {:base_url => url}

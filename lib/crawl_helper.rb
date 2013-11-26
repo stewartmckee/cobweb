@@ -15,7 +15,7 @@ class CrawlHelper
     content_request[:valid_mime_types] = ["*/*"] unless content_request.has_key? :valid_mime_types
     content_request[:queue_system] = content_request[:queue_system].to_sym
     
-    @redis = NamespacedRedis.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
+    @redis = NamespacedRedisConnection.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     @stats = Stats.new(content_request)
     
     @debug = content_request[:debug]
@@ -74,7 +74,7 @@ class CrawlHelper
 
             #if the enqueue counter has been requested update that
             if content_request.has_key? :enqueue_counter_key
-              enqueue_redis = NamespacedRedis.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
+              enqueue_redis = NamespacedRedisConnection.new(content_request[:redis_options], content_request[:enqueue_counter_namespace].to_s)
               current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
               enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
             end
