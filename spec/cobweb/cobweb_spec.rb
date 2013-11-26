@@ -52,15 +52,15 @@ describe Cobweb do
         @cobweb.get(@base_url)[:url].should == @base_url
       end
       it "should return correct content-type" do
-        @mock_http_response.stub!(:content_type).and_return("image/jpeg")
+        @mock_http_response.stub(:content_type).and_return("image/jpeg")
         @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
       end
       it "should return correct status-code" do
-        @mock_http_response.stub!(:code).and_return(404)
+        @mock_http_response.stub(:code).and_return(404)
         @cobweb.get(@base_url)[:status_code].should == 404
       end
       it "should return correct status-code" do
-        @mock_http_response.stub!(:code).and_return(404)
+        @mock_http_response.stub(:code).and_return(404)
         @cobweb.get(@base_url)[:status_code].should == 404
       end
       it "should return correct character_set" do
@@ -75,7 +75,7 @@ describe Cobweb do
       it "should return correct location" do
         @cobweb.get(@base_url)[:location].should == nil
 
-        @mock_http_response.stub!(:[]).with("location").and_return("http://google.com/")
+        @mock_http_response.stub(:[]).with("location").and_return("http://google.com/")
         @cobweb.get(@base_url)[:location].should == "http://google.com/"
       end
       it "should return correct headers" do
@@ -135,17 +135,17 @@ describe Cobweb do
           @cobweb.get(@base_url)[:url].should == @base_url
         end
         it "should return correct content-type" do
-          @mock_http_response.stub!(:content_type).and_return("image/jpeg")
+          @mock_http_response.stub(:content_type).and_return("image/jpeg")
           @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
           @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
         end
         it "should return correct status-code" do
-          @mock_http_response.stub!(:code).and_return(404)
+          @mock_http_response.stub(:code).and_return(404)
           @cobweb.get(@base_url)[:status_code].should == 404
           @cobweb.get(@base_url)[:status_code].should == 404
         end
         it "should return correct status-code" do
-          @mock_http_response.stub!(:code).and_return(404)
+          @mock_http_response.stub(:code).and_return(404)
           @cobweb.get(@base_url)[:status_code].should == 404
           @cobweb.get(@base_url)[:status_code].should == 404
         end
