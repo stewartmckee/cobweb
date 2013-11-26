@@ -31,7 +31,6 @@ class CrawlJob
 
         end
     
-        @crawl.debug_puts "====== @crawl.to_be_processed?: #{@crawl.to_be_processed?}"
         if @crawl.to_be_processed?
           
           @crawl.process do
@@ -60,7 +59,6 @@ class CrawlJob
     @crawl.lock("finished") do
       # let the crawl know we're finished with this object
       @crawl.finished_processing
-
 
       # test queue and crawl sizes to see if we have completed the crawl
       @crawl.debug_puts "finished? #{@crawl.finished?}"

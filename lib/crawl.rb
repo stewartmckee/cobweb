@@ -22,6 +22,15 @@ module CobwebModule
       @redis.sismember "queued", link
     end
 
+    def already_running?(link)
+      @redis.sismember "currently_running", link
+    end
+
+    def already_handled?(link)
+      already_crawled?(link) || already_queued?(link) || already_running?(link)
+    end
+
+
     # Returns true if the crawl count is within limits
     def within_crawl_limits?
       @options[:crawl_limit].nil? || crawl_counter < @options[:crawl_limit].to_i
@@ -50,16 +59,19 @@ module CobwebModule
     end
 
     def retrieve
-      unless @redis.sismember("currently_running", @options[:url])
-        @redis.sadd("currently_running", @options[:url])
-        unless already_crawled?
+
+      unless already_running? @options[:url]
+        unless already_crawled? @options[:url]
+          @redis.sadd("currently_running", @options[:url])
           if within_crawl_limits?
             @stats.update_status("Retrieving #{@options[:url]}...")
-            @content = Cobweb.new(@options).get(@options[:url], @options)
-            if @options[:url] == @redis.get("original_base_url")
-              @redis.set("crawled_base_url", @content[:base_url])
+            lock("update_queues") do
+              @content = Cobweb.new(@options).get(@options[:url], @options)
+              if @options[:url] == @redis.get("original_base_url")
+                @redis.set("crawled_base_url", @content[:base_url])
+              end
+              update_queues
             end
-            update_queues
 
             if content.permitted_type?
               ## update statistics
@@ -128,7 +140,7 @@ module CobwebModule
     end
 
     def update_queues
-      lock("update_queues") do
+      #lock("update_queues") do
         #@redis.incr "inprogress"
         # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
         @redis.srem "queued", @options[:url]
@@ -146,25 +158,27 @@ module CobwebModule
           increment_crawl_counter
         end
         decrement_queue_counter
-      end
+      #end
     end
 
     def to_be_processed?
-      !finished? && within_process_limits? && !@redis.sismember("enqueued", @options[:url])
+      !finished? && within_process_limits? && !@redis.sismember("queued", @options[:url])
     end
 
     def process(&block)
-      if @options[:crawl_limit_by_page]
-        if content.mime_type.match("text/html")
+      lock("process") do
+        if @options[:crawl_limit_by_page]
+          if content.mime_type.match("text/html")
+            increment_process_counter
+          end
+        else
           increment_process_counter
         end
-      else
-        increment_process_counter
-      end
-      @redis.sadd "enqueued", @options[:url]
+        #@redis.sadd "queued", @options[:url]
 
-      yield if block_given?
-      @redis.incr("crawl_job_enqueued_count")
+        yield if block_given?
+        @redis.incr("crawl_job_enqueued_count")
+      end
     end
 
     def finished_processing

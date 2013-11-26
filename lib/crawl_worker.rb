@@ -16,6 +16,7 @@ class CrawlWorker
   sidekiq_options :queue => "crawl_worker", :retry => false if SIDEKIQ_INSTALLED
   
   def perform(content_request)
+    puts "Performing for #{content_request["url"]}"
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
     
@@ -25,12 +26,17 @@ class CrawlWorker
       # if the crawled object is an object type we are interested
       if @crawl.content.permitted_type?
         
-        # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
-        @crawl.process_links do |link|
+        @crawl.lock("queue_links") do
+          # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
+          @crawl.process_links do |link|
 
-          @crawl.debug_puts "ENQUEUED LINK: #{link}" 
-          enqueue_content(content_request, link) 
+            if @crawl.within_crawl_limits? && !@crawl.already_handled?(link)
+              # enqueue the links to sidekiq
+              @crawl.debug_puts "QUEUED LINK: #{link}" 
+              enqueue_content(content_request, link)
+            end
 
+          end
         end
         
         if @crawl.to_be_processed?
@@ -38,7 +44,7 @@ class CrawlWorker
           @crawl.process do
 
             # enqueue to processing queue
-            @crawl.debug_puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
+            @crawl.debug_puts "SENT FOR PROCESSING [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
             send_to_processing_queue(@crawl.content.to_hash, content_request)
 
             #if the enqueue counter has been requested update that
@@ -64,8 +70,7 @@ class CrawlWorker
 
       # test queue and crawl sizes to see if we have completed the crawl
       @crawl.debug_puts "finished? #{@crawl.finished?}"
-      @crawl.debug_puts "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
-      if @crawl.finished? && @crawl.first_to_finish?
+      if @crawl.finished?
         @crawl.debug_puts "Calling crawl_job finished"
         finished(content_request)
       end
