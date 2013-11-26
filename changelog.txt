@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+1.0.19
+  updated redis connection to reuse existing connection
+  fixed some end of crawl detection bugs
+  updated specs for stub! deprecations
+  fixed small bug in worker start detection is spec
+  merged pull request #20 (Add missing config options, fix default values and layout)
+
 1.0.18
   sidekiq gem now optional
 
