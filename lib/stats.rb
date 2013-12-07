@@ -7,7 +7,11 @@ class Stats
   # Sets up redis usage for statistics
   def initialize(options)
     options[:redis_options] = {} unless options.has_key? :redis_options
-    @full_redis = Redis.new(options[:redis_options])
+    if options[:redis]
+      @full_redis = options[:redis]
+    else
+      @full_redis = Redis.new(options[:redis_options])
+    end
     @lock = Mutex.new
     @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => @full_redis)
   end
