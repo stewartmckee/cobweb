@@ -20,12 +20,13 @@ Gem::Specification.new do |s|
   s.add_dependency('redis')
   s.add_dependency('nokogiri')
   s.add_dependency('addressable')
-  s.add_dependency('rspec')
   s.add_dependency('awesome_print')
   s.add_dependency('sinatra')
-  s.add_dependency('thin')
   s.add_dependency('haml')
   s.add_dependency('namespaced_redis')
   s.add_dependency('json')
   s.add_dependency('slop')
+  
+  s.add_development_dependency('rspec')
+  s.add_development_dependency('thin')
 end

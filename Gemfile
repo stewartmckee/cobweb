@@ -1,5 +1,7 @@
 source 'http://rubygems.org'
 
+gemspec
+
 gem 'rake'
 gem 'redis'
 gem 'resque'
@@ -16,10 +18,10 @@ gem 'rspec'
 gem 'rspec-core'
 gem 'mock_redis'
 gem 'slop'
-if ENV["TRAVIS_RUBY_VERSION"].nil?
-  gem 'thin'
-end
 
 group :test do
-  gem 'coveralls', require: false
+  if ENV["TRAVIS_RUBY_VERSION"].nil?
+    gem 'thin', :require => false
+  end
+  gem 'coveralls', :require => false
 end
