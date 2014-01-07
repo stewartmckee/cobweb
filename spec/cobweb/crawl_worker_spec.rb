@@ -8,8 +8,8 @@ describe CrawlWorker, :local_only => true do
     if SIDEKIQ_INSTALLED    
       #store all existing resque process ids so we don't kill them afterwards
       @existing_processes = `ps aux | grep sidekiq | grep -v grep | awk '{print $2}'`.split("\n")
-      puts @existing_processes
-      @existing_processes.should be_empty
+
+      raise "Sidekiq is already running, please stop before running specs." if @existing_processes.count > 0
     
       # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
       puts "Starting Workers... Please Wait..."
@@ -34,7 +34,7 @@ describe CrawlWorker, :local_only => true do
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :crawl_limit => nil,
         :quiet => false,
-        :debug => false,
+        :debug => true,
         :cache => nil,
         :queue_system => :sidekiq
       }
@@ -60,6 +60,7 @@ describe CrawlWorker, :local_only => true do
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => true,
         :cache => nil,
+        :debug => true,
         :queue_system => :sidekiq,
         :valid_mime_types => ["text/html"]
       }
@@ -87,6 +88,7 @@ describe CrawlWorker, :local_only => true do
       @request = {
         :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
         :quiet => true,
+        :debug => true,
         :queue_system => :sidekiq,
         :cache => nil
       }
@@ -136,7 +138,6 @@ describe CrawlWorker, :local_only => true do
           wait_for_crawl_finished crawl[:crawl_id]
         
           mime_types = CrawlProcessWorker.queue_items(0, 200).map{|job| JSON.parse(job)["args"][0]["mime_type"]}
-          ap mime_types
           mime_types.select{|m| m=="text/html"}.count.should == 5
         end
       end
@@ -186,11 +187,11 @@ describe CrawlWorker, :local_only => true do
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlFinishedWorker.queue_size.should == 1
       end      
-      it "should not crawl 100 pages" do
+      it "should not crawl more than 100 pages" do
         crawl = @cobweb.start(@base_url)
         @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
-        CrawlProcessWorker.queue_size.should_not == 100
+        CrawlProcessWorker.queue_size.should_not > 100
       end      
     end    
   end
@@ -244,7 +245,7 @@ def clear_sidekiq_queues
       conn.srem("queues", queue_name)
     end
   end
-  sleep 2
+  sleep 5
   
   CrawlProcessWorker.queue_size.should == 0
   CrawlFinishedWorker.queue_size.should == 0

@@ -16,6 +16,7 @@ class CrawlWorker
   sidekiq_options :queue => "crawl_worker", :retry => false if SIDEKIQ_INSTALLED
   
   def perform(content_request)
+    puts "Performing for #{content_request["url"]}"
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
     
@@ -25,12 +26,17 @@ class CrawlWorker
       # if the crawled object is an object type we are interested
       if @crawl.content.permitted_type?
         
-        # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
-        @crawl.process_links do |link|
+        @crawl.lock("queue_links") do
+          # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
+          @crawl.process_links do |link|
 
-          @crawl.debug_puts "ENQUEUED LINK: #{link}" 
-          enqueue_content(content_request, link) 
+            if @crawl.within_crawl_limits? && !@crawl.already_handled?(link)
+              # enqueue the links to sidekiq
+              @crawl.debug_puts "QUEUED LINK: #{link}" 
+              enqueue_content(content_request, link)
+            end
 
+          end
         end
         
         if @crawl.to_be_processed?
@@ -38,12 +44,12 @@ class CrawlWorker
           @crawl.process do
 
             # enqueue to processing queue
-            @crawl.debug_puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
+            @crawl.debug_puts "SENT FOR PROCESSING [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
             send_to_processing_queue(@crawl.content.to_hash, content_request)
 
             #if the enqueue counter has been requested update that
             if content_request.has_key?(:enqueue_counter_key)
-              enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => Redis.new(content_request[:redis_options]))
+              enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => RedisConnection.new(content_request[:redis_options]))
               current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
               enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
             end
@@ -64,8 +70,7 @@ class CrawlWorker
 
       # test queue and crawl sizes to see if we have completed the crawl
       @crawl.debug_puts "finished? #{@crawl.finished?}"
-      @crawl.debug_puts "first_to_finish? #{@crawl.first_to_finish?}" if @crawl.finished?
-      if @crawl.finished? && @crawl.first_to_finish?
+      if @crawl.finished?
         @crawl.debug_puts "Calling crawl_job finished"
         finished(content_request)
       end
@@ -84,7 +89,7 @@ class CrawlWorker
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
 
-    @crawl.finished
+    @crawl.finish
 
     @crawl.debug_puts "increment crawl_finished_enqueued_count"
     @crawl.redis.incr("crawl_finished_enqueued_count")
@@ -94,6 +99,9 @@ class CrawlWorker
   # Enqueues the content to the processing queue setup in options
   def send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
+    content_to_send.keys.each do |key|
+      content_to_send[key] = content_to_send[key].force_encoding('UTF-8') if content_to_send[key].kind_of?(String)
+    end
     if content_request[:direct_call_process_job]
       clazz = content_request[:processing_queue].constantize
       clazz.perform(content_to_send)

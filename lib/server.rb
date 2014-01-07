@@ -12,14 +12,14 @@ class Server < Sinatra::Base
   
   # Sinatra Dashboard
   get '/' do
-    @full_redis = Redis.new(redis_options)
+    @full_redis = RedisConnection.new(redis_options)
     @colors = ["#00366f", "#006ba0", "#3F0BDB", "#396CB3"]
     
     @crawls = []
     @full_redis.smembers("cobweb_crawls").each do |crawl_id|
       version = cobweb_version(crawl_id)
       if version == Cobweb.version
-        redis = Redis::Namespace.new("cobweb-#{version}-#{crawl_id}", :redis => Redis.new(redis_options))
+        redis = Redis::Namespace.new("cobweb-#{version}-#{crawl_id}", :redis => RedisConnection.new(redis_options))
         stats = HashUtil.deep_symbolize_keys({
           :cobweb_version => version,
           :crawl_details => redis.hgetall("crawl_details"),
@@ -38,7 +38,7 @@ class Server < Sinatra::Base
   get '/statistics/:crawl_id' do
     
     version = cobweb_version(params[:crawl_id])
-    redis = Redis::Namespace.new("cobweb-#{version}-#{params[:crawl_id]}", :redis => Redis.new(redis_options))
+    redis = Redis::Namespace.new("cobweb-#{version}-#{params[:crawl_id]}", :redis => RedisConnection.new(redis_options))
     
     @statistics = HashUtil.deep_symbolize_keys(redis.hgetall("statistics"))
     if @statistics[:status_counts].nil?
@@ -71,7 +71,7 @@ class Server < Sinatra::Base
   end
   
   def cobweb_version(crawl_id)
-    redis = Redis.new(redis_options)
+    redis = RedisConnection.new(redis_options)
     key = redis.keys("cobweb-*-#{crawl_id}:queued").first
     
     key =~ /cobweb-(.*?)-(.*?):queued/

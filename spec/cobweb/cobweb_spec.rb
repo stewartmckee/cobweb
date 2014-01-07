@@ -31,6 +31,8 @@ describe Cobweb do
     options[:timeout].should == 10
     options[:redis_options].should == {}
     options[:internal_urls].should == []
+    options[:proxy_addr].should be_nil
+    options[:proxy_port].should be_nil
     
   end
   
@@ -52,15 +54,15 @@ describe Cobweb do
         @cobweb.get(@base_url)[:url].should == @base_url
       end
       it "should return correct content-type" do
-        @mock_http_response.stub!(:content_type).and_return("image/jpeg")
+        @mock_http_response.stub(:content_type).and_return("image/jpeg")
         @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
       end
       it "should return correct status-code" do
-        @mock_http_response.stub!(:code).and_return(404)
+        @mock_http_response.stub(:code).and_return(404)
         @cobweb.get(@base_url)[:status_code].should == 404
       end
       it "should return correct status-code" do
-        @mock_http_response.stub!(:code).and_return(404)
+        @mock_http_response.stub(:code).and_return(404)
         @cobweb.get(@base_url)[:status_code].should == 404
       end
       it "should return correct character_set" do
@@ -75,7 +77,7 @@ describe Cobweb do
       it "should return correct location" do
         @cobweb.get(@base_url)[:location].should == nil
 
-        @mock_http_response.stub!(:[]).with("location").and_return("http://google.com/")
+        @mock_http_response.stub(:[]).with("location").and_return("http://google.com/")
         @cobweb.get(@base_url)[:location].should == "http://google.com/"
       end
       it "should return correct headers" do
@@ -135,17 +137,17 @@ describe Cobweb do
           @cobweb.get(@base_url)[:url].should == @base_url
         end
         it "should return correct content-type" do
-          @mock_http_response.stub!(:content_type).and_return("image/jpeg")
+          @mock_http_response.stub(:content_type).and_return("image/jpeg")
           @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
           @cobweb.get(@base_url)[:mime_type].should == "image/jpeg"
         end
         it "should return correct status-code" do
-          @mock_http_response.stub!(:code).and_return(404)
+          @mock_http_response.stub(:code).and_return(404)
           @cobweb.get(@base_url)[:status_code].should == 404
           @cobweb.get(@base_url)[:status_code].should == 404
         end
         it "should return correct status-code" do
-          @mock_http_response.stub!(:code).and_return(404)
+          @mock_http_response.stub(:code).and_return(404)
           @cobweb.get(@base_url)[:status_code].should == 404
           @cobweb.get(@base_url)[:status_code].should == 404
         end
@@ -177,24 +179,32 @@ describe Cobweb do
     end
     describe "location setting" do
       it "Get should strip fragments" do
-        Net::HTTP.should_receive(:new).with("www.google.com", 80)
+        Net::HTTP.should_receive(:new).with("www.google.com", 80, nil, nil)
         Net::HTTP::Get.should_receive(:new).with("/", @default_options)
         @cobweb.get("http://www.google.com/#ignore")
       end
       it "head should strip fragments" do
-        Net::HTTP.should_receive(:new).with("www.google.com", 80)
+        Net::HTTP.should_receive(:new).with("www.google.com", 80, nil, nil)
         Net::HTTP::Head.should_receive(:new).with("/", {}).and_return(@mock_http_request)
         @cobweb.head("http://www.google.com/#ignore")
       end
       it "get should not strip path" do
-        Net::HTTP.should_receive(:new).with("www.google.com", 80)
+        Net::HTTP.should_receive(:new).with("www.google.com", 80, nil, nil)
         Net::HTTP::Get.should_receive(:new).with("/path/to/stuff", @default_options)
         @cobweb.get("http://www.google.com/path/to/stuff#ignore")
       end
       it "get should not strip query string" do
-        Net::HTTP.should_receive(:new).with("www.google.com", 80)
+        Net::HTTP.should_receive(:new).with("www.google.com", 80, nil, nil)
         Net::HTTP::Get.should_receive(:new).with("/path/to/stuff?query_string", @default_options)
         @cobweb.get("http://www.google.com/path/to/stuff?query_string#ignore")
+      end
+    end
+    describe "with proxy" do
+      it "provides proxy parameters to Net::HTTP" do
+        cobweb = Cobweb.new proxy_addr: 'proxy.example.com', proxy_port: 1234
+        Net::HTTP.should_receive(:new).with("www.google.com", 80, "proxy.example.com", 1234)
+
+        cobweb.get("http://www.google.com/")
       end
     end
 

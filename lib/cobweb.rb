@@ -9,6 +9,9 @@ Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
   require file
 end
 
+puts Gem::Specification.find_all_by_name("sidekiq", ">=3.0.0") 
+
+
 # Cobweb class is used to perform get and head requests.  You can use this on its own if you wish without the crawler
 class Cobweb
   
@@ -57,6 +60,8 @@ class Cobweb
     default_valid_mime_types_to                ["*/*"]
     default_raise_exceptions_to               false
     default_store_inbound_links_to            false
+    default_proxy_addr_to                     nil
+    default_proxy_port_to                     nil
 
   end
   
@@ -76,7 +81,7 @@ class Cobweb
     end
     
     request.merge!(@options)
-    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{request[:crawl_id]}", :redis => Redis.new(request[:redis_options]))
+    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{request[:crawl_id]}", :redis => RedisConnection.new(request[:redis_options]))
     @redis.set("original_base_url", base_url)
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
@@ -130,11 +135,11 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
     else
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
     end
-    full_redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
+    full_redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
 
     content = {:base_url => url}
 
@@ -151,7 +156,7 @@ class Cobweb
       # retrieve data
       #unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." if @options[:debug]
-        @http = Net::HTTP.new(uri.host, uri.inferred_port)
+        @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
       #end
       if uri.scheme == "https"
         @http.use_ssl = true
@@ -309,9 +314,9 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
     else
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => Redis.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
     end
     
     content = {:base_url => url}
@@ -324,7 +329,7 @@ class Cobweb
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." unless @options[:quiet]
-        @http = Net::HTTP.new(uri.host, uri.inferred_port)
+        @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
       end
       if uri.scheme == "https"
         @http.use_ssl = true
