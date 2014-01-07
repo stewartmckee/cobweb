@@ -1,4 +1,3 @@
-
 h1. Cobweb v1.0.19
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
@@ -155,7 +154,7 @@ The :processing_queue option is used to specify the class that contains the resq
 
 h3. CobwebCrawler
 
-CobwebCrawler is the standalone crawling class.  If you don't want to use redis and just want to crawl the site within your ruby process, you can use this class.
+CobwebCrawler is the standalone crawling class.  If you don't want to use resque or sidekiq and just want to crawl the site within your ruby process, you can use this class.
 
 bc. crawler = CobwebCrawler.new(:cache => 600) 
 statistics = crawler.crawl("http://www.pepsico.com")
