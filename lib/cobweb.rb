@@ -454,6 +454,10 @@ class Cobweb
     pattern = pattern.gsub("*", ".*?")
     pattern
   end
+
+  def clear_cache
+    
+  end
   
   private
   # checks if the mime_type is textual
