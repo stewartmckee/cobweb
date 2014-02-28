@@ -178,6 +178,9 @@ class Cobweb
           raise ":username and :password are required if using basic authentication" unless @options[:username] && @options[:password]
           request.basic_auth @options[:username], @options[:password]
         end
+        if @options[:range]
+          request.set_range(@options[:range])
+        end
       
         response = @http.request request
 

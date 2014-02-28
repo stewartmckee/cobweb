@@ -25,17 +25,15 @@ class CrawlWorker
     
       # if the crawled object is an object type we are interested
       if @crawl.content.permitted_type?
-        
-        @crawl.lock("queue_links") do
-          # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
-          @crawl.process_links do |link|
-
+                
+        # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
+        @crawl.process_links do |link|
+          @crawl.lock("queue_links") do
             if @crawl.within_crawl_limits? && !@crawl.already_handled?(link)
               # enqueue the links to sidekiq
               @crawl.debug_puts "QUEUED LINK: #{link}" 
               enqueue_content(content_request, link)
             end
-
           end
         end
         
@@ -64,7 +62,7 @@ class CrawlWorker
       end
     end
     
-    @crawl.lock("finished") do
+    #@crawl.lock("finished") do
       # let the crawl know we're finished with this object
       @crawl.finished_processing
 
@@ -74,7 +72,7 @@ class CrawlWorker
         @crawl.debug_puts "Calling crawl_job finished"
         finished(content_request)
       end
-    end
+    #end
   end
   def self.jobs
     Sidekiq.redis do |conn|
