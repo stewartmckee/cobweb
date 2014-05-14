@@ -134,7 +134,7 @@ module CobwebModule
 
         if @options[:store_inbound_links]
           document_links.each do |link|
-            uri = URI.parse(link)
+            uri = URI.parse(link).normalize
             @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}", url)
           end
         end
