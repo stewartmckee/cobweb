@@ -150,7 +150,13 @@ class CrawlHelper
     elsif content_request[:use_encoding_safe_process_job]
       content_to_send[:body] = Base64.encode64(content[:body])
       content_to_send[:processing_queue] = content_request[:processing_queue]
-      Resque.enqueue(EncodingSafeProcessJob, content_to_send)
+      if content_request[:queue_system] == :resque
+        Resque.enqueue(EncodingSafeProcessJob, content_to_send)
+      elsif content_request[:queue_system] == :sidekiq
+        const_get(content_request[:processing_queue]).perform_async(content_to_send)
+      else
+        raise "Unknown queue system: #{content_request[:queue_system]}"
+      end
     else
       if content_request[:queue_system] == :resque
         Resque.enqueue(const_get(content_request[:processing_queue]), content_to_send)

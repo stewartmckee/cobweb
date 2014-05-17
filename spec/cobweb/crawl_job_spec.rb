@@ -6,48 +6,50 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards
+    if RESQUE_INSTALLED    
 
-    @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
-    if Resque.workers.count > 0 && @existing_processes.empty?
-      raise "Ghost workers present in resque, please clear before running specs (Resque::Worker.all.first.prune_dead_workers)"
-    elsif Resque.workers.count == 0 && !@existing_processes.empty?
-      raise "Ghost worker processes present (#{@existing_processes.join(',')})"
-    elsif Resque.workers.count > 0 && !@existing_processes.empty?
-      raise "Resque workers present, please end other resque processes before running this spec"
+      @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
+      if Resque.workers.count > 0 && @existing_processes.empty?
+        raise "Ghost workers present in resque, please clear before running specs (Resque::Worker.all.first.prune_dead_workers)"
+      elsif Resque.workers.count == 0 && !@existing_processes.empty?
+        raise "Ghost worker processes present (#{@existing_processes.join(',')})"
+      elsif Resque.workers.count > 0 && !@existing_processes.empty?
+        raise "Resque workers present, please end other resque processes before running this spec"
+      end
+
+      # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
+      `mkdir log` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../log'))
+      `mkdir tmp` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../tmp'))
+      `mkdir tmp/pids` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../tmp/pids'))
+      io = IO.popen("nohup rake resque:workers INTERVAL=1 PIDFILE=./tmp/pids/resque.pid COUNT=#{RESQUE_WORKER_COUNT} QUEUE=cobweb_crawl_job > log/output.log &")
+
+      counter = 0
+      until counter > 10 || workers_processes_started?
+        print "\rStarting Resque Processes... #{10-counter} "
+        counter += 1
+        sleep 1
+      end
+      puts ""
+
+
+      counter = 0
+      until counter > 30 || workers_running?
+        print "\rWaiting for Resque Workers... #{30-counter} "
+        counter += 1
+        sleep 1
+      end
+      puts ""
+
+      if workers_running?
+        puts "Workers Running."
+      else
+        raise "Workers didn't appear, please check environment"
+      end
     end
-
-    # START WORKERS ONLY FOR CRAWL QUEUE SO WE CAN COUNT ENQUEUED PROCESS AND FINISH QUEUES
-    `mkdir log` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../log'))
-    `mkdir tmp` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../tmp'))
-    `mkdir tmp/pids` unless Dir.exist?(File.expand_path(File.dirname(__FILE__) + '/../../tmp/pids'))
-    io = IO.popen("nohup rake resque:workers INTERVAL=1 PIDFILE=./tmp/pids/resque.pid COUNT=#{RESQUE_WORKER_COUNT} QUEUE=cobweb_crawl_job > log/output.log &")
-
-    counter = 0
-    until counter > 10 || workers_processes_started?
-      print "\rStarting Resque Processes... #{10-counter} "
-      counter += 1
-      sleep 1
-    end
-    puts ""
-
-
-    counter = 0
-    until counter > 30 || workers_running?
-      print "\rWaiting for Resque Workers... #{30-counter} "
-      counter += 1
-      sleep 1
-    end
-    puts ""
-
-    if workers_running?
-      puts "Workers Running."
-    else
-      raise "Workers didn't appear, please check environment"
-    end
-
   end
 
   before(:each) do
+    pending("Resque not installed") unless RESQUE_INSTALLED
     @base_url = "http://localhost:3532/"
     @base_page_count = 77
 

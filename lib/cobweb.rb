@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'uri'
-require 'resque'
 require "addressable/uri"
 require 'digest/sha1'
 require 'base64'

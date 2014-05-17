@@ -3,6 +3,8 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe CobwebCrawlHelper do
   include HttpStubs
   before(:each) do
+    pending("not enabled for non resque installs") unless RESQUE_INSTALLED
+
     setup_stubs
   end
   # this spec tests the crawl object
@@ -42,7 +44,7 @@ describe CobwebCrawlHelper do
           end
         end
         after(:each) do
-          Resque.remove_queue("cobweb_crawl_job")
+          Resque.remove_queue("cobweb_crawl_job") if RESQUE_INSTALLED
         end
         it "should have a queue length of 210" do
           Resque.size("cobweb_crawl_job").should == 210
