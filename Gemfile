@@ -4,7 +4,6 @@ gemspec
 
 gem 'rake'
 gem 'redis'
-gem 'resque'
 gem 'awesome_print'
 gem 'nokogiri'
 gem 'addressable'
@@ -21,5 +20,4 @@ group :test do
   gem 'rspec-core'
   gem 'mock_redis'
   gem 'coveralls', require: false
-  gem 'sidekiq'
 end
