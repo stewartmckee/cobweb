@@ -1,27 +1,27 @@
 class CrawlHelper
 
-  require "net/https"  
+  require "net/https"
   require "uri"
   require "redis"
-  require 'namespaced_redis'
-  
+  require "redis-namespace"
+
   def self.crawl_page(content_request)
     # change all hash keys to symbols
     content_request = HashUtil.deep_symbolize_keys(content_request)
     @content_request = content_request
-    
+
     content_request[:redis_options] = {} unless content_request.has_key? :redis_options
     content_request[:crawl_limit_by_page] = false unless content_request.has_key? :crawl_limit_by_page
     content_request[:valid_mime_types] = ["*/*"] unless content_request.has_key? :valid_mime_types
     content_request[:queue_system] = content_request[:queue_system].to_sym
-    
+
     @redis = NamespacedRedisConnection.new(content_request[:redis_options], "cobweb-#{Cobweb.version}-#{content_request[:crawl_id]}")
     @stats = Stats.new(content_request)
-    
+
     @debug = content_request[:debug]
-    
+
     decrement_queue_counter
-    
+
     # check we haven't crawled this url before
     unless @redis.sismember "crawled", content_request[:url]
       # if there is no limit or we're still under it lets get the url
@@ -99,12 +99,12 @@ class CrawlHelper
       else
         puts "ignoring #{content_request[:url]} as outside of crawl limits." if content_request[:debug]
       end
-      
+
     else
       @redis.srem "queued", content_request[:url]
       puts "Already crawled #{content_request[:url]}" if content_request[:debug]
     end
-    
+
     # if there's nothing left queued or the crawled limit has been reached
     refresh_counters
     if content_request[:crawl_limit].nil? || content_request[:crawl_limit] == 0
@@ -114,7 +114,7 @@ class CrawlHelper
     elsif (@queue_counter +@crawl_started_counter-@crawl_counter)== 0 || @crawl_counter >= content_request[:crawl_limit].to_i
       finished(content_request)
     end
-    
+
   end
 
   # Sets the crawl status to 'Crawl Finished' and enqueues the crawl finished job
@@ -123,11 +123,11 @@ class CrawlHelper
     if @redis.hget("statistics", "current_status")!= "Crawl Finished"
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
-      
+
       additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @redis.get("crawled_base_url")}
       additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
       additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
-      
+
       if content_request[:queue_system] == :resque
         Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @stats.get_statistics.merge(additional_stats))
       elsif content_request[:queue_system] == :sidekiq
@@ -140,7 +140,7 @@ class CrawlHelper
       # nothing to report here, we're skipping the remaining urls as we're outside of the crawl limit
     end
   end
-  
+
   # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
@@ -171,7 +171,7 @@ class CrawlHelper
   end
 
   private
-  
+
   # Helper method to determine if this content is to be processed or not
   def self.is_permitted_type(content)
     @content_request[:valid_mime_types].each do |mime_type|
@@ -179,19 +179,19 @@ class CrawlHelper
     end
     false
   end
-  
+
   # Returns true if the crawl count is within limits
   def self.within_crawl_limits?(crawl_limit)
     refresh_counters
     crawl_limit.nil? or @crawl_started_counter < crawl_limit.to_i
   end
-  
+
   # Returns true if the queue count is calculated to be still within limits when complete
   def self.within_queue_limits?(crawl_limit)
     refresh_counters
     (@content_request[:crawl_limit_by_page]&& (crawl_limit.nil? or @crawl_counter < crawl_limit.to_i)) || within_crawl_limits?(crawl_limit) && (crawl_limit.nil? || (@queue_counter + @crawl_counter) < crawl_limit.to_i)
   end
-  
+
   # Sets the base url in redis.  If the first page is a redirect, it sets the base_url to the destination
   def self.set_base_url(redis, content, content_request)
     if redis.get("base_url").nil?
@@ -202,7 +202,7 @@ class CrawlHelper
       redis.set("base_url", content[:url])
     end
   end
-  
+
   # Enqueues content to the crawl_job queue
   def self.enqueue_content(content_request, link)
     new_request = content_request.clone
@@ -219,7 +219,7 @@ class CrawlHelper
     @redis.sadd "queued", link
     increment_queue_counter
   end
-  
+
   # Increments the queue counter and refreshes crawl counters
   def self.increment_queue_counter
     @redis.incr "queue-counter"
@@ -245,7 +245,7 @@ class CrawlHelper
     @crawl_started_counter = @redis.get("crawl-started-counter").to_i
     @queue_counter = @redis.get("queue-counter").to_i
   end
-  
+
   def self.print_counters
     puts counters
   end
