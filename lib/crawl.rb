@@ -6,12 +6,16 @@ module CobwebModule
 
       setup_defaults
 
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
-      @stats = Stats.new(@options)
+      @redis = Redis::Namespace.new("cobweb:#{@options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
+      @stats = CobwebStats.new(@options)
       @debug = @options[:debug]
       @first_to_finish = false
 
     end
+
+    def logger 
+      @logger ||= Logger.new(STDOUT)
+    end 
 
     # Returns true if the url requested is already in the crawled queue
     def already_crawled?(link=@options[:url])
@@ -79,15 +83,15 @@ module CobwebModule
               return true
             end
           else
-            puts "======================================="
-            puts "OUTWITH CRAWL LIMITS"
-            puts "======================================="
+            logger.info "======================================="
+            logger.info "OUTWITH CRAWL LIMITS"
+            logger.info "======================================="
             decrement_queue_counter
           end
         else
-          puts "======================================="
-          puts "ALREADY CRAWLED"
-          puts "======================================="
+          logger.info "======================================="
+          logger.info "ALREADY CRAWLED"
+          logger.info "======================================="
           decrement_queue_counter
         end
       else
@@ -105,12 +109,17 @@ module CobwebModule
 
       @cobweb_links = CobwebLinks.new(@options)
       if within_queue_limits?
-        document_links = ContentLinkParser.new(@options[:url], content.body, @options).all_links(:valid_schemes => [:http, :https])
+        
+        # reparse the link content
+        content_link_parser = ContentLinkParser.new(@options[:url], content.body, @options)
+        document_links = content_link_parser.all_links(:valid_schemes => [:http, :https])
+       
         #get rid of duplicate links in the same page.
         document_links.uniq!
         
         # select the link if its internal
         internal_links = document_links.select{ |link| @cobweb_links.internal?(link) }
+        external_links = document_links.select{ |link| !@cobweb_links.internal?(link) }
 
         # reject the link if we've crawled it or queued it
 
@@ -132,12 +141,30 @@ module CobwebModule
           end
         end
 
-        if @options[:store_inbound_links]
-          document_links.each do |link|
+
+        # store the links from this page linking TO other pages for 
+        # retrieval and processing of the inbound link processing in finishing stages
+        if @options[:store_inbound_links] && @content[:links] && @content[:links][:links]
+          Array(@content[:links][:links]).each do |link|
             uri = URI.parse(link)
-            @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}", url)
+            @redis.sadd("inbound_links:#{Digest::MD5.hexdigest(@content[:url].to_s)}", Digest::MD5.hexdigest(uri.to_s))
           end
         end
+
+        if @options[:store_inbound_anchor_text]
+          Array(content_link_parser.full_link_data.select {|link| type == "link"}).each do |inbound_link| 
+            target_uri = UriHelper.parse(inbound_link["link"])
+            @redis.sadd("inbound_anchors:#{Digest::MD5.hexdigest(target_uri.to_s)}", inbound_link["text"].downcase )
+          end  
+        end
+
+        if @options[:store_image_attributes]
+          Array(content_link_parser.full_link_data.select {|link| type == "image"}).each do |inbound_link| 
+            target_uri = UriHelper.parse(inbound_link["link"])
+            @redis.sadd("image_attributes:#{Digest::MD5.hexdigest(target_uri.to_s)}", inbound_link.to_json )
+          end  
+        end
+
       end
     end
 
@@ -169,7 +196,8 @@ module CobwebModule
     end
 
     def to_be_processed?
-      !finished? && within_process_limits? && !@redis.sismember("queued", @options[:url])
+      logger.info "#{@options[:url]}\nNotFinished:#{!finished?} ProcessLimits:#{within_process_limits?} Queued:#{!already_queued?(@options[:url])}"
+      !finished? && within_process_limits? && !already_queued?(@options[:url])
     end
 
     def process(&block)
@@ -282,7 +310,7 @@ module CobwebModule
     end
 
     def debug_puts(value)
-      puts(value) if @options[:debug]
+      logger.info value if @options[:debug]
     end
 
     private
@@ -324,7 +352,7 @@ module CobwebModule
     end
 
     def print_counters
-      debug_puts counters
+      logger.info counters
     end
 
     def counters

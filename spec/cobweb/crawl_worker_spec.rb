@@ -43,13 +43,13 @@ describe CrawlWorker, :local_only => true do
   
     it "should crawl entire site" do
       crawl = @cobweb.start(@base_url)
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+      @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       CrawlProcessWorker.queue_size.should == @base_page_count
     end
     it "detect crawl finished" do
       crawl = @cobweb.start(@base_url)
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+      @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       CrawlFinishedWorker.queue_size.should == 1
     end
@@ -69,7 +69,7 @@ describe CrawlWorker, :local_only => true do
       
     it "should only crawl html pages" do
       crawl = @cobweb.start(@base_url)
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+      @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       CrawlProcessWorker.queue_size.should == 8
 
@@ -102,19 +102,19 @@ describe CrawlWorker, :local_only => true do
   
       it "should not crawl the entire site" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlProcessWorker.queue_size.should_not == @base_page_count
       end      
       it "should only crawl 1 page" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlProcessWorker.queue_size.should == 1
       end      
       it "should notify of crawl finished" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlFinishedWorker.queue_size.should == 1
       end      
@@ -134,7 +134,7 @@ describe CrawlWorker, :local_only => true do
       
         it "should only use html pages towards the crawl limit" do
           crawl = @cobweb.start(@base_url)
-          @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+          @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
           wait_for_crawl_finished crawl[:crawl_id]
         
           mime_types = CrawlProcessWorker.queue_items(0, 200).map{|job| JSON.parse(job)["args"][0]["mime_type"]}
@@ -151,19 +151,19 @@ describe CrawlWorker, :local_only => true do
       
       it "should not crawl the entire site" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlProcessWorker.queue_size.should_not == @base_page_count
       end      
       it "should notify of crawl finished" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlFinishedWorker.queue_size.should == 1
       end      
       it "should only crawl 10 objects" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlProcessWorker.queue_size.should == 10
       end
@@ -177,19 +177,19 @@ describe CrawlWorker, :local_only => true do
       
       it "should crawl the entire sample site" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlProcessWorker.queue_size.should == @base_page_count
       end      
       it "should notify of crawl finished" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlFinishedWorker.queue_size.should == 1
       end      
       it "should not crawl more than 100 pages" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         CrawlProcessWorker.queue_size.should_not > 100
       end      

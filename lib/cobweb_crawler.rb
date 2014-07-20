@@ -20,7 +20,7 @@ class CobwebCrawler
       @options[:crawl_id] = @crawl_id
     end
     
-    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@crawl_id}", :redis => RedisConnection.new(@options[:redis_options]))
+    @redis = Redis::Namespace.new("cobweb:#{@crawl_id}", :redis => RedisConnection.new(@options[:redis_options]))
     @options[:internal_urls] = [] if @options[:internal_urls].nil?
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
     @options[:seed_urls] = [] if @options[:seed_urls].nil?
@@ -30,7 +30,7 @@ class CobwebCrawler
     
     @debug = @options[:debug]
     
-    @stats = Stats.new(@options.merge(:crawl_id => @crawl_id))
+    @stats = CobwebStats.new(@options.merge(:crawl_id => @crawl_id))
     if @options[:web_statistics]
       Server.start(@options)
     end
@@ -98,7 +98,8 @@ class CobwebCrawler
             @redis.sadd "crawled", url.to_s
             @redis.incr "crawl-counter" 
           
-            document_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https]).uniq
+            content_link_parser = ContentLinkParser.new(url, content[:body])
+            document_links = content_link_parser.all_links(:valid_schemes => [:http, :https]).uniq
 
             # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
             cobweb_links = CobwebLinks.new(@options)
@@ -123,10 +124,17 @@ class CobwebCrawler
             if @options[:store_inbound_links]
               document_links.each do |target_link|
                 target_uri = UriHelper.parse(target_link)
-                @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(target_uri.to_s)}", UriHelper.parse(url).to_s)
+                @redis.sadd("inbound_links:#{Digest::MD5.hexdigest(target_uri.to_s)}", UriHelper.parse(url).to_s)
               end
             end
-            
+
+            if @options[:store_inbound_anchor_text]
+              Array(content_link_parser.full_link_data.select {|link| type == "link"}).each do |inbound_link| 
+                target_uri = UriHelper.parse(inbound_link["link"])
+                @redis.sadd("inbound_anchors:#{Digest::MD5.hexdigest(target_uri.to_s)}", inbound_link["text"].downcase )
+              end  
+            end
+
             @crawl_counter = @redis.scard("crawled").to_i
             @queue_counter = @redis.scard("queued").to_i
           

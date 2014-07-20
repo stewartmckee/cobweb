@@ -65,14 +65,14 @@ describe CrawlJob, :local_only => true, :disabled => true do
         :debug => true,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
+      @redis = Redis::Namespace.new("cobweb:#{@request[:crawl_id]}:", :redis => RedisConnection.new)
       @cobweb = Cobweb.new @request
     end
     it "should not crawl anything if nothing has started" do
       crawl = @cobweb.start(@base_url)
       crawl_obj = CobwebCrawlHelper.new(crawl)
       crawl_obj.destroy
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+      @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       @redis.get("crawl_job_enqueued_count").to_i.should == 0
     end
@@ -98,21 +98,21 @@ describe CrawlJob, :local_only => true, :disabled => true do
         :debug => true,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
+      @redis = Redis::Namespace.new("cobweb:#{@request[:crawl_id]}:", :redis => RedisConnection.new)
 
       @cobweb = Cobweb.new @request
     end
 
     it "should crawl entire site" do
       crawl = @cobweb.start(@base_url)
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+      @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       @redis.get("crawl_job_enqueued_count").to_i.should == @base_page_count
       @redis.get("crawl_finished_enqueued_count").to_i.should == 1
     end
     it "detect crawl finished once" do
       crawl = @cobweb.start(@base_url)
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+      @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       @redis.get("crawl_job_enqueued_count").to_i.should == @base_page_count
       @redis.get("crawl_finished_enqueued_count").to_i.should == 1
@@ -128,13 +128,13 @@ describe CrawlJob, :local_only => true, :disabled => true do
         :cache => nil,
         :valid_mime_types => ["text/html"]
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
+      @redis = Redis::Namespace.new("cobweb:#{@request[:crawl_id]}:", :redis => RedisConnection.new)
       @cobweb = Cobweb.new @request
     end
 
     it "should only crawl html pages" do
       crawl = @cobweb.start(@base_url)
-      @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+      @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
       wait_for_crawl_finished crawl[:crawl_id]
       @redis.get("crawl_job_enqueued_count").to_i.should == 8
 
@@ -153,22 +153,9 @@ describe CrawlJob, :local_only => true, :disabled => true do
         :debug => true,
         :cache => nil
       }
-      @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{@request[:crawl_id]}", :redis => RedisConnection.new)
+      @redis = Redis::Namespace.new("cobweb:#{@request[:crawl_id]}:", :redis => RedisConnection.new)
     end
 
-    # describe "crawling http://yepadeperrors.wordpress.com/ with limit of 20" do
-    #   before(:each) do
-    #     @request[:crawl_limit] = 20
-    #     @cobweb = Cobweb.new @request
-    #   end
-    #   it "should crawl exactly 20" do
-    #     crawl = @cobweb.start("http://yepadeperrors.wordpress.com/")
-    #     @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
-    #     wait_for_crawl_finished crawl[:crawl_id]
-    #     @redis.get("crawl_job_enqueued_count").to_i.should == 20
-    #   end
-    # 
-    # end
     describe "limit to 1" do
       before(:each) do
         @request[:crawl_limit] = 1
@@ -177,19 +164,19 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
       it "should not crawl the entire site" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_job_enqueued_count").to_i.should_not == @base_page_count
       end
       it "should only crawl 1 page" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_job_enqueued_count").to_i.should == 1
       end
       it "should notify of crawl finished once" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_finished_enqueued_count").to_i.should == 1
       end
@@ -205,7 +192,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
       # the following describes when we want all the assets of a page, and the page itself, but we only want 5 pages
       it "should only use html pages towards the crawl limit" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         mime_types = Resque.peek("cobweb_process_job", 0, 200).map{|job| job["args"][0]["mime_type"]}
         Resque.peek("cobweb_process_job", 0, 200).count.should > 5
@@ -221,20 +208,20 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
       it "should not crawl the entire site" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_job_enqueued_count").to_i.should_not == @base_page_count
       end
       it "should notify of crawl finished once" do
         @redis.get("crawl_finished_enqueued_count").to_i.should == 0
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_finished_enqueued_count").to_i.should == 1
       end
       it "should only crawl 10 objects" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_job_enqueued_count").to_i.should == 10
       end
@@ -248,19 +235,19 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
       it "should crawl the entire sample site" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_job_enqueued_count").to_i.should == @base_page_count
       end
       it "should notify of crawl finished once" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_finished_enqueued_count").to_i.should == 1
       end
       it "should not crawl 100 pages" do
         crawl = @cobweb.start(@base_url)
-        @stat = Stats.new({:crawl_id => crawl[:crawl_id]})
+        @stat = CobwebStats.new({:crawl_id => crawl[:crawl_id]})
         wait_for_crawl_finished crawl[:crawl_id]
         @redis.get("crawl_job_enqueued_count").to_i.should_not == 100
       end

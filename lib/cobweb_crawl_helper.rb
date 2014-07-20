@@ -12,7 +12,7 @@ class CobwebCrawlHelper
     @data = data
     
     # TAKING A LONG TIME TO RUN ON PRODUCTION BOX
-    @stats = Stats.new(data)
+    @stats = CobwebStats.new(data)
   end
   
   def destroy(options={})

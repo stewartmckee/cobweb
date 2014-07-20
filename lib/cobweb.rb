@@ -63,6 +63,10 @@ class Cobweb
     default_proxy_port_to                     nil
 
   end
+
+  def logger
+    @logger ||= Logger.new(STDOUT)
+  end 
   
   # This method starts the resque based crawl and enqueues the base_url
   def start(base_url)
@@ -80,7 +84,10 @@ class Cobweb
     end
     
     request.merge!(@options)
-    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{request[:crawl_id]}", :redis => RedisConnection.new(request[:redis_options]))
+
+    # set initial depth
+    request[:depth] = 1
+    @redis = Redis::Namespace.new("cobweb:#{request[:crawl_id]}", :redis => RedisConnection.new(request[:redis_options]))
     @redis.set("original_base_url", base_url)
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
@@ -88,7 +95,7 @@ class Cobweb
 
     @options[:seed_urls].map{|link| @redis.sadd "queued", link }
     
-    @stats = Stats.new(request)
+    @stats = CobwebStats.new(request)
     @stats.start_crawl(request)
     
     # add internal_urls into redis
@@ -134,27 +141,27 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb:#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
     else
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb", :redis => RedisConnection.new(@options[:redis_options]))
     end
-    full_redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
+    full_redis = Redis::Namespace.new("cobweb", :redis => RedisConnection.new(@options[:redis_options]))
 
     content = {:base_url => url}
 
     # check if it has already been cached
     if ((@options[:cache_type] == :crawl_based && redis.get(unique_id)) || (@options[:cache_type] == :full && full_redis.get(unique_id))) && @options[:cache]
       if @options[:cache_type] == :crawl_based 
-        puts "Cache hit in crawl for #{url}" unless @options[:quiet]
+        logger.info "Cache hit in crawl for #{url}" unless @options[:quiet]
         content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
       else
-        puts "Cache hit for #{url}" unless @options[:quiet]
+        logger.info "Cache hit for #{url}" unless @options[:quiet]
         content = HashUtil.deep_symbolize_keys(Marshal.load(full_redis.get(unique_id)))
       end
     else
       # retrieve data
       #unless @http && @http.address == uri.host && @http.port == uri.inferred_port
-        puts "Creating connection to #{uri.host}..." if @options[:debug]
+        logger.debug "Creating connection to #{uri.host}..." if @options[:debug]
         @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
       #end
       if uri.scheme == "https"
@@ -166,7 +173,7 @@ class Cobweb
       @http.read_timeout = @options[:timeout].to_i
       @http.open_timeout = @options[:timeout].to_i
       begin
-        puts "Retrieving #{uri}... " unless @options[:quiet]
+        logger.info "Retrieving #{uri}... " unless @options[:quiet]
         request_options={}
         request_options['Cookie']= options[:cookies] if options[:cookies]
         request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
@@ -187,7 +194,7 @@ class Cobweb
 
           # get location to redirect to
           uri = UriHelper.join_no_fragment(uri, response['location'])
-          puts "Following Redirect to #{uri}... " unless @options[:quiet]
+          logger.info "Following Redirect to #{uri}... " unless @options[:quiet]
 
           # decrement redirect limit
           redirect_limit = redirect_limit - 1
@@ -206,20 +213,23 @@ class Cobweb
         else
           content[:response_time] = Time.now.to_f - request_time
           
-          puts "Retrieved." unless @options[:quiet]
+          logger.info "Retrieved." unless @options[:quiet]
 
           # create the content container
           content[:url] = uri.to_s
           content[:status_code] = response.code.to_i
           content[:mime_type] = ""
           content[:mime_type] = response.content_type.split(";")[0].strip unless response.content_type.nil?
+          
           if !response["Content-Type"].nil? && response["Content-Type"].include?(";")
             charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
             charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
             content[:character_set] = charset
           end
+          
           content[:length] = response.content_length
           content[:text_content] = text_content?(content[:mime_type])
+          
           if text_content?(content[:mime_type])
             if response["Content-Encoding"]=="gzip"
               content[:body] = Zlib::GzipReader.new(StringIO.new(response.body)).read
@@ -229,11 +239,27 @@ class Cobweb
           else
             content[:body] = Base64.encode64(response.body)
           end
+
           content[:location] = response["location"]
           content[:headers] = HashUtil.deep_symbolize_keys(response.to_hash)
+          
           # parse data for links
-          link_parser = ContentLinkParser.new(content[:url], content[:body])
+          link_parser = ContentLinkParser.new(content[:url], content[:body], @options)
+
           content[:links] = link_parser.link_data
+          content[:links][:external] = link_parser.external_links
+          content[:links][:internal] = link_parser.internal_links 
+
+          # add an array of images with their attributes for image processing
+          content[:images] = [] 
+          if @options[:store_image_attributes] 
+            puts "storing image data"
+            Array(link_parser.full_link_data.select {|link| link["type"] == "image"}).each do |inbound_link| 
+              puts "Procewsing links for IMAGEA: #{inbound_link.inspect}"
+              inbound_link["link"] = UriHelper.parse(inbound_link["link"])
+              content[:images] << inbound_link
+            end 
+          end 
           
         end
         # add content to cache if required
@@ -248,7 +274,7 @@ class Cobweb
         end
       rescue RedirectError => e
         raise e if @options[:raise_exceptions]
-        puts "ERROR RedirectError: #{e.message}"
+        logger.error "ERROR RedirectError: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -258,13 +284,14 @@ class Cobweb
         content[:length] = 0
         content[:body] = ""
         content[:error] = e.message
+        content[:images] = [] 
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
         
       rescue SocketError => e
         raise e if @options[:raise_exceptions]
-        puts "ERROR SocketError: #{e.message}"
+        logger.error "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -273,6 +300,7 @@ class Cobweb
         content[:status_code] = 0
         content[:length] = 0
         content[:body] = ""
+        content[:images] = [] 
         content[:error] = e.message
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
@@ -280,7 +308,7 @@ class Cobweb
         
       rescue Timeout::Error => e
         raise e if @options[:raise_exceptions]
-        puts "ERROR Timeout::Error: #{e.message}"
+        logger.error "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -288,6 +316,7 @@ class Cobweb
         content[:response_time] = Time.now.to_f - request_time
         content[:status_code] = 0
         content[:length] = 0
+        content[:images] = []
         content[:body] = ""
         content[:error] = e.message
         content[:mime_type] = "error/serverdown"
@@ -316,16 +345,16 @@ class Cobweb
     
     # connect to redis
     if options.has_key? :crawl_id
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb:#{options[:crawl_id]}:", :redis => RedisConnection.new(@options[:redis_options]))
     else
-      redis = Redis::Namespace.new("cobweb-#{Cobweb.version}", :redis => RedisConnection.new(@options[:redis_options]))
+      redis = Redis::Namespace.new("cobweb", :redis => RedisConnection.new(@options[:redis_options]))
     end
     
     content = {:base_url => url}
     
     # check if it has already been cached
     if redis.get("head-#{unique_id}") and @options[:cache]
-      puts "Cache hit for #{url}" unless @options[:quiet]
+      logger.info "Cache hit for #{url}" unless @options[:quiet]
       content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get("head-#{unique_id}")))
     else
       # retrieve data
@@ -342,7 +371,7 @@ class Cobweb
       @http.read_timeout = @options[:timeout].to_i
       @http.open_timeout = @options[:timeout].to_i
       begin
-        print "Retrieving #{url }... " unless @options[:quiet]
+        logger.info "Retrieving #{url }... " unless @options[:quiet]
         request_options={}
         if options[:cookies]
           request_options[ 'Cookie']= options[:cookies]
@@ -357,7 +386,7 @@ class Cobweb
         response = @http.request request
 
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
-          puts "redirected... " unless @options[:quiet]
+          logger.info "redirected... " unless @options[:quiet]
 
           uri = UriHelper.join_no_fragment(uri, response['location'])
 
@@ -384,7 +413,7 @@ class Cobweb
           
           # add content to cache if required
           if @options[:cache]
-            puts "Stored in cache [head-#{unique_id}]" if @options[:debug]
+            logger.info "Stored in cache [head-#{unique_id}]" if @options[:debug]
             redis.set("head-#{unique_id}", Marshal.dump(content))
             redis.expire "head-#{unique_id}", @options[:cache].to_i
           else
@@ -393,7 +422,7 @@ class Cobweb
         end
       rescue RedirectError => e
         raise e if @options[:raise_exceptions]
-        puts "ERROR RedirectError: #{e.message}"
+        logger.error "ERROR RedirectError: #{e.message}"
 
         ## generate a blank content
         content = {}
@@ -409,7 +438,7 @@ class Cobweb
 
       rescue SocketError => e
         raise e if @options[:raise_exceptions]
-        puts "ERROR SocketError: #{e.message}"
+        logger.error "ERROR SocketError: #{e.message}"
         
         ## generate a blank content
         content = {}
@@ -425,7 +454,7 @@ class Cobweb
         
       rescue Timeout::Error => e
         raise e if @options[:raise_exceptions]
-        puts "ERROR Timeout::Error: #{e.message}"
+        logger.error "ERROR Timeout::Error: #{e.message}"
         
         ## generate a blank content
         content = {}

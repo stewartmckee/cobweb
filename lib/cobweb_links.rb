@@ -14,7 +14,6 @@ class CobwebLinks
     
     @internal_patterns = @options[:internal_urls].map{|pattern| Regexp.new("^#{Cobweb.escape_pattern_for_regex(pattern)}")}
     @external_patterns = @options[:external_urls].map{|pattern| Regexp.new("^#{Cobweb.escape_pattern_for_regex(pattern)}")}
-    
   end
   
   def allowed?(link)
@@ -39,7 +38,7 @@ class CobwebLinks
   def matches_external?(link)
     !@external_patterns.select{|pattern| link.match(pattern)}.empty?
   end
-  
+
 end
 
 # Exception raised for :internal_urls missing from CobwebLinks

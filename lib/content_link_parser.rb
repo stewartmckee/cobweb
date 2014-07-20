@@ -31,7 +31,24 @@ class ContentLinkParser
     @options[:tags].merge!(@options[:additional_tags]) unless @options[:additional_tags].nil?
     
   end
- 
+
+
+  # extracts link data from nokogiri with attributes on each link (rel, follow, anchor text, title, alt)
+  def full_link_data 
+    full_link_data = [] 
+    options_to_check = @options[:tags][:links] + @options[:tags][:images]
+    Array(options_to_check).each do |selector, attribute| 
+      @doc.css(selector).each do |node| 
+        if attribute == "href"
+          full_link_data << {"text" => node.text.to_s, "rel" => node["rel"], "link" => UriHelper.join_no_fragment(@url, node["href"].to_s).to_s , "alt" => node["alt"].to_s, "title" => node["title"].to_s, "type" => "link" }
+        elsif attribute == "src" && selector == "img[src]"
+          full_link_data << {"rel" => node["rel"], "link" => UriHelper.join_no_fragment(@url, node["src"].to_s).to_s, "alt" => node["alt"].to_s, "rel" => node["rel"].to_s, "title" => node["title"].to_s, "type" => "image"}
+        end 
+      end 
+    end 
+    full_link_data
+  end
+
   # Returns a hash with arrays of links
   def link_data
     data = {}
@@ -39,19 +56,54 @@ class ContentLinkParser
       data[key.to_sym] = self.instance_eval(key.to_s)
     end
     data
-  end  
-  
+  end
+
   # Returns an array of all absolutized links, specify :valid_schemes in options to limit to certain schemes.  Also filters repeating folders (ie if the crawler got in a link loop situation)
-  def all_links(options = {})    
+  def all_links(options = {}) 
+    # TODO parameter sorting to get them where they don't have dupes if the 
+    # parameters are in different order in different places    
     options[:valid_schemes] = [:http, :https] unless options.has_key? :valid_schemes
     data = link_data
+    
     links = data.keys.map{|key| data[key]}.flatten.uniq
     links = links.map{|link| UriHelper.join_no_fragment(@url, link).to_s }
     links = links.reject{|link| link =~ /\/([^\/]+?)\/\1\// }
     links = links.reject{|link| link =~ /([^\/]+?)\/([^\/]+?)\/.*?\1\/\2/ }    
+    links = links.reject{|link| link =~ /\/([^\/]+\.js)/ } if @options[:exclude_js]
+    links = links.reject{|link| link =~ /\/([^\/]+\.css)/ } if @options[:exclude_css]
     links = links.select{|link| options[:valid_schemes].include? link.split(':')[0].to_sym}
+    
+    # removes parameters from links if they are provided by the options
+    # array
+    Array(@options[:remove_parameters]).each do |param| 
+      links = links.map{|prelink| remove_parameter(prelink, param) }
+    end if Array(@options[:remove_parameters]).length > 0 
     links
   end
+
+  # helper with internal/external link checks
+  def cobweb_links_helper 
+    @cobweb_links_helper ||= CobwebLinks.new(@options)
+  end 
+
+  # returns the list of external links 
+  def external_links 
+    external_links = []
+    all_links.each do |link| 
+      external_links << link if cobweb_links_helper.external?(link)
+    end 
+    external_links
+  end 
+
+  # returns the list of internal links 
+  def internal_links 
+    internal_links = []
+    all_links.each do |link| 
+      internal_links << link if cobweb_links_helper.internal?(link)
+    end 
+    internal_links
+  end 
+
   
   # Returns the type of links as a method rather than using the hash e.g. 'content_link_parser.images'
   def method_missing(m)
@@ -64,6 +116,28 @@ class ContentLinkParser
     else
       super
     end
+  end
+
+  #remove a tracking parameter or other item from a URL
+  # extracted from Oma::Url
+  def remove_parameter(url, parameter)
+    uri = Addressable::URI.parse(url)
+    params = uri.query_values
+    unless params.blank?  
+      params.delete(parameter) 
+    end
+    uri.query_values = params
+    url = uri.to_s.gsub(/\?$/, "")
+    url
+  end
+
+  # extract a parameter value from a URL 
+  # copied in for convenience for now, I'm sure there's a use
+  # for this (removal of GA parameters, etc.)
+  def get_parameter(url, parameter)
+    uri = Addressable::URI.parse(url)
+    params = uri.query_values 
+    params[parameter]
   end
   
   private

@@ -1,5 +1,5 @@
 # Stats class is the main statisitics hub for monitoring crawls.  Either can be viewed through the Sinatra interface, or returned from the CobwebCrawler.crawl method or block
-class Stats
+class CobwebStats
   require 'json'
   
   attr_reader :redis
@@ -13,13 +13,13 @@ class Stats
       @full_redis = Redis.new(options[:redis_options])
     end
     @lock = Mutex.new
-    @redis = Redis::Namespace.new("cobweb-#{Cobweb.version}-#{options[:crawl_id]}", :redis => @full_redis)
+    @redis = Redis::Namespace.new("cobweb:#{options[:crawl_id]}", :redis => @full_redis)
   end
   
   # Sets up the crawl in statistics
   def start_crawl(options)
-    unless @full_redis.sismember "cobweb_crawls", options[:crawl_id]
-      @full_redis.sadd "cobweb_crawls", options[:crawl_id]
+    unless @full_redis.sismember "cobweb:crawls", options[:crawl_id]
+      @full_redis.sadd "cobweb:crawls", options[:crawl_id]
       options.keys.each do |key|
         @redis.hset "crawl_details", key, options[key].to_s
       end
@@ -46,7 +46,7 @@ class Stats
 
   def inbound_links_for(url)
     uri = UriHelper.parse(url)
-    @redis.smembers("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}")
+    @redis.smembers("inbound_links:#{Digest::MD5.hexdigest(uri.to_s)}")
   end
 
   # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  
@@ -123,9 +123,12 @@ class Stats
       end
       
       status_counts = {}
+
       if @statistics.has_key? :status_counts
         status_counts = @statistics[:status_counts]
-        status_code = content[:status_code].to_i.to_s.to_sym
+
+        status_code = content[:status_code].to_s # json returns as a hash
+
         if status_counts.has_key? status_code
           status_counts[status_code] += 1
         else
@@ -134,14 +137,23 @@ class Stats
       else
         status_counts = {status_code => 1}
       end
+
       
       # record statistics by status type
       if content[:status_code] >= 200 && content[:status_code] < 300
         increment_time_stat("status_200_count")
+      elsif content[:status_code] >= 1 && content[:status_code] < 200
+        increment_time_stat("status_100_count")       
+      elsif content[:status_code] >= 300 && content[:status_code] < 400
+        increment_time_stat("status_300_count")
       elsif content[:status_code] >= 400 && content[:status_code] < 500
-        increment_time_stat("status|_400_count")
+        increment_time_stat("status_300_count")
+      elsif content[:status_code] >= 400 && content[:status_code] < 500
+        increment_time_stat("status_400_count")
       elsif content[:status_code] >= 500 && content[:status_code] < 600
-        increment_time_stat("status|_500_count")
+        increment_time_stat("status_500_count")
+      elsif content[:status_code] >= 600 && content[:status_code] < 1000
+        increment_time_stat("status_other_count")
       end
       
       @statistics[:status_counts] = status_counts.to_json
