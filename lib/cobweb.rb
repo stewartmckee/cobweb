@@ -13,6 +13,8 @@ puts Gem::Specification.find_all_by_name("sidekiq", ">=3.0.0")
 
 # Cobweb class is used to perform get and head requests.  You can use this on its own if you wish without the crawler
 class Cobweb
+
+  attr_reader :options
   
   # retrieves current version
   def self.version
@@ -67,13 +69,23 @@ class Cobweb
 
   def logger
     @logger ||= Logger.new(STDOUT)
-  end 
+  end
+
+  def crawl_id 
+    @crawl_id ||= begin 
+      if @options[:crawl_id] 
+        @options[:crawl_id] 
+      else 
+        Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"
+      end 
+    end
+  end  
   
   # This method starts the resque based crawl and enqueues the base_url
   def start(base_url)
     raise ":base_url is required" unless base_url
     request = {
-      :crawl_id => Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"),
+      :crawl_id => crawl_id),
       :url => base_url 
     }  
     
