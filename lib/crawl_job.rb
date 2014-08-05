@@ -12,26 +12,44 @@ class CrawlJob
   def self.perform(content_request)
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
-
-    @crawl.debug_puts(content_request[:url])
     
     # update the counters and then perform the get, returns false if we are outwith limits
     if @crawl.retrieve
-      @crawl.debug_puts "In Retrieve"
 
-    
       # if the crawled object is an object type we are interested
       if @crawl.content.permitted_type?
         
         # moved the Process links from here to inside the to_be_processed loop.  
-          # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
+        # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
 
         if @crawl.to_be_processed?
+
+          queued_links_count = 0 
+
+          @crawl.process_links do |link|
+
+            if @crawl.within_crawl_limits?
+              # enqueue the links to resque
+              # @crawl.logger.debug "QUEUE: #{link}"
+              enqueue_content(content_request, link)
+              queued_links_count += 1 
+            end
+
+          end
+
+          redirect_links = @crawl.redirect_links 
+          if Array(redirect_links).length > 0 
+            Array(redirect_links).each do |link| 
+              @crawl.redis.sadd "queued", link
+              @crawl.increment_queue_counter
+              enqueue_content(content_request, link)
+              queued_links_count += 1 
+            end
+          end 
           
           @crawl.process do
 
             # enqueue to processing queue
-            @crawl.debug_puts "ENQUEUED [#{@crawl.redis.get("crawl_job_enqueued_count")}] URL: #{@crawl.content.url}"
             send_to_processing_queue(@crawl.content.to_hash, content_request)
 
             #if the enqueue counter has been requested update that
@@ -40,31 +58,33 @@ class CrawlJob
               current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
               enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
             end
+
+            if content_request[:store_response_codes]
+              code_redis = Redis::Namespace.new("cobweb:#{content_request[:crawl_id]}", :redis => RedisConnection.new(content_request[:redis_options]))
+              code_redis.hset("codes", Digest::MD5.hexdigest(content_request[:url]), @crawl.content.status_code)
+            end
+
+            last_depth = @crawl.redis.hget("depth", "#{Digest::MD5.hexdigest(content_request[:url])}")
+            if last_depth.nil? || (last_depth > content_request[:depth])
+              @crawl.redis.hset("depth", "#{Digest::MD5.hexdigest(content_request[:url])}", content_request[:depth])
+            end
+
+          end
+
+          @crawl.store_graph_data
+
             
-          end
         else
-          @crawl.debug_puts "@crawl.finished? #{@crawl.finished?}"
-          @crawl.debug_puts "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
-          @crawl.debug_puts "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
+          @crawl.logger.debug "@crawl.finished? #{@crawl.finished?}"
+          @crawl.logger.debug "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+          @crawl.logger.debug "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
 
-        @crawl.logger.debug  "Completed Queueing"
-
-        @crawl.process_links do |link|
-
-          if @crawl.within_crawl_limits?
-            # enqueue the links to resque
-            @crawl.logger.info "Queueing Link: #{link}"
-            enqueue_content(content_request, link)
-          end
-
-        end
-        
       else 
-        @crawl.logger.warn "Invalid MimeType"
+        @crawl.logger.warn "CrawlJob: Invalid MimeType #{content_request.inspect}"
       end 
     else 
-      @crawl.logger.warn "Retrieve returned FALSE #{content_request[:url]}"
+      @crawl.logger.warn "CrawlJob: Retrieve returned FALSE #{content_request.inspect}"
     end
     
     @crawl.lock("finished") do
@@ -72,12 +92,13 @@ class CrawlJob
       @crawl.finished_processing
 
       # test queue and crawl sizes to see if we have completed the crawl
-      @crawl.debug_puts "finished? #{@crawl.finished?}"
       if @crawl.finished?
-        @crawl.debug_puts "Calling crawl_job finished"
+        @crawl.logger.debug "Calling crawl_job finished"
         finished(content_request)
       end
     end
+
+    @crawl.logger.debug "#{@crawl.content.status_code} #{content_request[:url]}"
     
   end
 
@@ -89,14 +110,14 @@ class CrawlJob
     
     @crawl.finish
 
-    @crawl.debug_puts "increment crawl_finished_enqueued_count from #{@crawl.redis.get("crawl_finished_enqueued_count")}"
+    @crawl.logger.debug "increment crawl_finished_enqueued_count from #{@crawl.redis.get("crawl_finished_enqueued_count")}"
     @crawl.redis.incr("crawl_finished_enqueued_count")
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end
   
   # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
-    content_to_send = content.merge({:depth => content_request[:depth], :internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
+    content_to_send = content.merge({:depth => content_request[:depth], :internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id], :data => content_request[:data]})
     if content_request[:direct_call_process_job]
       #clazz = content_request[:processing_queue].to_s.constantize
       clazz = const_get(content_request[:processing_queue])
@@ -108,18 +129,17 @@ class CrawlJob
     else
       Resque.enqueue(const_get(content_request[:processing_queue]), content_to_send)
     end
-    @crawl.logger.debug "#{content_request[:url]} has been sent for processing. use_encoding_safe_process_job: #{content_request[:use_encoding_safe_process_job]}"
   end
 
   private
   
   # Enqueues content to the crawl_job queue
   def self.enqueue_content(content_request, link)
-    new_request = content_request.clone
+    content_request.symbolize_keys!
+    new_request = content_request.dup
     new_request[:url] = link
     new_request[:parent] = content_request[:url]
-    new_request[:depth] = 0 
-    new_request[:depth] = content_request["depth"].to_i + 1
+    new_request[:depth] = content_request[:depth].to_i + 1
     #to help prevent accidentally double processing a link, let's mark it as queued just before the Resque.enqueue statement, rather than just after.
     Resque.enqueue(CrawlJob, new_request)
   end

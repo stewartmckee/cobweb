@@ -32,6 +32,7 @@ class Cobweb
   # See readme for more information on options available
   def initialize(options = {})
     @options = options
+    @options[:data] = {} if @options[:data].nil?
     default_use_encoding_safe_process_job_to  false
     default_follow_redirects_to               true
     default_redirect_limit_to                 10
@@ -92,6 +93,14 @@ class Cobweb
     @redis.hset "statistics", "queued_at", DateTime.now
     @redis.set("crawl-counter", 0)
     @redis.set("queue-counter", 1)
+
+    # setup robots delay 
+    #if @options[:respect_robots_delay]
+    #  @robots = robots_constructor(base_url, @options)
+    #  delay_set = @robots.delay || 0.5 # should be setup as an options with a default value 
+    #  @redis.set("robots:per_page_delay", delay_set)
+    #  @redis.set("robots:next_retrieval", Time.now)
+    #end  
 
     @options[:seed_urls].map{|link| @redis.sadd "queued", link }
     
@@ -253,9 +262,7 @@ class Cobweb
           # add an array of images with their attributes for image processing
           content[:images] = [] 
           if @options[:store_image_attributes] 
-            puts "storing image data"
             Array(link_parser.full_link_data.select {|link| link["type"] == "image"}).each do |inbound_link| 
-              puts "Procewsing links for IMAGEA: #{inbound_link.inspect}"
               inbound_link["link"] = UriHelper.parse(inbound_link["link"])
               content[:images] << inbound_link
             end 
@@ -483,10 +490,12 @@ class Cobweb
     pattern
   end
 
-  def clear_cache
-    
+  def clear_cache;end
+
+  def robots_constructor(base_url, options)
+    Robots.new(:url => base_url, :user_agent => options[:user_agent])
   end
-  
+
   private
   # checks if the mime_type is textual
   def text_content?(content_type)
