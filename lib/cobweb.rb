@@ -76,7 +76,7 @@ class Cobweb
       if @options[:crawl_id] 
         @options[:crawl_id] 
       else 
-        Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}"
+        Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}")
       end 
     end
   end  
