@@ -94,6 +94,13 @@ class Cobweb
     @redis.set("crawl-counter", 0)
     @redis.set("queue-counter", 1)
 
+    # adds the @options["data"] to the global space so it can be retrieved with a simple redis query
+    if @options[:data] 
+      @options[:data].keys.each do |key| 
+        @redis.hset "data", key.to_s, @options[:data][key]
+      end 
+    end 
+
     # setup robots delay 
     #if @options[:respect_robots_delay]
     #  @robots = robots_constructor(base_url, @options)
