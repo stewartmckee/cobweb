@@ -85,7 +85,7 @@ class Cobweb
   def start(base_url)
     raise ":base_url is required" unless base_url
     request = {
-      :crawl_id => crawl_id),
+      :crawl_id => crawl_id,
       :url => base_url 
     }  
     
