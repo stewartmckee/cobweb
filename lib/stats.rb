@@ -45,7 +45,7 @@ class Stats
   end
 
   def inbound_links_for(url)
-    uri = UriHelper.parse(url)
+    uri = UriHelper.parse(url).normalize
     @redis.smembers("inbound_links_#{Digest::MD5.hexdigest(uri.to_s)}")
   end
 

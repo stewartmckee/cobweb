@@ -122,7 +122,7 @@ class CobwebCrawler
 
             if @options[:store_inbound_links]
               document_links.each do |target_link|
-                target_uri = UriHelper.parse(target_link)
+                target_uri = UriHelper.parse(target_link).normalize
                 @redis.sadd("inbound_links_#{Digest::MD5.hexdigest(target_uri.to_s)}", UriHelper.parse(url).to_s)
               end
             end
