@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+1.0.20
+  removed dependency on thin and resque from gemfile
+  fixed destroy method on CobwebCrawlHelper to no longer take seperate options, takes options from initializer
+
 1.0.19
   updated redis connection to reuse existing connection
   fixed some end of crawl detection bugs
