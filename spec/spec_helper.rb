@@ -3,7 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../lib/cobweb')
 require File.expand_path(File.dirname(__FILE__) + '/../spec/samples/sample_server')
 require File.expand_path(File.dirname(__FILE__) + '/../spec/http_stubs')
 require 'mock_redis'
-require 'thin' if ENV["TRAVIS_RUBY_VERSION"].nil?
+
 
 require 'coveralls'
 Coveralls.wear!
@@ -17,9 +17,14 @@ RSpec.configure do |config|
   if ENV["TRAVIS_RUBY_VERSION"] || ENV['CI']
     config.filter_run_excluding :local_only => true
   end
-
-  Thread.new do
-    @thin ||= Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
+  
+  THIN_INSTALLED = false
+  if Gem::Specification.find_all_by_name("thin", ">=1.0.0").count >= 1
+    require 'thin'
+    THIN_INSTALLED = true
+    Thread.new do
+      @thin ||= Thin::Server.start("0.0.0.0", 3532, SampleServer.app)
+    end
   end
 
   # WAIT FOR START TO COMPLETE

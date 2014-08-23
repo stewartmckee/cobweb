@@ -9,6 +9,7 @@ describe Robots do
   
   describe "default user-agent" do
     before(:each) do
+      pending("thin not installed") unless THIN_INSTALLED
       @options = {:url => "http://localhost:3532/"}
     end
     

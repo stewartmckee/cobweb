@@ -4,8 +4,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe CrawlWorker, :local_only => true do
 
   before(:all) do
-    
-    if SIDEKIQ_INSTALLED    
+    if SIDEKIQ_INSTALLED && THIN_INSTALLED
       #store all existing resque process ids so we don't kill them afterwards
       @existing_processes = `ps aux | grep sidekiq | grep -v grep | awk '{print $2}'`.split("\n")
 
@@ -22,6 +21,7 @@ describe CrawlWorker, :local_only => true do
 
   before(:each) do
     pending("Sidkiq not installed") unless SIDEKIQ_INSTALLED
+    pending("thin not installed") unless THIN_INSTALLED
     @base_url = "http://localhost:3532/"
     @base_page_count = 77
   

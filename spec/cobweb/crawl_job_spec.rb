@@ -6,7 +6,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards
-    if RESQUE_INSTALLED    
+    if RESQUE_INSTALLED  && THIN_INSTALLED   
 
       @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
       if Resque.workers.count > 0 && @existing_processes.empty?
@@ -50,6 +50,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
   before(:each) do
     pending("Resque not installed") unless RESQUE_INSTALLED
+    pending("thin not installed") unless THIN_INSTALLED
     @base_url = "http://localhost:3532/"
     @base_page_count = 77
 

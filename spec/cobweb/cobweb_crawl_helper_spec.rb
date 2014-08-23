@@ -51,7 +51,7 @@ describe CobwebCrawlHelper do
         end
         describe "after called" do
           before(:each) do
-            @crawl = CobwebCrawlHelper.new({:crawl_id => "crawl_0_id"})
+            @crawl = CobwebCrawlHelper.new({:crawl_id => "crawl_0_id", :queue_system => :resque})
             @crawl.destroy
           end
           it "should delete only the crawl specified" do
