@@ -15,8 +15,8 @@ class CobwebCrawlHelper
     @stats = Stats.new(data)
   end
   
-  def destroy(options={})
-    
+  def destroy
+    options = @data
     options[:queue_name] = "cobweb_crawl_job" unless options.has_key?(:queue_name)
     if RESQUE_INSTALLED
       options[:finished_resque_queue] = CobwebFinishedJob unless options.has_key?(:finished_resque_queue)
