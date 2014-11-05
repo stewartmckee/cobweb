@@ -1,10 +1,13 @@
 Change Log
 ==========
 
+1.0.21
+  switched from namespaced_redis to redis-namespace
+  increased ruby version to 2.1.3
+
 1.0.20
   removed dependency on thin and resque from gemfile
   fixed destroy method on CobwebCrawlHelper to no longer take seperate options, takes options from initializer
-  switched from namespaced_redis to redis-namespace
 
 1.0.19
   updated redis connection to reuse existing connection
