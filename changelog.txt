@@ -4,6 +4,7 @@ Change Log
 1.0.20
   removed dependency on thin and resque from gemfile
   fixed destroy method on CobwebCrawlHelper to no longer take seperate options, takes options from initializer
+  switched from namespaced_redis to redis-namespace
 
 1.0.19
   updated redis connection to reuse existing connection
@@ -22,7 +23,7 @@ Change Log
   remove forced output of cache hit notifications
 
 1.0.15
-  post bug fix version bump... 
+  post bug fix version bump...
 
 1.0.14
   added seed_list functionality
@@ -66,13 +67,13 @@ Change Log
 
 1.0.3
   added ability to set exceptions to be raised in host application
-  
+
 1.0.2
   added user-agent to options passed through
   updated specs to accept the new default user-agent
 
 1.0.1
-  fixed bug where CobwebCrawler was going beyond the end of the queued urls 
+  fixed bug where CobwebCrawler was going beyond the end of the queued urls
 
 1.0.0
   released version 1... yay!
@@ -95,7 +96,7 @@ Change Log
 
 0.0.73
   fixed bug in cancel crawl that didn't remove all items from queue
-  
+
 0.0.72
   updating cancel crawl code
 
@@ -192,7 +193,7 @@ Change Log
 
 0.0.44
   additional improvements for redis
-  
+
 0.0.43
   improved performance of redis on large crawls
 
@@ -214,7 +215,7 @@ Change Log
 
 0.0.37
   pulled merge request for encoding issues
-  
+
 0.0.36
   pulled merge request for seeing errors on a redirect
 
@@ -259,7 +260,7 @@ Change Log
   Added Addressable gem to do some of the uri parsing as it does a better job than the standard ruby parser
 
 0.0.4
-  Some large changes have been made, can't remember them all.  If you were using 0.0.3 then some things will break.  Best bet is to read through the documentation to see what has changed. 
+  Some large changes have been made, can't remember them all.  If you were using 0.0.3 then some things will break.  Best bet is to read through the documentation to see what has changed.
 
 0.0.3
   Started Change log
