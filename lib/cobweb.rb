@@ -4,23 +4,47 @@ require "addressable/uri"
 require 'digest/sha1'
 require 'base64'
 
-Dir[File.dirname(__FILE__) + '/**/*.rb'].each do |file|
-  require file
-end
+# local files
+require 'crawl_worker'
+require 'document'
+require 'crawl_job'
+require 'cobweb_process_job'
+require 'redis_connection'
+require 'crawl_process_worker'
+require 'cobweb_crawl_helper'
+#require 'server'
+require 'cobweb_stats'
+require 'cobweb'
+require 'string'
+require 'robots'
+require 'crawl_finished_worker'
+require 'encoding_safe_process_job'
+require 'cobweb_finished_job'
+require 'report_command'
+require 'crawl'
+require 'crawl_object'
+#require 'sidekiq/cobweb_helper'
+require 'hash_util'
+require 'redirect_error'
+require 'cobweb_version'
+require 'cobweb_dsl'
+require 'crawl_helper'
+require 'uri_helper'
 
-puts Gem::Specification.find_all_by_name("sidekiq", ">=3.0.0") 
+
+puts Gem::Specification.find_all_by_name("sidekiq", ">=3.0.0")
 
 
 # Cobweb class is used to perform get and head requests.  You can use this on its own if you wish without the crawler
 class Cobweb
 
   attr_reader :options
-  
+
   # retrieves current version
   def self.version
     CobwebVersion.version
   end
-  
+
   # used for setting default options
   def method_missing(method_sym, *arguments, &block)
     if method_sym.to_s =~ /^default_(.*)_to$/
@@ -30,7 +54,7 @@ class Cobweb
       super
     end
   end
-  
+
   # See readme for more information on options available
   def initialize(options = {})
     @options = options
@@ -44,7 +68,7 @@ class Cobweb
       default_crawl_finished_queue_to           "CobwebFinishedJob"
     else
       default_processing_queue_to               "CrawlProcessWorker"
-      default_crawl_finished_queue_to           "CrawlFinishedWorker"      
+      default_crawl_finished_queue_to           "CrawlFinishedWorker"
     end
     default_quiet_to                          true
     default_debug_to                          false
@@ -71,31 +95,31 @@ class Cobweb
     @logger ||= Logger.new(STDOUT)
   end
 
-  def crawl_id 
-    @crawl_id ||= begin 
-      if @options[:crawl_id] 
-        @options[:crawl_id] 
-      else 
+  def crawl_id
+    @crawl_id ||= begin
+      if @options[:crawl_id]
+        @options[:crawl_id]
+      else
         Digest::SHA1.hexdigest("#{Time.now.to_i}.#{Time.now.usec}")
-      end 
+      end
     end
-  end  
-  
+  end
+
   # This method starts the resque based crawl and enqueues the base_url
   def start(base_url)
     raise ":base_url is required" unless base_url
     request = {
       :crawl_id => crawl_id,
-      :url => base_url 
-    }  
-    
+      :url => base_url
+    }
+
     if @options[:internal_urls].nil? || @options[:internal_urls].empty?
       uri = Addressable::URI.parse(base_url)
       @options[:internal_urls] = []
       @options[:internal_urls] << [uri.scheme, "://", uri.host, "/*"].join
       @options[:internal_urls] << [uri.scheme, "://", uri.host, ":", uri.inferred_port, "/*"].join
     end
-    
+
     request.merge!(@options)
 
     # set initial depth
@@ -107,25 +131,25 @@ class Cobweb
     @redis.set("queue-counter", 1)
 
     # adds the @options["data"] to the global space so it can be retrieved with a simple redis query
-    if @options[:data] 
-      @options[:data].keys.each do |key| 
+    if @options[:data]
+      @options[:data].keys.each do |key|
         @redis.hset "data", key.to_s, @options[:data][key]
-      end 
-    end 
+      end
+    end
 
-    # setup robots delay 
+    # setup robots delay
     #if @options[:respect_robots_delay]
     #  @robots = robots_constructor(base_url, @options)
-    #  delay_set = @robots.delay || 0.5 # should be setup as an options with a default value 
+    #  delay_set = @robots.delay || 0.5 # should be setup as an options with a default value
     #  @redis.set("robots:per_page_delay", delay_set)
     #  @redis.set("robots:next_retrieval", Time.now)
-    #end  
+    #end
 
     @options[:seed_urls].map{|link| @redis.sadd "queued", link }
-    
+
     @stats = CobwebStats.new(request)
     @stats.start_crawl(request)
-    
+
     # add internal_urls into redis
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
     if @options[:queue_system] == :resque
@@ -135,10 +159,10 @@ class Cobweb
     else
       raise "Unknown queue system: #{content_request[:queue_system]}"
     end
-    
+
     request
   end
-  
+
   # Returns array of cookies from content
   def get_cookies(response)
     all_cookies = response.get_fields('set-cookie')
@@ -166,7 +190,7 @@ class Cobweb
     else
       redirect_limit = 10
     end
-    
+
     # connect to redis
     if options.has_key? :crawl_id
       redis = Redis::Namespace.new("cobweb:#{options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
@@ -179,7 +203,7 @@ class Cobweb
 
     # check if it has already been cached
     if ((@options[:cache_type] == :crawl_based && redis.get(unique_id)) || (@options[:cache_type] == :full && full_redis.get(unique_id))) && @options[:cache]
-      if @options[:cache_type] == :crawl_based 
+      if @options[:cache_type] == :crawl_based
         logger.info "Cache hit in crawl for #{url}" unless @options[:quiet]
         content = HashUtil.deep_symbolize_keys(Marshal.load(redis.get(unique_id)))
       else
@@ -215,7 +239,7 @@ class Cobweb
         if @options[:range]
           request.set_range(@options[:range])
         end
-      
+
         response = @http.request request
 
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
@@ -236,11 +260,11 @@ class Cobweb
           content[:redirect_through] = [uri.to_s] if content[:redirect_through].nil?
           content[:redirect_through].insert(0, url)
           content[:url] = content[:redirect_through].last
-          
+
           content[:response_time] = Time.now.to_f - request_time
         else
           content[:response_time] = Time.now.to_f - request_time
-          
+
           logger.info "Retrieved." unless @options[:quiet]
 
           # create the content container
@@ -248,16 +272,16 @@ class Cobweb
           content[:status_code] = response.code.to_i
           content[:mime_type] = ""
           content[:mime_type] = response.content_type.split(";")[0].strip unless response.content_type.nil?
-          
+
           if !response["Content-Type"].nil? && response["Content-Type"].include?(";")
             charset = response["Content-Type"][response["Content-Type"].index(";")+2..-1] if !response["Content-Type"].nil? and response["Content-Type"].include?(";")
             charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
             content[:character_set] = charset
           end
-          
+
           content[:length] = response.content_length
           content[:text_content] = text_content?(content[:mime_type])
-          
+
           if text_content?(content[:mime_type])
             if response["Content-Encoding"]=="gzip"
               content[:body] = Zlib::GzipReader.new(StringIO.new(response.body)).read
@@ -270,23 +294,23 @@ class Cobweb
 
           content[:location] = response["location"]
           content[:headers] = HashUtil.deep_symbolize_keys(response.to_hash)
-          
+
           # parse data for links
           link_parser = ContentLinkParser.new(content[:url], content[:body], @options)
 
           content[:links] = link_parser.link_data
           content[:links][:external] = link_parser.external_links
-          content[:links][:internal] = link_parser.internal_links 
+          content[:links][:internal] = link_parser.internal_links
 
           # add an array of images with their attributes for image processing
-          content[:images] = [] 
-          if @options[:store_image_attributes] 
-            Array(link_parser.full_link_data.select {|link| link["type"] == "image"}).each do |inbound_link| 
+          content[:images] = []
+          if @options[:store_image_attributes]
+            Array(link_parser.full_link_data.select {|link| link["type"] == "image"}).each do |inbound_link|
               inbound_link["link"] = UriHelper.parse(inbound_link["link"])
               content[:images] << inbound_link
-            end 
-          end 
-          
+            end
+          end
+
         end
         # add content to cache if required
         if @options[:cache]
@@ -301,7 +325,7 @@ class Cobweb
       rescue RedirectError => e
         raise e if @options[:raise_exceptions]
         logger.error "ERROR RedirectError: #{e.message}"
-        
+
         ## generate a blank content
         content = {}
         content[:url] = uri.to_s
@@ -310,15 +334,15 @@ class Cobweb
         content[:length] = 0
         content[:body] = ""
         content[:error] = e.message
-        content[:images] = [] 
+        content[:images] = []
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
-        
+
       rescue SocketError => e
         raise e if @options[:raise_exceptions]
         logger.error "ERROR SocketError: #{e.message}"
-        
+
         ## generate a blank content
         content = {}
         content[:url] = uri.to_s
@@ -326,16 +350,16 @@ class Cobweb
         content[:status_code] = 0
         content[:length] = 0
         content[:body] = ""
-        content[:images] = [] 
+        content[:images] = []
         content[:error] = e.message
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
-        
+
       rescue Timeout::Error => e
         raise e if @options[:raise_exceptions]
         logger.error "ERROR Timeout::Error: #{e.message}"
-        
+
         ## generate a blank content
         content = {}
         content[:url] = uri.to_s
@@ -355,7 +379,7 @@ class Cobweb
 
   # Performs a HTTP HEAD request to the specified url applying the options supplied
   def head(url, options = @options)
-    raise "url cannot be nil" if url.nil?    
+    raise "url cannot be nil" if url.nil?
     uri = Addressable::URI.parse(url)
     uri.normalize!
     uri.fragment=nil
@@ -368,16 +392,16 @@ class Cobweb
     else
       redirect_limit = 10
     end
-    
+
     # connect to redis
     if options.has_key? :crawl_id
       redis = Redis::Namespace.new("cobweb:#{options[:crawl_id]}:", :redis => RedisConnection.new(@options[:redis_options]))
     else
       redis = Redis::Namespace.new("cobweb", :redis => RedisConnection.new(@options[:redis_options]))
     end
-    
+
     content = {:base_url => url}
-    
+
     # check if it has already been cached
     if redis.get("head-#{unique_id}") and @options[:cache]
       logger.info "Cache hit for #{url}" unless @options[:quiet]
@@ -435,8 +459,8 @@ class Cobweb
               charset = charset[charset.index("=")+1..-1] if charset and charset.include?("=")
               content[:character_set] = charset
             end
-          end 
-          
+          end
+
           # add content to cache if required
           if @options[:cache]
             logger.info "Stored in cache [head-#{unique_id}]" if @options[:debug]
@@ -465,7 +489,7 @@ class Cobweb
       rescue SocketError => e
         raise e if @options[:raise_exceptions]
         logger.error "ERROR SocketError: #{e.message}"
-        
+
         ## generate a blank content
         content = {}
         content[:url] = uri.to_s
@@ -477,11 +501,11 @@ class Cobweb
         content[:mime_type] = "error/dnslookup"
         content[:headers] = {}
         content[:links] = {}
-        
+
       rescue Timeout::Error => e
         raise e if @options[:raise_exceptions]
         logger.error "ERROR Timeout::Error: #{e.message}"
-        
+
         ## generate a blank content
         content = {}
         content[:url] = uri.to_s
@@ -494,10 +518,10 @@ class Cobweb
         content[:headers] = {}
         content[:links] = {}
       end
-      
+
       content
     end
-    
+
   end
 
   # escapes characters with meaning in regular expressions and adds wildcard expression
@@ -523,5 +547,5 @@ class Cobweb
     end
     false
   end
-  
+
 end
