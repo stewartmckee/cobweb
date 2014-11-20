@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
-#$:.push File.expand_path("../lib", __FILE__)
-puts "cobweb.gemspec"
-require 'cobweb_version'
+require "#{File.expand_path("../lib", __FILE__)}/cobweb_version.rb"
 
 Gem::Specification.new do |s|
 
