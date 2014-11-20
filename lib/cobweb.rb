@@ -6,6 +6,7 @@ require 'base64'
 
 # local files
 require 'crawl_worker'
+require 'content_link_parser'
 require 'document'
 require 'crawl_job'
 require 'cobweb_process_job'
@@ -106,7 +107,7 @@ class Cobweb
   end
 
   # This method starts the resque based crawl and enqueues the base_url
-  def start(base_url)
+  def start(base_url,start_urls=[])
     raise ":base_url is required" unless base_url
     request = {
       :crawl_id => crawl_id,
@@ -153,7 +154,19 @@ class Cobweb
     # add internal_urls into redis
     @options[:internal_urls].map{|url| @redis.sadd("internal_urls", url)}
     if @options[:queue_system] == :resque
-      Resque.enqueue(CrawlJob, request)
+      # multiple start urls
+      start_urls.each do |start_url|
+        request[:url] = start_url
+        Resque.enqueue(CrawlJob, request)
+      end
+
+
+      # single base_url
+      request[:url] = base_url
+      if start_urls.empty?
+        Resque.enqueue(CrawlJob, request)
+      end
+
     elsif @options[:queue_system] == :sidekiq
       CrawlWorker.perform_async(request)
     else
