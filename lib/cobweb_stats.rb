@@ -1,9 +1,9 @@
 # Stats class is the main statisitics hub for monitoring crawls.  Either can be viewed through the Sinatra interface, or returned from the CobwebCrawler.crawl method or block
 class CobwebStats
   require 'json'
-  
+
   attr_reader :redis
-  
+
   # Sets up redis usage for statistics
   def initialize(options)
     options[:redis_options] = {} unless options.has_key? :redis_options
@@ -15,7 +15,7 @@ class CobwebStats
     @lock = Mutex.new
     @redis = Redis::Namespace.new("cobweb:#{options[:crawl_id]}", :redis => @full_redis)
   end
-  
+
   # Sets up the crawl in statistics
   def start_crawl(options)
     unless @full_redis.sismember "cobweb:crawls", options[:crawl_id]
@@ -27,7 +27,7 @@ class CobwebStats
     @redis.hset "statistics", "crawl_started_at", DateTime.now
     @redis.hset "statistics", "current_status", CobwebCrawlHelper::STARTING
   end
-  
+
   # Removes the crawl from the running crawls and updates status
   def end_crawl(options, cancelled=false)
     #@full_redis.srem "cobweb_crawls", options[:crawl_id]
@@ -39,7 +39,7 @@ class CobwebStats
     @redis.hset "statistics", "crawl_finished_at", DateTime.now
     #@redis.del "crawl_details"
   end
-  
+
   def get_crawled
     @redis.smembers "crawled"
   end
@@ -49,11 +49,11 @@ class CobwebStats
     @redis.smembers("inbound_links:#{Digest::MD5.hexdigest(uri.to_s)}")
   end
 
-  # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.  
+  # Returns statistics hash.  update_statistics takes the content hash, extracts statistics from it and updates redis with the data.
   def update_statistics(content, crawl_counter=@redis.scard("crawled").to_i, queue_counter=@redis.scard("queued").to_i)
     @lock.synchronize {
       @statistics = get_statistics
-      
+
       if @statistics.has_key? :average_response_time
         @statistics[:average_response_time] = (((@redis.hget("statistics", "average_response_time").to_f*crawl_counter) + content[:response_time].to_f) / (crawl_counter + 1))
       else
@@ -68,7 +68,7 @@ class CobwebStats
       end
       @statistics[:maximum_length] = content[:length].to_i if @redis.hget("statistics", "maximum_length").nil? or content[:length].to_i > @statistics[:maximum_length].to_i
       @statistics[:minimum_length] = content[:length].to_i if @redis.hget("statistics", "minimum_length").nil? or content[:length].to_i < @statistics[:minimum_length].to_i
-      
+
       if content[:mime_type].include?("text/html") or content[:mime_type].include?("application/xhtml+xml")
         @statistics[:page_count] = @statistics[:page_count].to_i + 1
         @statistics[:page_size] = @statistics[:page_size].to_i + content[:length].to_i
@@ -78,14 +78,14 @@ class CobwebStats
         @statistics[:asset_size] = @statistics[:asset_size].to_i + content[:length].to_i
         increment_time_stat("assets_count")
       end
-      
+
       total_redirects = @statistics[:total_redirects].to_i
       @statistics[:total_redirects] = 0 if total_redirects.nil?
       @statistics[:total_redirects] = total_redirects += content[:redirect_through].count unless content[:redirect_through].nil?
 
       @statistics[:crawl_counter] = crawl_counter
       @statistics[:queue_counter] = queue_counter
-      
+
       total_length = @statistics[:total_length].to_i
       @statistics[:total_length] = total_length + content[:length].to_i
 
@@ -104,24 +104,24 @@ class CobwebStats
       @statistics[:mime_counts] = mime_counts.to_json
 
       # record mime categories stats
-      if content[:mime_type].cobweb_starts_with? "text"
+      if content[:mime_type].start_with? "text"
         increment_time_stat("mime_text_count")
-      elsif content[:mime_type].cobweb_starts_with? "application"
+      elsif content[:mime_type].start_with? "application"
         increment_time_stat("mime_application_count")
-      elsif content[:mime_type].cobweb_starts_with? "audio"
+      elsif content[:mime_type].start_with? "audio"
         increment_time_stat("mime_audio_count")
-      elsif content[:mime_type].cobweb_starts_with? "image"
+      elsif content[:mime_type].start_with? "image"
         increment_time_stat("mime_image_count")
-      elsif content[:mime_type].cobweb_starts_with? "message"
+      elsif content[:mime_type].start_with? "message"
         increment_time_stat("mime_message_count")
-      elsif content[:mime_type].cobweb_starts_with? "model"
+      elsif content[:mime_type].start_with? "model"
         increment_time_stat("mime_model_count")
-      elsif content[:mime_type].cobweb_starts_with? "multipart"
+      elsif content[:mime_type].start_with? "multipart"
         increment_time_stat("mime_multipart_count")
-      elsif content[:mime_type].cobweb_starts_with? "video"
+      elsif content[:mime_type].start_with? "video"
         increment_time_stat("mime_video_count")
       end
-      
+
       status_counts = {}
 
       if @statistics.has_key? :status_counts
@@ -133,17 +133,17 @@ class CobwebStats
           status_counts[status_code] += 1
         else
           status_counts[status_code] = 1
-        end      
+        end
       else
         status_counts = {status_code => 1}
       end
 
-      
+
       # record statistics by status type
       if content[:status_code] >= 200 && content[:status_code] < 300
         increment_time_stat("status_200_count")
       elsif content[:status_code] >= 1 && content[:status_code] < 200
-        increment_time_stat("status_100_count")       
+        increment_time_stat("status_100_count")
       elsif content[:status_code] >= 300 && content[:status_code] < 400
         increment_time_stat("status_300_count")
       elsif content[:status_code] >= 400 && content[:status_code] < 500
@@ -155,21 +155,21 @@ class CobwebStats
       elsif content[:status_code] >= 600 && content[:status_code] < 1000
         increment_time_stat("status_other_count")
       end
-      
+
       @statistics[:status_counts] = status_counts.to_json
-      
+
       ## time based statistics
       increment_time_stat("minute_totals", "minute", 60)
-      
+
       redis_command = "@redis.hmset 'statistics', #{@statistics.keys.map{|key| "'#{key}', '#{@statistics[key].to_s.gsub("'","''")}'"}.join(", ")}"
       instance_eval redis_command
     }
     @statistics
   end
-  
+
   # Returns the statistics hash
   def get_statistics
-    
+
     statistics = HashUtil.deep_symbolize_keys(@redis.hgetall("statistics"))
     if statistics[:status_counts].nil?
       statistics[:status_counts]
@@ -183,23 +183,23 @@ class CobwebStats
     end
     statistics
   end
-  
+
   # Sets the current status of the crawl
   def update_status(status)
     @redis.hset("statistics", "current_status", status) unless get_status == CobwebCrawlHelper::CANCELLED
   end
-  
+
   # Returns the current status of the crawl
   def get_status
     @redis.hget "statistics", "current_status"
   end
-  
+
   # Sets totals for the end of the crawl (Not Used)
   def set_totals
     stats = get_statistics
     stats[:crawled] = @redis.smembers "crawled"
   end
-  
+
   private
   # Records a time based statistic
   def record_time_stat(stat_name, value, type="minute", duration=60)
@@ -209,7 +209,7 @@ class CobwebStats
     end
     stat_value = @redis.hget(stat_name, key).to_i
     stat_count = @redis.hget("#{stat_name}-count", key).to_i
-    
+
     if minute_count.nil?
       @redis.hset stat_name, key, value
       @redis.hset "#{stat_name}-count", key, 1
@@ -218,7 +218,7 @@ class CobwebStats
       @redis.hset "#{stat_name}-count", key, stat_count+1
     end
   end
-  
+
   # Increments a time based statistic (eg pages per minute)
   def increment_time_stat(stat_name, type="minute", duration=60)
     key = DateTime.now.strftime("%Y-%m-%d %H:%M")
@@ -239,7 +239,7 @@ class CobwebStats
       end
     end
   end
-  
+
 end
 
 

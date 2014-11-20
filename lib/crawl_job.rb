@@ -1,30 +1,30 @@
 
 # CrawlJob defines a resque job to perform the crawl
 class CrawlJob
-  
-  require "net/https"  
+
+  require "net/https"
   require "uri"
   require "redis"
-  
+
   @queue = :cobweb_crawl_job
-  
+
   # Resque perform method to maintain the crawl, enqueue found links and detect the end of crawl
   def self.perform(content_request)
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
-    
+
     # update the counters and then perform the get, returns false if we are outwith limits
     if @crawl.retrieve
 
       # if the crawled object is an object type we are interested
       if @crawl.content.permitted_type?
-        
-        # moved the Process links from here to inside the to_be_processed loop.  
+
+        # moved the Process links from here to inside the to_be_processed loop.
         # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
 
         if @crawl.to_be_processed?
 
-          queued_links_count = 0 
+          queued_links_count = 0
 
           @crawl.process_links do |link|
 
@@ -32,21 +32,21 @@ class CrawlJob
               # enqueue the links to resque
               # @crawl.logger.debug "QUEUE: #{link}"
               enqueue_content(content_request, link)
-              queued_links_count += 1 
+              queued_links_count += 1
             end
 
           end
 
-          redirect_links = @crawl.redirect_links 
-          if Array(redirect_links).length > 0 
-            Array(redirect_links).each do |link| 
+          redirect_links = @crawl.redirect_links
+          if Array(redirect_links).length > 0
+            Array(redirect_links).each do |link|
               @crawl.redis.sadd "queued", link
               @crawl.increment_queue_counter
               enqueue_content(content_request, link)
-              queued_links_count += 1 
+              queued_links_count += 1
             end
-          end 
-          
+          end
+
           @crawl.process do
 
             # enqueue to processing queue
@@ -73,20 +73,20 @@ class CrawlJob
 
           @crawl.store_graph_data
 
-            
+
         else
           @crawl.logger.debug "@crawl.finished? #{@crawl.finished?}"
           @crawl.logger.debug "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
           @crawl.logger.debug "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
 
-      else 
+      else
         @crawl.logger.warn "CrawlJob: Invalid MimeType #{content_request.inspect}"
-      end 
-    else 
+      end
+    else
       @crawl.logger.warn "CrawlJob: Retrieve returned FALSE #{content_request.inspect}"
     end
-    
+
     @crawl.lock("finished") do
       # let the crawl know we're finished with this object
       @crawl.finished_processing
@@ -97,9 +97,6 @@ class CrawlJob
         finished(content_request)
       end
     end
-
-    @crawl.logger.debug "#{@crawl.content.status_code} #{content_request[:url]}"
-    
   end
 
   # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
@@ -107,14 +104,14 @@ class CrawlJob
     additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url}
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
-    
+
     @crawl.finish
 
     @crawl.logger.debug "increment crawl_finished_enqueued_count from #{@crawl.redis.get("crawl_finished_enqueued_count")}"
     @crawl.redis.incr("crawl_finished_enqueued_count")
     Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end
-  
+
   # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:depth => content_request[:depth], :internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id], :data => content_request[:data]})
@@ -132,7 +129,7 @@ class CrawlJob
   end
 
   private
-  
+
   # Enqueues content to the crawl_job queue
   def self.enqueue_content(content_request, link)
     content_request.symbolize_keys!

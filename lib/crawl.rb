@@ -14,9 +14,9 @@ module CobwebModule
 
     end
 
-    def logger 
+    def logger
       @logger ||= Logger.new(STDOUT)
-    end 
+    end
 
     # Returns true if the url requested is already in the crawled queue
     def already_crawled?(link=@options[:url])
@@ -104,58 +104,58 @@ module CobwebModule
     end
 
     # extract it out so it can be used in multiple methods
-    def content_link_parser 
+    def content_link_parser
       @content_link_parser ||= ContentLinkParser.new(@options[:url], content.body, @options)
-    end 
+    end
 
     def store_graph_data
-      begin 
-        # store the links from this page linking TO other pages for 
+      begin
+        # store the links from this page linking TO other pages for
         # retrieval and processing of the inbound link processing in finishing stages
         if @options[:store_inbound_links] && Array(content_link_parser.internal_links).length > 0
           source_url_hexdigest = Digest::MD5.hexdigest(content.url.to_s)
-          Array(content_link_parser.internal_links).each do |link| 
-            begin 
+          Array(content_link_parser.internal_links).each do |link|
+            begin
               uri = URI.parse(link)
             rescue URI::InvalidURIError
               uri = URI.parse(URI.encode(link))
-            end 
+            end
             destination_url_hexdigest = Digest::MD5.hexdigest(uri.to_s)
-            unless source_url_hexdigest == destination_url_hexdigest 
-              @redis.sadd("inbound_links:#{destination_url_hexdigest}", 
-                         source_url_hexdigest) if ["http", "https"].include?(uri.scheme) 
-            end 
+            unless source_url_hexdigest == destination_url_hexdigest
+              @redis.sadd("inbound_links:#{destination_url_hexdigest}",
+                         source_url_hexdigest) if ["http", "https"].include?(uri.scheme)
+            end
           end
-        end 
-  
-  
+        end
+
+
         if @options[:store_inbound_anchor_text]
-          Array(content_link_parser.full_link_data.select {|link| link["type"] == "link"}).each do |inbound_link| 
+          Array(content_link_parser.full_link_data.select {|link| link["type"] == "link"}).each do |inbound_link|
             target_uri = UriHelper.parse(inbound_link["link"])
             unless content.url.to_s == target_uri.to_s
               @redis.sadd("inbound_anchors:#{Digest::MD5.hexdigest(target_uri.to_s)}", inbound_link["text"].downcase )
             end
-          end  
+          end
         end
 
-      rescue => e 
+      rescue => e
         # binding.pry
-        logger.warn "#{e.inspect} #{e.backtrace}" 
+        logger.warn "#{e.inspect} #{e.backtrace}"
       end
 
-    end 
+    end
 
     def redirect_links
       # handle redirect cases by adding location to the queue
-      rfq = [] 
+      rfq = []
       if [302,301].include?(content.status_code)
         link = content.headers[:location].first.to_s rescue nil
         if link && @cobweb_links.internal?(link)
-          rfq = link 
-        end  
+          rfq = link
+        end
       end
       rfq
-    end 
+    end
 
     def process_links &block
 
@@ -168,10 +168,10 @@ module CobwebModule
         # reparse the link content
         content_link_parser = ContentLinkParser.new(@options[:url], content.body, @options)
         document_links = content_link_parser.all_links(:valid_schemes => [:http, :https])
-       
+
         #get rid of duplicate links in the same page.
         document_links.uniq!
-        
+
         # select the link if its internal
         internal_links = document_links.select{ |link| @cobweb_links.internal?(link) }
         external_links = document_links.select{ |link| !@cobweb_links.internal?(link) }
@@ -254,7 +254,7 @@ module CobwebModule
       # debug_puts @stats.get_status
       if @stats.get_status == CobwebCrawlHelper::FINISHED
         debug_puts "Already Finished!"
-      end  
+      end
       # if there's nothing left queued or the crawled limit has been reached and we're not still processing something
       if @options[:crawl_limit].nil? || @options[:crawl_limit] == 0
         if queue_counter == 0 && @redis.smembers("currently_running").empty?

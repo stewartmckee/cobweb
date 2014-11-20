@@ -1,4 +1,5 @@
 require "nokogiri"
+require 'cobweb_links'
 
 # ContentLinkParser extracts links from HTML content and assigns them to a hash based on the location the link was found.  The has contents can be configured in options, however, defaults to a pretty sensible default.
 # Links can also be returned regardless of the location they were located and can be filtered by the scheme
@@ -9,7 +10,7 @@ class ContentLinkParser
     @options = {}.merge(options)
     @url = url
     @doc = Nokogiri::HTML(content)
-    
+
     base_url = @url.to_s
     if @doc.at("base[href]")
       base_url = @doc.at("base[href]").attr("href").to_s
@@ -25,27 +26,27 @@ class ContentLinkParser
       first_regex =/url\((['"]?)(.*?)\1\)/
       tag.content.scan(first_regex) {|match| array << Addressable::URI.parse(match[1]).to_s}
     }]]
-    
+
     #clear the default tags if required
     @options[:tags] = {} if @options[:ignore_default_tags]
     @options[:tags].merge!(@options[:additional_tags]) unless @options[:additional_tags].nil?
-    
+
   end
 
 
   # extracts link data from nokogiri with attributes on each link (rel, follow, anchor text, title, alt)
-  def full_link_data 
-    full_link_data = [] 
+  def full_link_data
+    full_link_data = []
     options_to_check = @options[:tags][:links] + @options[:tags][:images]
-    Array(options_to_check).each do |selector, attribute| 
-      @doc.css(selector).each do |node| 
+    Array(options_to_check).each do |selector, attribute|
+      @doc.css(selector).each do |node|
         if attribute == "href"
           full_link_data << {"text" => node.text.to_s, "rel" => node["rel"], "link" => UriHelper.join_no_fragment(@url, node["href"].to_s).to_s , "alt" => node["alt"].to_s, "title" => node["title"].to_s, "type" => "link" }
         elsif attribute == "src" && selector == "img[src]"
           full_link_data << {"rel" => node["rel"], "link" => UriHelper.join_no_fragment(@url, node["src"].to_s).to_s, "alt" => node["alt"].to_s, "rel" => node["rel"].to_s, "title" => node["title"].to_s, "type" => "image"}
-        end 
-      end 
-    end 
+        end
+      end
+    end
     full_link_data
   end
 
@@ -59,52 +60,52 @@ class ContentLinkParser
   end
 
   # Returns an array of all absolutized links, specify :valid_schemes in options to limit to certain schemes.  Also filters repeating folders (ie if the crawler got in a link loop situation)
-  def all_links(options = {}) 
-    # TODO parameter sorting to get them where they don't have dupes if the 
-    # parameters are in different order in different places    
+  def all_links(options = {})
+    # TODO parameter sorting to get them where they don't have dupes if the
+    # parameters are in different order in different places
     options[:valid_schemes] = [:http, :https] unless options.has_key? :valid_schemes
     data = link_data
-    
+
     links = data.keys.map{|key| data[key]}.flatten.uniq
     links = links.map{|link| UriHelper.join_no_fragment(@url, link).to_s }
     links = links.reject{|link| link =~ /\/([^\/]+?)\/\1\// }
-    links = links.reject{|link| link =~ /([^\/]+?)\/([^\/]+?)\/.*?\1\/\2/ }    
+    links = links.reject{|link| link =~ /([^\/]+?)\/([^\/]+?)\/.*?\1\/\2/ }
     links = links.reject{|link| link =~ /\/([^\/]+\.js)/ } if @options[:exclude_js]
     links = links.reject{|link| link =~ /\/([^\/]+\.css)/ } if @options[:exclude_css]
     links = links.select{|link| options[:valid_schemes].include? link.split(':')[0].to_sym}
-    
+
     # removes parameters from links if they are provided by the options
     # array
-    Array(@options[:remove_parameters]).each do |param| 
+    Array(@options[:remove_parameters]).each do |param|
       links = links.map{|prelink| remove_parameter(prelink, param) }
-    end if Array(@options[:remove_parameters]).length > 0 
+    end if Array(@options[:remove_parameters]).length > 0
     links
   end
 
   # helper with internal/external link checks
-  def cobweb_links_helper 
+  def cobweb_links_helper
     @cobweb_links_helper ||= CobwebLinks.new(@options)
-  end 
+  end
 
-  # returns the list of external links 
-  def external_links 
+  # returns the list of external links
+  def external_links
     external_links = []
-    all_links.each do |link| 
+    all_links.each do |link|
       external_links << link if cobweb_links_helper.external?(link)
-    end 
+    end
     external_links
-  end 
+  end
 
-  # returns the list of internal links 
-  def internal_links 
+  # returns the list of internal links
+  def internal_links
     internal_links = []
-    all_links.each do |link| 
+    all_links.each do |link|
       internal_links << link if cobweb_links_helper.internal?(link)
-    end 
+    end
     internal_links
-  end 
+  end
 
-  
+
   # Returns the type of links as a method rather than using the hash e.g. 'content_link_parser.images'
   def method_missing(m)
     if @options[:tags].keys.include?(m)
@@ -123,23 +124,23 @@ class ContentLinkParser
   def remove_parameter(url, parameter)
     uri = Addressable::URI.parse(url)
     params = uri.query_values
-    unless params.blank?  
-      params.delete(parameter) 
+    unless params.blank?
+      params.delete(parameter)
     end
     uri.query_values = params
     url = uri.to_s.gsub(/\?$/, "")
     url
   end
 
-  # extract a parameter value from a URL 
+  # extract a parameter value from a URL
   # copied in for convenience for now, I'm sure there's a use
   # for this (removal of GA parameters, etc.)
   def get_parameter(url, parameter)
     uri = Addressable::URI.parse(url)
-    params = uri.query_values 
+    params = uri.query_values
     params[parameter]
   end
-  
+
   private
   # Processes the content to find links based on options[:tags]
   def find_matches(array, selector, attribute)
