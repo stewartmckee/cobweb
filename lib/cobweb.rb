@@ -32,10 +32,6 @@ require 'cobweb_dsl'
 require 'crawl_helper'
 require 'uri_helper'
 
-
-puts Gem::Specification.find_all_by_name("sidekiq", ">=3.0.0")
-
-
 # Cobweb class is used to perform get and head requests.  You can use this on its own if you wish without the crawler
 class Cobweb
 
@@ -296,10 +292,12 @@ class Cobweb
           content[:text_content] = text_content?(content[:mime_type])
 
           if text_content?(content[:mime_type])
+            content[:body] = response.body
             if response["Content-Encoding"]=="gzip"
-              content[:body] = Zlib::GzipReader.new(StringIO.new(response.body)).read
-            else
-              content[:body] = response.body
+              content[:body] = Zlib::GzipReader.new(StringIO.new(content[:body])).read
+            end
+            if guessed_encoding = response_encoding(response, content[:body])
+              content[:body].force_encoding(guessed_encoding).encode('utf-8')
             end
           else
             content[:body] = Base64.encode64(response.body)
@@ -559,6 +557,21 @@ class Cobweb
       return true if content_type.match(Cobweb.escape_pattern_for_regex(mime_type))
     end
     false
+  end
+
+  def response_encoding response, body=nil
+    body_encoding = nil
+    body = response.body if body.nil?
+    response.type_params.each_pair do |k,v|
+      body_encoding = v.upcase if k =~ /charset/i
+    end
+    unless body_encoding
+      body_encoding = response.body =~ /<meta[^>]*HTTP-EQUIV=["']Content-Type["'][^>]*content=["'](.*)["']/i && $1 =~ /charset=(.+)/i && $1.upcase
+    end
+    unless body_encoding
+      body_encoding = response.body =~ /<meta[^>]*content=["'](.*)["'][^>]*HTTP-EQUIV=["']Content-Type["']/i && $1 =~ /charset=(.+)/i && $1.upcase
+    end
+    body_encoding
   end
 
 end

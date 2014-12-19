@@ -1,4 +1,4 @@
-
+require 'cobweb/class_helper'
 # CrawlJob defines a resque job to perform the crawl
 class CrawlJob
 
@@ -9,6 +9,44 @@ class CrawlJob
   @queue = :cobweb_crawl_job
 
   # Resque perform method to maintain the crawl, enqueue found links and detect the end of crawl
+  # content_request.keys =>
+  #  [
+  #   "crawl_id",
+  #   "url",
+  #   "processing_queue",
+  #   "crawl_finished_queue",
+  #   "internal_urls",
+  #   "redis_options",
+  #   "follow_redirects",
+  #   "obey_robots",
+  #   "debug",
+  #   "started_at",
+  #   "timeout",
+  #   "raise_exceptions",
+  #   "data",
+  #   "cache",
+  #   "respect_robots_delay",
+  #   "store_response_codes",
+  #   "direct_call_process_job",
+  #   "store_inbound_links",
+  #   "store_inbound_anchor_text",
+  #   "store_image_attributes",
+  #   "user_agent",
+  #   "use_encoding_safe_process_job",
+  #   "redirect_limit",
+  #   "queue_system",
+  #   "quiet",
+  #   "cache_type",
+  #   "external_urls",
+  #   "seed_urls",
+  #   "first_page_redirect_internal",
+  #   "text_mime_types",
+  #   "valid_mime_types",
+  #   "proxy_addr",
+  #   "proxy_port",
+  #   "depth",
+  #  ]
+
   def self.perform(content_request)
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
@@ -70,9 +108,7 @@ class CrawlJob
             end
 
           end
-
           @crawl.store_graph_data
-
 
         else
           @crawl.logger.debug "@crawl.finished? #{@crawl.finished?}"
@@ -84,7 +120,7 @@ class CrawlJob
         @crawl.logger.warn "CrawlJob: Invalid MimeType #{content_request.inspect}"
       end
     else
-      @crawl.logger.warn "CrawlJob: Retrieve returned FALSE #{content_request.inspect}"
+      @crawl.logger.warn "CrawlJob: Retrieve returned FALSE"
     end
 
     @crawl.lock("finished") do
@@ -109,22 +145,25 @@ class CrawlJob
 
     @crawl.logger.debug "increment crawl_finished_enqueued_count from #{@crawl.redis.get("crawl_finished_enqueued_count")}"
     @crawl.redis.incr("crawl_finished_enqueued_count")
-    Resque.enqueue(const_get(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
+    Resque.enqueue(Cobweb::ClassHelper.resolve_class(content_request[:crawl_finished_queue]), @crawl.statistics.merge(additional_stats))
   end
 
   # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:depth => content_request[:depth], :internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id], :data => content_request[:data]})
     if content_request[:direct_call_process_job]
-      #clazz = content_request[:processing_queue].to_s.constantize
-      clazz = const_get(content_request[:processing_queue])
+      clazz = Cobweb::ClassHelper.resolve_class(content_request[:processing_queue])
+      @crawl.logger.debug "PERFORM #{clazz.name} #{content_request[:url]}"
       clazz.perform(content_to_send)
     elsif content_request[:use_encoding_safe_process_job]
       content_to_send[:body] = Base64.encode64(content[:body])
       content_to_send[:processing_queue] = content_request[:processing_queue]
+      @crawl.logger.debug "ENQUEUE EncodingSafeProcessJob #{content_request[:url]}"
       Resque.enqueue(EncodingSafeProcessJob, content_to_send)
     else
-      Resque.enqueue(const_get(content_request[:processing_queue]), content_to_send)
+      clazz = Cobweb::ClassHelper.resolve_class(content_request[:processing_queue])
+      @crawl.logger.debug "ENQUEUE #{clazz.name} #{content_request[:url]}"
+      Resque.enqueue(clazz, content_to_send)
     end
   end
 

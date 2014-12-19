@@ -78,21 +78,19 @@ module CobwebModule
             end
 
             if content.permitted_type?
-              ## update statistics
 
               @stats.update_statistics(@content)
+              logger.info "CRAWLED #{@options[:url]}"
               return true
+            else
+              logger.info "NOT PERMITTED #{@options[:url]}"
             end
           else
-            logger.info "======================================="
-            logger.info "OUTWITH CRAWL LIMITS"
-            logger.info "======================================="
+            logger.info "OUTWITH CRAWL LIMITS #{@options[:url]}"
             decrement_queue_counter
           end
         else
-          logger.info "======================================="
-          logger.info "ALREADY CRAWLED"
-          logger.info "======================================="
+          logger.info "ALREADY CRAWLED #{@options[:url]}"
           decrement_queue_counter
         end
       else
