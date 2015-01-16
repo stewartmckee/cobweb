@@ -18,7 +18,6 @@ require 'cobweb_stats'
 require 'cobweb'
 require 'string'
 require 'robots'
-require 'crawl_finished_worker'
 require 'encoding_safe_process_job'
 require 'cobweb_finished_job'
 require 'report_command'
@@ -31,6 +30,14 @@ require 'cobweb_version'
 require 'cobweb_dsl'
 require 'crawl_helper'
 require 'uri_helper'
+
+if Gem::Specification.find_all_by_name("resque", ">=1.0.0").count >= 1
+  RESQUE_INSTALLED = true
+  require 'resque'
+else
+  RESQUE_INSTALLED = false
+  puts "resque gem not installed, skipping crawl_job specs"
+end
 
 # Cobweb class is used to perform get and head requests.  You can use this on its own if you wish without the crawler
 class Cobweb

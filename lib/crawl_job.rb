@@ -137,7 +137,7 @@ class CrawlJob
 
   # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
   def self.finished(content_request)
-    additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url}
+    additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url, :data => content_request[:data]}
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
 
@@ -150,7 +150,14 @@ class CrawlJob
 
   # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
-    content_to_send = content.merge({:depth => content_request[:depth], :internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id], :data => content_request[:data]})
+    content_to_send = content.merge({
+      :depth => content_request[:depth],
+      :internal_urls => content_request[:internal_urls],
+      :redis_options => content_request[:redis_options],
+      :source_id => content_request[:source_id],
+      :crawl_id => content_request[:crawl_id],
+      :data => content_request[:data]
+    })
     if content_request[:direct_call_process_job]
       clazz = Cobweb::ClassHelper.resolve_class(content_request[:processing_queue])
       @crawl.logger.debug "PERFORM #{clazz.name} #{content_request[:url]}"

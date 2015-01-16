@@ -14,31 +14,31 @@ require File.expand_path(File.dirname(__FILE__) + '/sidekiq/cobweb_helper')
 class CrawlWorker
   include Sidekiq::Worker
   sidekiq_options :queue => "crawl_worker", :retry => false if SIDEKIQ_INSTALLED
-  
+
   def perform(content_request)
     puts "Performing for #{content_request["url"]}"
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
-    
+
     # update the counters and then perform the get, returns false if we are outwith limits
     if @crawl.retrieve
-    
+
       # if the crawled object is an object type we are interested
       if @crawl.content.permitted_type?
-                
+
         # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
         @crawl.process_links do |link|
           @crawl.lock("queue_links") do
             if @crawl.within_crawl_limits? && !@crawl.already_handled?(link)
               # enqueue the links to sidekiq
-              @crawl.debug_puts "QUEUED LINK: #{link}" 
+              @crawl.debug_puts "QUEUED LINK: #{link}"
               enqueue_content(content_request, link)
             end
           end
         end
-        
+
         if @crawl.to_be_processed?
-          
+
           @crawl.process do
 
             # enqueue to processing queue
@@ -51,17 +51,17 @@ class CrawlWorker
               current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
               enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
             end
-            
+
           end
         else
           @crawl.debug_puts "@crawl.finished? #{@crawl.finished?}"
           @crawl.debug_puts "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
           @crawl.debug_puts "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
-        
+
       end
     end
-    
+
     #@crawl.lock("finished") do
       # let the crawl know we're finished with this object
       @crawl.finished_processing
@@ -79,11 +79,11 @@ class CrawlWorker
       conn.smembers(get_sidekiq_options[:queue]).count
     end
   end
-  
+
 
     # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
   def finished(content_request)
-    additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url}
+    additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @crawl.crawled_base_url, :data => content_request[:data]}
     additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
     additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
 
@@ -93,7 +93,7 @@ class CrawlWorker
     @crawl.redis.incr("crawl_finished_enqueued_count")
     content_request[:crawl_finished_queue].constantize.perform_async(@crawl.statistics.merge(additional_stats))
   end
-  
+
   # Enqueues the content to the processing queue setup in options
   def send_to_processing_queue(content, content_request)
     content_to_send = content.merge({:internal_urls => content_request[:internal_urls], :redis_options => content_request[:redis_options], :source_id => content_request[:source_id], :crawl_id => content_request[:crawl_id]})
@@ -110,7 +110,7 @@ class CrawlWorker
   end
 
   private
-  
+
   # Enqueues content to the crawl_job queue
   def enqueue_content(content_request, link)
     new_request = content_request.clone

@@ -125,17 +125,12 @@ class CrawlHelper
     if @redis.hget("statistics", "current_status")!= "Crawl Finished"
       ap "CRAWL FINISHED  #{content_request[:url]}, #{counters}, #{@redis.get("original_base_url")}, #{@redis.get("crawled_base_url")}" if content_request[:debug]
       @stats.end_crawl(content_request)
-
-      additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @redis.get("crawled_base_url")}
+      additional_stats = {:crawl_id => content_request[:crawl_id], :crawled_base_url => @redis.get("crawled_base_url"), :data => content_request[:data]}
       additional_stats[:redis_options] = content_request[:redis_options] unless content_request[:redis_options] == {}
       additional_stats[:source_id] = content_request[:source_id] unless content_request[:source_id].nil?
 
       if content_request[:queue_system] == :resque
         Resque.enqueue(Cobweb::ClassHelper.resolve_class(content_request[:crawl_finished_queue]), @stats.get_statistics.merge(additional_stats))
-      elsif content_request[:queue_system] == :sidekiq
-        puts "Queueing Finished on Sidekiq"
-        Cobweb::ClassHelper.resolve_class(content_request[:crawl_finished_queue]).perform_async(@stats.get_statistics.merge(additional_stats))
-      else
         raise "Unknown queue system: #{content_request[:queue_system]}"
       end
     else

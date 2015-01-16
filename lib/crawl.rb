@@ -137,7 +137,6 @@ module CobwebModule
         end
 
       rescue => e
-        # binding.pry
         logger.warn "#{e.inspect} #{e.backtrace}"
       end
 
@@ -251,18 +250,18 @@ module CobwebModule
       # print_counters
       # debug_puts @stats.get_status
       if @stats.get_status == CobwebCrawlHelper::FINISHED
-        debug_puts "Already Finished!"
+        puts "Already Finished!"
       end
       # if there's nothing left queued or the crawled limit has been reached and we're not still processing something
       if @options[:crawl_limit].nil? || @options[:crawl_limit] == 0
         if queue_counter == 0 && @redis.smembers("currently_running").empty?
-          debug_puts "queue_counter is 0 and currently_running is empty so we're done"
+          puts "queue_counter is 0 and currently_running is empty so we're done"
           #finished
           return true
         end
       elsif (queue_counter == 0 || process_counter >= @options[:crawl_limit].to_i) && @redis.smembers("currently_running").empty?
         #finished
-        debug_puts "queue_counter: #{queue_counter}, @redis.smembers(\"currently_running\").empty?: #{@redis.smembers("currently_running").empty?}, process_counter: #{process_counter}, @options[:crawl_limit].to_i: #{@options[:crawl_limit].to_i}"
+        puts "queue_counter: #{queue_counter}, @redis.smembers(\"currently_running\").empty?: #{@redis.smembers("currently_running").empty?}, process_counter: #{process_counter}, @options[:crawl_limit].to_i: #{@options[:crawl_limit].to_i}"
         return true
       end
       false
