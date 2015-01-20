@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require 'cobweb_version'
 
 Gem::Specification.new do |s|
-  
+
   s.name              = "cobweb"
   s.version           = CobwebVersion.version
   s.author            = "Stewart McKee"
@@ -17,6 +17,9 @@ Gem::Specification.new do |s|
   s.has_rdoc          = false
   s.license           = 'MIT'
   s.extra_rdoc_files  = ["README.textile"]
+
+  s.executables       = ["cobweb"]
+
   s.add_dependency('redis')
   s.add_dependency('nokogiri')
   s.add_dependency('addressable')
@@ -25,5 +28,5 @@ Gem::Specification.new do |s|
   s.add_dependency('haml')
   s.add_dependency('redis-namespace')
   s.add_dependency('json')
-  s.add_dependency('slop')
+  s.add_dependency('slop', "~>3.4")
 end
