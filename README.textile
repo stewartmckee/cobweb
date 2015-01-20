@@ -1,4 +1,4 @@
-h1. Cobweb v1.0.20
+h1. Cobweb v1.0.22
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 !https://badge.fury.io/rb/cobweb.png!:http://badge.fury.io/rb/cobweb
@@ -6,18 +6,18 @@ h1. Cobweb v1.0.20
 !https://coveralls.io/repos/stewartmckee/cobweb/badge.png?branch=master(Coverage Status)!:https://coveralls.io/r/stewartmckee/cobweb
 
 
-h2. Intro 
-  
+h2. Intro
+
   CobWeb has three methods of running.  Firstly it is a http client that allows get and head requests returning a hash of data relating to the requested resource.  The second main function is to utilize this combined with the power of Resque to cluster the crawls allowing you crawl quickly.  Lastly you can run the crawler with a block that uses each of the pages found in the crawl.
-  
+
   I've created a sample app to help with setting up cobweb at http://github.com/stewartmckee/cobweb_sample
-  
+
 h3. Resque
 
   When running on resque, passing in a Class and queue name it will enqueue all resources to this queue for processing, passing in the hash it has generated.  You then implement the perform method to process the resource for your own application.
-  
+
 h3. Standalone
-  
+
   CobwebCrawler takes the same options as cobweb itself, so you can use any of the options available for that.  An example is listed below.
 
   While the crawler is running, you can view statistics on http://localhost:4567
@@ -32,8 +32,8 @@ h3. Command Line
   Run "cobweb --help" for more info
 
 h3. Data Returned For Each Page
-  The data available in the returned hash are:  
-  
+  The data available in the returned hash are:
+
   * :url - url of the resource requested
   * :status_code - status code of the resource requested
   * :mime_type - content type of the resource
@@ -49,15 +49,15 @@ h3. Data Returned For Each Page
     ** :related - url's from link tags
     ** :scripts - url's from script tags
     ** :styles - url's from within link tags with rel of stylesheet and from url() directives with stylesheets
-  
+
   The source for the links can be overridden, contact me for the syntax (don't have time to put it into this documentation, will as soon as i have time!)
 
 h3. Statistics
 
   Statistics are available during the crawl, you can create a Stats object passing in a hash with redis_options and crawl_id.  Stats has a get_statistics method that returns a hash of the statistics available to you.  It is also returned by default from the CobwebCrawler.crawl standalone crawling method.
-  
+
   The data available within statistics is as follows:
-  
+
   * :average_length - average size of each objet
   * :minimum_length - minimum length returned
   * :queued_at - date and time that the crawl was started at (eg: "2012-09-10T23:10:08+01:00")
@@ -91,10 +91,10 @@ h4. new(options)
 Creates a new crawler object based on a base_url
 
   * options - Options are passed in as a hash,
-  
+
     ** :follow_redirects              - transparently follows redirects and populates the :redirect_through key in the content hash (Default: true)
-    ** :redirect_limit                - sets the limit to be used for concurrent redirects (Default: 10) 
-    ** :processing_queue              - specifies the processing queue for content to be sent to (Default: 'CobwebProcessJob' when using resque, 'CrawlProcessWorker' when using sidekiq) 
+    ** :redirect_limit                - sets the limit to be used for concurrent redirects (Default: 10)
+    ** :processing_queue              - specifies the processing queue for content to be sent to (Default: 'CobwebProcessJob' when using resque, 'CrawlProcessWorker' when using sidekiq)
     ** :crawl_finished_queue          - specifies the processing queue for statistics to be sent to after finishing crawling (Default: 'CobwebFinishedJob' when using resque, 'CrawlFinishedWorker' when using sidekiq)
     ** :debug                         - enables debug output (Default: false)
     ** :quiet                         - hides default output (Default: false)
@@ -116,8 +116,8 @@ Creates a new crawler object based on a base_url
     ** :use_encoding_safe_process_job - Base64-encode the body when storing job in queue; set to true when you are expecting non-ASCII content (Default: false)
     ** :proxy_addr                    - hostname of a proxy to use for crawling (e. g., 'myproxy.example.net', default: nil)
     ** :proxy_port                    - port number of the proxy (default: nil)
-    
-    
+
+
 bc. crawler = Cobweb.new(:follow_redirects => false)
 
 h4. start(base_url)
@@ -125,7 +125,7 @@ h4. start(base_url)
 Starts a crawl through resque.  Requires the :processing_queue to be set to a valid class for the resque job to work with the data retrieved.
 
   * base_url - the url to start the crawl from
-  
+
 Once the crawler starts, if the first page is redirected (eg from http://www.test.com to http://test.com) then the endpoint scheme, host and domain is added to the internal_urls automatically.
 
 bc. crawler.start("http://www.google.com/")
@@ -156,7 +156,7 @@ h3. CobwebCrawler
 
 CobwebCrawler is the standalone crawling class.  If you don't want to use resque or sidekiq and just want to crawl the site within your ruby process, you can use this class.
 
-bc. crawler = CobwebCrawler.new(:cache => 600) 
+bc. crawler = CobwebCrawler.new(:cache => 600)
 statistics = crawler.crawl("http://www.pepsico.com")
 
 You can also run within a block and get access to each page as it is being crawled.
@@ -177,13 +177,13 @@ The CobwebCrawlHelper class is a helper class to assist in getting information a
 bc. crawl = CobwebCrawlHelper.new(options)
 
   * options - the hash of options passed into Cobweb.new (must include a :crawl_id)
-  
+
 
 
 h2. Contributing/Testing
 
   Feel free to contribute small or large bits of code, just please make sure that there are rspec test for the features your submitting.  We also test on travis at http://travis-ci.org/#!/stewartmckee/cobweb if you want to see the state of the project.
-  
+
     Continuous integration testing is performed by the excellent Travis: http://travis-ci.org/#!/stewartmckee/cobweb
 
 h2. Todo

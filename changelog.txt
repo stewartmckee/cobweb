@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+1.0.22
+  limited slop version due to v4 changes
+  added cobweb into executables in gemspec
+
 1.0.21
   switched from namespaced_redis to redis-namespace
   increased ruby version to 2.1.3
