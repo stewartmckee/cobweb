@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.0.23
+  fixed report command of executable to stop removing the url
+
 1.0.22
   limited slop version due to v4 changes
   added cobweb into executables in gemspec
