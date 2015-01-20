@@ -1,20 +1,19 @@
 class ReportCommand
   def self.start(opts)
-    
+
     if opts[:output]
-      options = opts.to_hash.delete_if { |k, v| v.nil? || k == :url}
+      options = opts.to_hash.delete_if { |k, v| v.nil?}
       options[:quiet] = !opts[:verbose]
 
       @crawler = CobwebCrawler.new({:cache_type => :full, :raise_exceptions => true}.merge(options))
 
-      columns = nil 
+      columns = nil
 
       CSV.open(options[:output], "wb", :force_quotes => true) do |csv|
+
         statistics = @crawler.crawl(options[:url]) do |page|
           puts "Reporting on #{page[:url]}"
           @doc = page[:body]
-
-
           page["link_rel"] = scope.link_tag_with_rel("canonical")["href"]
           page["title"] = scope.head_tag.title_tag.contents
           page["description"] = scope.meta_tag_with_name("description")["content"]
