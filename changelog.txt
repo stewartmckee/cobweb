@@ -1,6 +1,8 @@
 Change Log
 ==========
 
+Oma - it's too modifed to bo still considered cobweb 
+
 1.0.19
   updated redis connection to reuse existing connection
   fixed some end of crawl detection bugs
