@@ -35,6 +35,47 @@ describe Cobweb do
     options[:proxy_port].should be_nil
     
   end
+
+  describe "link escape pattern" do
+
+    it "should return the same pattern if no triggers present" do
+      result = Cobweb.escape_pattern_for_regex("asdf")
+      result.should eql "asdf"
+    end
+    it "should escape ." do
+      result = Cobweb.escape_pattern_for_regex("asdf.txt")
+      result.should eql "asdf\\.txt"
+    end
+    it "should escape ?" do
+      result = Cobweb.escape_pattern_for_regex("asdf?")
+      result.should eql "asdf\\?"
+    end
+    it "should escape +" do
+      result = Cobweb.escape_pattern_for_regex("asdf + asdf = asdfasdf")
+      result.should eql "asdf \\+ asdf = asdfasdf"
+    end
+    it "should transform * to .*?" do
+      result = Cobweb.escape_pattern_for_regex("asdf*")
+      result.should eql "asdf.*?"
+    end
+
+    context "with https ignored" do
+      it "should ignore https" do
+        result = Cobweb.escape_pattern_for_regex("https://asdf.com")
+        result.should eql "https?://asdf\\.com"
+      end
+    end
+
+    context "without https ignored" do
+      it "should ignore https" do
+        result = Cobweb.escape_pattern_for_regex("https://asdf.com", :treat_https_as_http => false)
+        result.should eql "https://asdf\\.com"
+      end
+    end
+
+
+    context "with"
+  end
   
   describe "get" do
     it "should return a hash with default values" do
