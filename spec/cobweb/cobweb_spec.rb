@@ -64,6 +64,10 @@ describe Cobweb do
         result = Cobweb.escape_pattern_for_regex("https://asdf.com")
         result.should eql "https?://asdf\\.com"
       end
+      it "should ignore https" do
+        result = Cobweb.escape_pattern_for_regex("https://asdf.com", :treat_https_as_http => true)
+        result.should eql "https?://asdf\\.com"
+      end
     end
 
     context "without https ignored" do
@@ -166,7 +170,6 @@ describe Cobweb do
     end
     
     describe "with cache" do
-      
       before(:each) do
         @cobweb = Cobweb.new :quiet => true, :cache => 1
         Redis.new.flushdb
