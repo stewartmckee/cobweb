@@ -60,6 +60,11 @@ class CrawlHelper
               # select the link if its internal
               internal_links.select! { |link| @cobweb_links.internal?(link) }
 
+              # if the site has the same content for http and https then normalize to http 
+              if @options[:treat_https_as_http]
+                internal_links.map!{|link| link.gsub(/^https/, "http")}
+              end
+
               # reject the link if we've crawled it or queued it
               internal_links.reject! { |link| @redis.sismember("crawled", link) }
               internal_links.reject! { |link| @redis.sismember("queued", link) }

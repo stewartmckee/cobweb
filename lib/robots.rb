@@ -28,10 +28,10 @@ class Robots
   def allowed?(url)
     uri = URI.parse(url)
     @params[:allow].each do |pattern|
-      return true if uri.path.match(Cobweb.escape_pattern_for_regex(pattern))
+      return true if uri.path.match(Cobweb.escape_pattern_for_regex(pattern, @options))
     end
     @params[:disallow].each do |pattern|
-      return false if uri.path.match(Cobweb.escape_pattern_for_regex(pattern))
+      return false if uri.path.match(Cobweb.escape_pattern_for_regex(pattern, @options))
     end
     true
   end

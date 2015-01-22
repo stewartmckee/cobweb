@@ -61,6 +61,9 @@ class Cobweb
     default_store_inbound_links_to            false
     default_proxy_addr_to                     nil
     default_proxy_port_to                     nil
+    default_additional_tags_to                nil
+    default_treat_https_as_http_to            true
+
 
   end
   
@@ -446,11 +449,14 @@ class Cobweb
   end
 
   # escapes characters with meaning in regular expressions and adds wildcard expression
-  def self.escape_pattern_for_regex(pattern)
+  def self.escape_pattern_for_regex(pattern, options={})
     pattern = pattern.gsub(".", "\\.")
     pattern = pattern.gsub("?", "\\?")
-    pattern = pattern.gsub("+", "\\+")
+    pattern = pattern.gsub("+", "\\\\+")
     pattern = pattern.gsub("*", ".*?")
+    if !options.has_key?(:treat_https_as_http) || options[:treat_https_as_http]
+      pattern = pattern.gsub("https", "https?")
+    end
     pattern
   end
 

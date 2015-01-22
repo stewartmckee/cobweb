@@ -104,6 +104,11 @@ class CobwebCrawler
             cobweb_links = CobwebLinks.new(@options)
 
             internal_links = document_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s) && !cobweb_links.matches_external?(link))}
+
+            # if the site has the same content for http and https then normalize to http 
+            if @options[:treat_https_as_http]
+              internal_links.map!{|link| link.gsub(/^https/, "http")}
+            end
             
             # reject the link if we've crawled it or queued it
             internal_links.reject!{|link| @redis.sismember("crawled", link)}
