@@ -23,5 +23,6 @@ group :test do
   gem 'rspec-core'
   gem 'mock_redis'
   gem 'coveralls', :require => false
-  #gem 'thin'
+  # gem 'thin'
+  # gem 'sidekiq'
 end

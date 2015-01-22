@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cobweb (1.0.20)
+    cobweb (1.0.23)
       addressable
       awesome_print
       haml
@@ -10,7 +10,7 @@ PATH
       redis
       redis-namespace
       sinatra
-      slop
+      slop (~> 3.4)
 
 GEM
   remote: http://rubygems.org/
@@ -84,4 +84,4 @@ DEPENDENCIES
   rspec
   rspec-core
   sinatra
-  slop
+  slop (~> 3.4.6)
