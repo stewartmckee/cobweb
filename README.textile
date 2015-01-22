@@ -1,4 +1,4 @@
-h1. Cobweb v1.0.23
+h1. Cobweb v1.0.24
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 !https://badge.fury.io/rb/cobweb.png!:http://badge.fury.io/rb/cobweb
@@ -116,6 +116,7 @@ Creates a new crawler object based on a base_url
     ** :use_encoding_safe_process_job - Base64-encode the body when storing job in queue; set to true when you are expecting non-ASCII content (Default: false)
     ** :proxy_addr                    - hostname of a proxy to use for crawling (e. g., 'myproxy.example.net', default: nil)
     ** :proxy_port                    - port number of the proxy (default: nil)
+    ** :treat_https_as_http           - determines whether https and http urls are treated as the same (defaults to true, ie treated as the same)
 
 
 bc. crawler = Cobweb.new(:follow_redirects => false)

@@ -1,5 +1,8 @@
 Change Log
 ==========
+ 
+1.0.24
+  added https to http normalization with option to make unique
 
 1.0.23
   fixed report command of executable to stop removing the url
