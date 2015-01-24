@@ -37,10 +37,11 @@ RSpec.configure do |config|
   
   config.before(:each) {
         
-    #redis_mock = double("redis")
-    #redis_mock.stub(:new).and_return(@redis_mock_object)
+    @redis_mock_object = MockRedis.new
+    Redis.stub(:new).and_return(@redis_mock_object)
+    Redis::Namespace.stub(:new).and_return(@redis_mock_object)
     
-    #redis_mock.flushdb
+    @redis_mock_object.flushdb
     
   }
 

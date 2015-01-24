@@ -4,14 +4,14 @@ if Gem::Specification.find_all_by_name("sidekiq", ">=1.0.0").count >= 1
   require 'sidekiq'
 else
   SIDEKIQ_INSTALLED = false
-  puts "sidekiq gem not installed, skipping crawl_worker specs"
+  puts "sidekiq gem not installed, skipping crawl_worker specs" if defined?(ENVIRONMENT) && ENVIRONMENT=="test"
 end
 if Gem::Specification.find_all_by_name("resque", ">=1.0.0").count >= 1
   RESQUE_INSTALLED = true
   require 'resque'
 else
   RESQUE_INSTALLED = false
-  puts "resque gem not installed, skipping crawl_job specs"
+  puts "resque gem not installed, skipping crawl_job specs" if defined?(ENVIRONMENT) && ENVIRONMENT=="test"
 end
 
 module Sidekiq
