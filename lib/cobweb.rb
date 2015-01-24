@@ -26,7 +26,6 @@ require 'crawl_object'
 #require 'sidekiq/cobweb_helper'
 require 'hash_util'
 require 'redirect_error'
-require 'cobweb_version'
 require 'cobweb_dsl'
 require 'crawl_helper'
 require 'uri_helper'
@@ -303,8 +302,10 @@ class Cobweb
             if response["Content-Encoding"]=="gzip"
               content[:body] = Zlib::GzipReader.new(StringIO.new(content[:body])).read
             end
-            if guessed_encoding = response_encoding(response, content[:body])
-              content[:body].force_encoding(guessed_encoding).encode('utf-8')
+            if charset = guessed_charset(response) # favours response
+              content[:response_charset] = response_charset 
+              content[:body_charset] = body_charset
+              content[:body].force_encoding(charset).encode('utf-8')
             end
           else
             content[:body] = Base64.encode64(response.body)
@@ -566,19 +567,28 @@ class Cobweb
     false
   end
 
-  def response_encoding response, body=nil
-    body_encoding = nil
-    body = response.body if body.nil?
+
+  def guessed_charset response
+    response_charset(response) || body_charset(response.body)
+  end
+
+  def response_charset response
+    charset = nil
     response.type_params.each_pair do |k,v|
-      body_encoding = v.upcase if k =~ /charset/i
+      charset = v.upcase if k =~ /charset/i
     end
-    unless body_encoding
-      body_encoding = response.body =~ /<meta[^>]*HTTP-EQUIV=["']Content-Type["'][^>]*content=["'](.*)["']/i && $1 =~ /charset=(.+)/i && $1.upcase
+    charset
+  end
+
+  def body_charset body
+    body_charset = nil
+    unless body.nil?
+      body_charset = response.body =~ /<meta[^>]*HTTP-EQUIV=["']Content-Type["'][^>]*content=["'](.*)["']/i && $1 =~ /charset=(.+)/i && $1.upcase
+      unless body_charset
+        body_charset = response.body =~ /<meta[^>]*content=["'](.*)["'][^>]*HTTP-EQUIV=["']Content-Type["']/i && $1 =~ /charset=(.+)/i && $1.upcase
+      end
     end
-    unless body_encoding
-      body_encoding = response.body =~ /<meta[^>]*content=["'](.*)["'][^>]*HTTP-EQUIV=["']Content-Type["']/i && $1 =~ /charset=(.+)/i && $1.upcase
-    end
-    body_encoding
+    body_charset
   end
 
 end
