@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cobweb (1.0.23)
+    cobweb (1.0.24)
       addressable
       awesome_print
       haml
