@@ -53,6 +53,39 @@ describe CobwebCrawler do
       
     end
 
+    context "internal_links" do
+      it "should match internal links without being explicitly set" do
+        crawler = CobwebCrawler.new({:cache => false, :crawl_limit => 1})
+        crawler.crawl(@base_url)
+        queued_links = @redis_mock_object.smembers("queued")
+        queued_links.should_not include("http://themeforest.net/item/cleandream/490140")
+        queued_links.should include("http://localhost:3532/secure")
+      end
+      context "with https" do
+        it "should match https by default" do
+          crawler = CobwebCrawler.new({:cache => false, :crawl_limit => 1})
+          crawler.crawl(@base_url)
+          queued_links = @redis_mock_object.smembers("queued")
+          queued_links.should_not include("https://localhost:3532/secure")
+          queued_links.should include("http://localhost:3532/secure")
+        end
+        it "should not define https as different if treat_https_as_http is true" do
+          crawler = CobwebCrawler.new({:cache => false, :crawl_limit => 1, :treat_https_as_http => true})
+          crawler.crawl(@base_url)
+          queued_links = @redis_mock_object.smembers("queued")
+          queued_links.should_not include("https://localhost:3532/secure")
+          queued_links.should include("http://localhost:3532/secure")
+        end
+        it "should define https as different if treat_https_as_http is false" do
+          crawler = CobwebCrawler.new({:cache => false, :crawl_limit => 1, :treat_https_as_http => false})
+          crawler.crawl(@base_url)
+          queued_links = @redis_mock_object.smembers("queued")
+          queued_links.should_not include("https://localhost:3532/secure")
+          queued_links.should_not include("http://localhost:3532/secure")
+        end
+      end
+    end
+
     context "storing inbound links" do
 
       before(:each) do

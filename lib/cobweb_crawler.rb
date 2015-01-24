@@ -27,7 +27,8 @@ class CobwebCrawler
     @options[:seed_urls].map{|link| @redis.sadd "queued", link }
 
     @options[:crawl_linked_external] = false unless @options.has_key? :crawl_linked_external
-    
+
+    @options[:treat_https_as_http] = true unless @options.has_key? :treat_https_as_http     
     @debug = @options[:debug]
     
     @stats = Stats.new(@options.merge(:crawl_id => @crawl_id))
@@ -100,16 +101,19 @@ class CobwebCrawler
           
             document_links = ContentLinkParser.new(url, content[:body]).all_links(:valid_schemes => [:http, :https]).uniq
 
+
             # select the link if its internal (eliminate external before expensive lookups in queued and crawled)
             cobweb_links = CobwebLinks.new(@options)
 
             internal_links = document_links.select{|link| cobweb_links.internal?(link) || (@options[:crawl_linked_external] && cobweb_links.internal?(url.to_s) && !cobweb_links.matches_external?(link))}
 
             # if the site has the same content for http and https then normalize to http 
+            
             if @options[:treat_https_as_http]
               internal_links.map!{|link| link.gsub(/^https/, "http")}
             end
             
+
             # reject the link if we've crawled it or queued it
             internal_links.reject!{|link| @redis.sismember("crawled", link)}
             internal_links.reject!{|link| @redis.sismember("queued", link)}

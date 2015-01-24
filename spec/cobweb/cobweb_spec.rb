@@ -61,19 +61,19 @@ describe Cobweb do
 
     context "with https ignored" do
       it "should ignore https" do
-        result = Cobweb.escape_pattern_for_regex("https://asdf.com")
+        result = Cobweb.escape_pattern_for_regex("http://asdf.com")
         result.should eql "https?://asdf\\.com"
       end
       it "should ignore https" do
-        result = Cobweb.escape_pattern_for_regex("https://asdf.com", :treat_https_as_http => true)
+        result = Cobweb.escape_pattern_for_regex("http://asdf.com", :treat_https_as_http => true)
         result.should eql "https?://asdf\\.com"
       end
     end
 
     context "without https ignored" do
       it "should ignore https" do
-        result = Cobweb.escape_pattern_for_regex("https://asdf.com", :treat_https_as_http => false)
-        result.should eql "https://asdf\\.com"
+        result = Cobweb.escape_pattern_for_regex("http://asdf.com", :treat_https_as_http => false)
+        result.should eql "http://asdf\\.com"
       end
     end
 

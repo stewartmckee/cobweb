@@ -250,7 +250,10 @@ class Cobweb
           end
         end
       rescue RedirectError => e
-        raise e if @options[:raise_exceptions]
+        if @options[:raise_exceptions]
+          puts "Re-Raising error #{e.message} on #{uri.to_s}"
+          raise e 
+        end
         puts "ERROR RedirectError: #{e.message}"
         
         ## generate a blank content
@@ -453,9 +456,9 @@ class Cobweb
     pattern = pattern.gsub(".", "\\.")
     pattern = pattern.gsub("?", "\\?")
     pattern = pattern.gsub("+", "\\\\+")
-    pattern = pattern.gsub("*", ".*?")
-    if !options.has_key?(:treat_https_as_http) || options[:treat_https_as_http]
-      pattern = pattern.gsub("https", "https?")
+    pattern = pattern.gsub("*", ".*?")  
+    if options[:treat_https_as_http] || !options.has_key?(:treat_https_as_http)
+      pattern = pattern.gsub("http:", "https?:")
     end
     pattern
   end
