@@ -1,6 +1,10 @@
 Change Log
 ==========
  
+1.0.25
+  merged pull request regarding referencing redis if cache disabled
+  fixed bug and updated specs for treat_https_as_http
+
 1.0.24
   added https to http normalization with option to make unique
 
