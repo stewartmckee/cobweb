@@ -77,7 +77,8 @@ module CobwebModule
               @redis.set("crawled_base_url", @content[:base_url])
             end
 
-            if content.permitted_type?
+            # "crawl" redirects
+            if content.permitted_type? || [302,301].include?(content.status_code)
 
               @stats.update_statistics(@content)
               logger.info "CRAWLED #{@options[:url]}"

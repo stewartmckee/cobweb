@@ -72,10 +72,10 @@ class CrawlJob
               enqueue_content(content_request, link)
               queued_links_count += 1
             end
-
           end
 
           redirect_links = @crawl.redirect_links
+
           if Array(redirect_links).length > 0
             Array(redirect_links).each do |link|
               @crawl.redis.sadd "queued", link
@@ -111,9 +111,9 @@ class CrawlJob
           @crawl.store_graph_data
 
         else
-          @crawl.logger.debug "@crawl.finished? #{@crawl.finished?}"
-          @crawl.logger.debug "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
-          @crawl.logger.debug "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
+          @crawl.logger.debug "CrawlJob @crawl.finished? #{@crawl.finished?}"
+          @crawl.logger.debug "CrawlJob @crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+          @crawl.logger.debug "CrawlJob @crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
 
       else
