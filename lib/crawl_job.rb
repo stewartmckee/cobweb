@@ -53,33 +53,34 @@ class CrawlJob
 
     # update the counters and then perform the get, returns false if we are outwith limits
     if @crawl.retrieve
+      queued_links_count = 0
+
+      # following redirects
+      if @crawl.redirect_links.present?
+        redirect_links = @crawl.redirect_links
+
+        if Array(redirect_links).length > 0
+          Array(redirect_links).each do |link|
+            @crawl.redis.sadd "queued", link
+            @crawl.increment_queue_counter
+            enqueue_content(content_request, link)
+            queued_links_count += 1
+          end
+        end
 
       # if the crawled object is an object type we are interested
-      if @crawl.content.permitted_type?
+      elsif @crawl.content.permitted_type?
 
         # moved the Process links from here to inside the to_be_processed loop.
         # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
 
         if @crawl.to_be_processed?
 
-          queued_links_count = 0
-
           @crawl.process_links do |link|
 
             if @crawl.within_crawl_limits?
               # enqueue the links to resque
               # @crawl.logger.debug "QUEUE: #{link}"
-              enqueue_content(content_request, link)
-              queued_links_count += 1
-            end
-
-          end
-
-          redirect_links = @crawl.redirect_links
-          if Array(redirect_links).length > 0
-            Array(redirect_links).each do |link|
-              @crawl.redis.sadd "queued", link
-              @crawl.increment_queue_counter
               enqueue_content(content_request, link)
               queued_links_count += 1
             end
@@ -111,9 +112,9 @@ class CrawlJob
           @crawl.store_graph_data
 
         else
-          @crawl.logger.debug "@crawl.finished? #{@crawl.finished?}"
-          @crawl.logger.debug "@crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
-          @crawl.logger.debug "@crawl.first_to_finish? #{@crawl.first_to_finish?}"
+          @crawl.logger.debug "CrawlJob @crawl.finished? #{@crawl.finished?}"
+          @crawl.logger.debug "CrawlJob @crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+          @crawl.logger.debug "CrawlJob @crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
 
       else

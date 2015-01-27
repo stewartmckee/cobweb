@@ -308,7 +308,7 @@ class Cobweb
               content[:body].force_encoding(charset).encode('utf-8')
             end
           else
-            content[:body] = Base64.encode64(response.body)
+            content[:body] = Base64.encode64(response.body) unless response.body.nil?
           end
 
           content[:location] = response["location"]
