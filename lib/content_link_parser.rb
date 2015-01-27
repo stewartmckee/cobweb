@@ -18,14 +18,45 @@ class ContentLinkParser
     end
 
     @options[:tags] = {}
-    @options[:tags][:links] = [["a[href]", "href"], ["frame[src]", "src"], ["meta[@http-equiv=\"refresh\"]", "content"], ["link[href]:not([rel])", "href"], ["area[href]", "href"]]
+    @options[:tags][:links] = [
+      ["a[href]", "href"],
+      ["frame[src]", "src"],
+      ["meta[@http-equiv=\"refresh\"]", lambda{|array,tag|
+        zurl = tag["content"].gsub(" ", "").scan(/url=(\S+)/iu)
+        if zurl.is_a?(Array)
+          zurl2 = zurl.flatten[0] || ""
+          zurl3 = zurl2.to_s.gsub(/["']/, '')
+          zurl = zurl3
+        end
+        array << Addressable::URI.parse(zurl).to_s
+      }],
+      ["meta[@http-equiv=\"REFRESH\"]", lambda{|array,tag|
+        zurl = tag["content"].gsub(" ", "").scan(/url=(\S+)/iu)
+        if zurl.is_a?(Array)
+          zurl2 = zurl.flatten[0] || ""
+          zurl3 = zurl2.to_s.gsub(/["']/, '')
+          zurl = zurl3
+        end
+        array << Addressable::URI.parse(zurl).to_s
+      }],
+      ["link[href]:not([rel])", "href"],
+      ["area[href]", "href"]
+    ]
     @options[:tags][:images] = [["img[src]", "src"]]
     @options[:tags][:related] = [["link[rel]", "href"]]
     @options[:tags][:scripts] = [["script[src]", "src"]]
-    @options[:tags][:styles] = [["link[rel='stylesheet'][href]", "href"], ["style[@type^='text/css']", lambda{|array,tag|
-      first_regex =/url\((['"]?)(.*?)\1\)/
-      tag.content.scan(first_regex) {|match| array << Addressable::URI.parse(match[1]).to_s}
-    }]]
+    @options[:tags][:styles] = [
+      ["link[rel='stylesheet'][href]", "href"],
+      ["link[rel='STYLESHEET'][href]", "href"],
+      ["style[@type^='text/css']", lambda{|array,tag|
+        first_regex =/url\((['"]?)(.*?)\1\)/
+        tag.content.scan(first_regex) {|match| array << Addressable::URI.parse(match[1]).to_s}
+      }],
+      ["style[@type^='TEXT/CSS']", lambda{|array,tag|
+        first_regex =/url\((['"]?)(.*?)\1\)/
+        tag.content.scan(first_regex) {|match| array << Addressable::URI.parse(match[1]).to_s}
+      }],
+    ]
 
     #clear the default tags if required
     @options[:tags] = {} if @options[:ignore_default_tags]

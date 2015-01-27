@@ -4,7 +4,7 @@ module CobwebModule
 
     def initialize(options={})
       @options = HashUtil.deep_symbolize_keys(options)
-
+      @cobweb_links = CobwebLinks.new(@options)
       setup_defaults
 
       @redis = Redis::Namespace.new("cobweb:#{@options[:crawl_id]}", :redis => RedisConnection.new(@options[:redis_options]))
@@ -77,8 +77,12 @@ module CobwebModule
               @redis.set("crawled_base_url", @content[:base_url])
             end
 
+            # redirect
+            if redirect_links.present?
+              logger.info "REDIRECT #{redirect_links[0]}"
+              return true
             # "crawl" redirects
-            if content.permitted_type? || [302,301].include?(content.status_code)
+            elsif content.permitted_type?
 
               @stats.update_statistics(@content)
               logger.info "CRAWLED #{@options[:url]}"
@@ -160,7 +164,6 @@ module CobwebModule
       # set the base url if this is the first page
       set_base_url @redis
 
-      @cobweb_links = CobwebLinks.new(@options)
       if within_queue_limits?
 
         # reparse the link content
