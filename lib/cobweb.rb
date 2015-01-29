@@ -256,6 +256,7 @@ class Cobweb
         end
 
         response = @http.request request
+        content[:response_charset] = response_charset response
 
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
 
@@ -303,7 +304,6 @@ class Cobweb
               content[:body] = Zlib::GzipReader.new(StringIO.new(content[:body])).read
             end
             if charset = guessed_charset(response) # favours response
-              content[:response_charset] = response_charset response
               content[:body_charset] = body_charset response.body
               content[:body].force_encoding(charset).encode('utf-8')
             end
