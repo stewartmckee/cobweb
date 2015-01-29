@@ -583,14 +583,11 @@ class Cobweb
   def body_charset body
     return nil if body.nil?
     body_charset = nil
-    unless body_charset
-      body_charset = body =~ /<meta[^>].*charset=["'](.*)["']/i && $1.upcase
+    unless body_charset # HTML 5
+      body_charset = body =~ /<meta[^>]*charset=["'](.*?)["']/i && $1.upcase
     end
-    unless body_charset
-      body_charset = body =~ /<meta[^>]*HTTP-EQUIV=["']Content-Type["'][^>]*content=["'](.*)["']/i && $1 =~ /charset=(.+)/i && $1.upcase
-    end
-    unless body_charset
-      body_charset = body =~ /<meta[^>]*content=["'](.*)["'][^>]*HTTP-EQUIV=["']Content-Type["']/i && $1 =~ /charset=(.+)/i && $1.upcase
+    unless body_charset # HTML 5
+      body_charset = body =~ /<meta[^>]*?charset=([^"']+)/i && $1
     end
     body_charset
   end
