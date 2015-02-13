@@ -5,7 +5,6 @@ require 'digest/sha1'
 require 'base64'
 
 # local files
-require 'crawl_worker'
 require 'content_link_parser'
 require 'document'
 require 'crawl_job'
@@ -167,9 +166,6 @@ class Cobweb
       if start_urls.empty?
         Resque.enqueue(CrawlJob, request)
       end
-
-    elsif @options[:queue_system] == :sidekiq
-      CrawlWorker.perform_async(request)
     else
       raise "Unknown queue system: #{content_request[:queue_system]}"
     end
