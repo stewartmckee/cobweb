@@ -27,7 +27,6 @@ require 'crawl_object'
 require 'hash_util'
 require 'redirect_error'
 require 'cobweb_dsl'
-require 'crawl_helper'
 require 'uri_helper'
 
 if Gem::Specification.find_all_by_name("resque", ">=1.0.0").count >= 1
