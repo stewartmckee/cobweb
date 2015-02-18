@@ -21,26 +21,18 @@ class ContentLinkParser
     @options[:tags][:links] = [
       ["a[href]", "href"],
       ["frame[src]", "src"],
+      ["link[href]:not([rel])", "href"],
+      ["area[href]", "href"],
       ["meta[@http-equiv=\"refresh\"]", lambda{|array,tag|
-        zurl = tag["content"].gsub(" ", "").scan(/url=(\S+)/iu)
-        if zurl.is_a?(Array)
-          zurl2 = zurl.flatten[0] || ""
-          zurl3 = zurl2.to_s.gsub(/["']/, '')
-          zurl = zurl3
-        end
-        array << Addressable::URI.parse(zurl).to_s
+        meta_link = parse_meta_refresh_content_link(tag["content"])
+        array << meta_link unless meta_link.nil?
+        array
       }],
       ["meta[@http-equiv=\"REFRESH\"]", lambda{|array,tag|
-        zurl = tag["content"].gsub(" ", "").scan(/url=(\S+)/iu)
-        if zurl.is_a?(Array)
-          zurl2 = zurl.flatten[0] || ""
-          zurl3 = zurl2.to_s.gsub(/["']/, '')
-          zurl = zurl3
-        end
-        array << Addressable::URI.parse(zurl).to_s
+        meta_link = parse_meta_refresh_content_link(tag["content"])
+        array << meta_link unless meta_link.nil?
+        array
       }],
-      ["link[href]:not([rel])", "href"],
-      ["area[href]", "href"]
     ]
     @options[:tags][:images] = [["img[src]", "src"]]
     @options[:tags][:related] = [["link[rel]", "href"]]
@@ -64,6 +56,19 @@ class ContentLinkParser
 
   end
 
+  def parse_meta_refresh_content_link meta_content
+    meta_link = meta_content.gsub(" ", "").scan(/url=(\S+)/iu)
+    if meta_link.is_a?(Array)
+      meta_link = meta_link.flatten[0].to_s.gsub(/["']/, '')
+      meta_link = nil if meta_link == ''
+    end
+    meta_link = meta_content.gsub(" ", "") if meta_link.nil?
+    meta_link = meta_link.to_s.gsub(/["']/, '') unless meta_link.nil?
+    if meta_link.nil?
+      log_error "CantParseMetaRefreshLink #{meta_content}"
+    end
+    meta_link
+  end
 
   # extracts link data from nokogiri with attributes on each link (rel, follow, anchor text, title, alt)
   def full_link_data
