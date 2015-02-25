@@ -152,6 +152,7 @@ class CrawlJob
   # Enqueues the content to the processing queue setup in options
   def self.send_to_processing_queue(content, content_request)
     content_to_send = content.merge({
+      :parent => content_request[:parent],
       :depth => content_request[:depth],
       :internal_urls => content_request[:internal_urls],
       :redis_options => content_request[:redis_options],
@@ -159,6 +160,7 @@ class CrawlJob
       :crawl_id => content_request[:crawl_id],
       :data => content_request[:data]
     })
+    
     if content_request[:direct_call_process_job]
       clazz = Cobweb::ClassHelper.resolve_class(content_request[:processing_queue])
       @crawl.logger.debug "PERFORM #{clazz.name} #{content_request[:url]}"
