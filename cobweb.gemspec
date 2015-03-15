@@ -20,13 +20,12 @@ Gem::Specification.new do |s|
 
   s.executables       = ["cobweb"]
 
-  s.add_dependency('redis')
-  s.add_dependency('nokogiri')
-  s.add_dependency('addressable')
-  s.add_dependency('awesome_print')
-  s.add_dependency('sinatra')
-  s.add_dependency('haml')
-  s.add_dependency('redis-namespace')
-  s.add_dependency('json')
+  s.add_dependency('redis', '~>3.0')
+  s.add_dependency('nokogiri', '~>1.6')
+  s.add_dependency('addressable', '~>2.3')
+  s.add_dependency('sinatra', '~>1.4')
+  s.add_dependency('haml', '~>4.0')
+  s.add_dependency('redis-namespace', '~>1.3')
+  s.add_dependency('json', '~>1.8')
   s.add_dependency('slop', "~>3.4")
 end
