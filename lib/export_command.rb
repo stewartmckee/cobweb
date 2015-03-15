@@ -13,8 +13,16 @@ class ExportCommand
       :raise_exceptions => true,
       :root_path => default_root_path
     }.merge(opts)
-    
 
+    if options.has_key?(:seed_url_file)
+      filename = options.delete(:seed_url_file)
+      options[:seed_urls] = []
+      File.open(filename, "r") do |f|
+        f.each_line do |line|
+          options[:seed_urls] << line
+        end
+      end
+    end
 
     statistics = CobwebCrawler.new(options).crawl(options[:url]) do |page|
       begin
@@ -28,7 +36,7 @@ class ExportCommand
 
         uri.path.split("/")[0..-2].each do |dir|
           path+="/" unless path.ends_with?("/")
-          path+=dir 
+          path+=dir
           if File.exist?(options[:root_path] + path) && !File.directory?(options[:root_path] + path)
             FileUtils.mv(options[:root_path] + path, options[:root_path] + path + ".tmp")
             Dir.mkdir(options[:root_path] + path)
@@ -48,7 +56,7 @@ class ExportCommand
           doc = Nokogiri::HTML.parse(page[:body])
 
           if doc.search("title").first
-            title = doc.search("title").first.content.gsub(" - ", " ") 
+            title = doc.search("title").first.content.gsub(" - ", " ")
           else
             title = uri.path.split("/")[-1]
           end

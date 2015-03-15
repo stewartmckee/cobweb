@@ -1,6 +1,9 @@
 Change Log
 ==========
- 
+
+1.0.26
+  added ability to specify a file to contain seed urls for the command line report and export functions
+
 1.0.24
   added https to http normalization with option to make unique
 
