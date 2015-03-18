@@ -17,12 +17,13 @@ opts = Slop.parse(:help => true) do
 
     on 'output=', 'Path to output data to'
     on 'script=', "Script to generate report"
-  
+
     on 'url=', 'URL to start crawl from'
-    on 'internal_urls=', 'Url patterns to include', :as => Array
-    on 'external_urls=', 'Url patterns to exclude', :as => Array
-    on 'seed_urls=', "Seed urls", :as => Array
-    on 'crawl_limit=', 'Limit the crawl to a number of urls', :as => Integer
+    on 'internal_urls=', 'Comma separated list of URL patterns to include (* is wildcard)', :as => Array
+    on 'external_urls=', 'Comma separated list of URL patterns to exclude (* is wildcard)', :as => Array
+    on 'seed_urls=', "CSV list of seed urls to crawl", :as => Array
+    on 'seed_url_file=', "File with URL per line to add to seed list"
+    on 'crawl_limit=', 'Maximum number of URLs to crawl', :as => Integer
     on 'thread_count=', "Set the number of threads used", :as => Integer
     on 'timeout=', "Sets the timeout for http requests", :as => Integer
     on 'v', 'verbose', 'Display crawl information'
@@ -38,10 +39,11 @@ opts = Slop.parse(:help => true) do
     banner 'Usage: cobweb export [options]'
 
     on 'url=', 'URL to start crawl from'
-    on 'internal_urls=', 'Url patterns to include', :as => Array
-    on 'external_urls=', 'Url patterns to exclude', :as => Array
-    on 'seed_urls=', "Seed urls", :as => Array
-    on 'crawl_limit=', 'Limit the crawl to a number of urls', :as => Integer
+    on 'internal_urls=', 'Comma separated list of URL patterns to include (* is wildcard)', :as => Array
+    on 'external_urls=', 'Comma separated list of URL patterns to exclude (* is wildcard)', :as => Array
+    on 'seed_urls=', "CSV list of seed urls to crawl", :as => Array
+    on 'seed_url_file=', "File with URL per line to add to seed list"
+    on 'crawl_limit=', 'Maximum number of URLs to crawl', :as => Integer
     on 'thread_count=', "Set the number of threads used", :as => Integer
     on 'timeout=', "Sets the timeout for http requests", :as => Integer
     on 'v', 'verbose', 'Display crawl information'

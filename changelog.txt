@@ -1,6 +1,9 @@
 Change Log
 ==========
  
+1.0.26
+  added ability to specify a file to contain seed urls for the command line report and export functions
+
 1.0.25
   merged pull request regarding referencing redis if cache disabled
   fixed bug and updated specs for treat_https_as_http

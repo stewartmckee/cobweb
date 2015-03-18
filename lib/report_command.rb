@@ -5,6 +5,16 @@ class ReportCommand
       options = opts.to_hash.delete_if { |k, v| v.nil?}
       options[:quiet] = !opts[:verbose]
 
+      if options.has_key?(:seed_url_file)
+        filename = options.delete(:seed_url_file)
+        options[:seed_urls] = []
+        File.open(filename, "r") do |f|
+          f.each_line do |line|
+            options[:seed_urls] << line
+          end
+        end
+      end
+
       @crawler = CobwebCrawler.new({:cache_type => :full, :raise_exceptions => true}.merge(options))
 
       columns = nil
@@ -22,7 +32,6 @@ class ReportCommand
           page["scripts in body"] = scope.body_tag.script_tags.count
           page["img without alt count"] = scope.img_tags.select{|node| node[:alt].nil? || node[:alt].strip().empty?}.count
           page["img alt"] = scope.img_tags_with_alt.map{|node| node[:alt]}.uniq
-
 
           if !columns
             columns = page.keys.reject{|k| k==:body || k==:links}

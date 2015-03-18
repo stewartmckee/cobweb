@@ -4,7 +4,6 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec/samples/sample_serve
 require File.expand_path(File.dirname(__FILE__) + '/../spec/http_stubs')
 require 'mock_redis'
 
-
 require 'coveralls'
 Coveralls.wear!
 
@@ -13,11 +12,11 @@ ENVIRONMENT = "test"
 APP_ROOT = File.expand_path(File.dirname(__FILE__) + '/../')
 
 RSpec.configure do |config|
-  
+
   if ENV["TRAVIS_RUBY_VERSION"] || ENV['CI']
     config.filter_run_excluding :local_only => true
   end
-  
+
   THIN_INSTALLED = false
   if Gem::Specification.find_all_by_name("thin", ">=1.0.0").count >= 1
     require 'thin'
@@ -30,11 +29,11 @@ RSpec.configure do |config|
   # WAIT FOR START TO COMPLETE
   sleep 1
 
-  
+
   config.before(:all) {
     # START THIN SERVER TO HOST THE SAMPLE SITE FOR CRAWLING
   }
-  
+
   config.before(:each) {
         
     @redis_mock_object = MockRedis.new

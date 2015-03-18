@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 h1. Cobweb v1.0.25
+=======
+h1. Cobweb v1.0.26
+>>>>>>> 219e3887001afe54d409fd9957dde632e564ff65
 
 "@cobweb_gem":https://twitter.com/cobweb_gem
 !https://badge.fury.io/rb/cobweb.png!:http://badge.fury.io/rb/cobweb
