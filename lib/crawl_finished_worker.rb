@@ -20,7 +20,7 @@ class CrawlFinishedWorker
   def perform(statistics)
     puts "Dummy Finished Job"
 
-    ap statistics
+    #ap statistics
     
   end
 end

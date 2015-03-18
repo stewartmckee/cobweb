@@ -1,6 +1,6 @@
 # Dummy resque job that executes at the end of the crawl if none are specified
 class CobwebFinishedJob
-  require "ap"
+  #require "ap"
   
   @queue = :cobweb_finished_job
 
@@ -8,7 +8,7 @@ class CobwebFinishedJob
   def self.perform(statistics)
     puts "Dummy Finished Job"
 
-    ap statistics
+    #ap statistics
     
   end
 end
