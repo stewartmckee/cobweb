@@ -1,6 +1,6 @@
 # Dummy resque process job that is ran if none are specified
 class CobwebProcessJob
-  require "ap"
+  #require "ap"
   
   @queue = :cobweb_process_job
 
