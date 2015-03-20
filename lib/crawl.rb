@@ -30,6 +30,10 @@ module CobwebModule
       already_crawled?(link) || already_queued?(link) || already_running?(link)
     end
 
+    def cancelled?
+      @stats.get_statistics[:current_status] == "Cancelled"
+    end
+
     # Returns true if the crawl count is within limits
     def within_crawl_limits?
       @options[:crawl_limit].nil? || crawl_counter < @options[:crawl_limit].to_i
@@ -58,42 +62,47 @@ module CobwebModule
     end
 
     def retrieve
+      unless cancelled?
+        unless already_running? @options[:url]
+          unless already_crawled? @options[:url]
+            update_queues
+            if within_crawl_limits?
+              @redis.sadd("currently_running", @options[:url])
+              @stats.update_status("Retrieving #{@options[:url]}...")
+              @content = Cobweb.new(@options).get(@options[:url], @options)
+              update_counters
 
-      unless already_running? @options[:url]
-        unless already_crawled? @options[:url]
-          update_queues
-          if within_crawl_limits?
-            @redis.sadd("currently_running", @options[:url])
-            @stats.update_status("Retrieving #{@options[:url]}...")
-            @content = Cobweb.new(@options).get(@options[:url], @options)
-            update_counters
+              if @options[:url] == @redis.get("original_base_url")
+                @redis.set("crawled_base_url", @content[:base_url])
+              end
 
-            if @options[:url] == @redis.get("original_base_url")
-              @redis.set("crawled_base_url", @content[:base_url])
-            end
+              if content.permitted_type?
+                ## update statistics
 
-            if content.permitted_type?
-              ## update statistics
-
-              @stats.update_statistics(@content)
-              return true
+                @stats.update_statistics(@content)
+                return true
+              end
+            else
+              puts "======================================="
+              puts "OUTWITH CRAWL LIMITS"
+              puts "======================================="
+              decrement_queue_counter
             end
           else
             puts "======================================="
-            puts "OUTWITH CRAWL LIMITS"
+            puts "ALREADY CRAWLED"
             puts "======================================="
             decrement_queue_counter
           end
         else
-          puts "======================================="
-          puts "ALREADY CRAWLED"
-          puts "======================================="
+          debug_puts "\n\nDETECTED DUPLICATE JOB for #{@options[:url]}\n"
+          debug_ap @redis.smembers("currently_running")
           decrement_queue_counter
         end
       else
-        debug_puts "\n\nDETECTED DUPLICATE JOB for #{@options[:url]}\n"
-        debug_ap @redis.smembers("currently_running")
-        decrement_queue_counter
+        puts "======================================="
+        puts "CRAWL CANCELLED"
+        puts "======================================="
       end
       false
     end

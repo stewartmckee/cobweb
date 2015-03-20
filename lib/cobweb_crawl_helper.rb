@@ -30,25 +30,6 @@ class CobwebCrawlHelper
     # set status as cancelled now so that we don't enqueue any further pages
     self.statistics.end_crawl(@data, true)
 
-
-    if options[:crawl_finished_queue] && options[:queue_system] == :resque && RESQUE_INSTALLED
-
-      additional_stats = {:crawl_id => id, :crawled_base_url => @stats.redis.get("crawled_base_url")}
-      additional_stats[:redis_options] = @data[:redis_options] unless @data[:redis_options] == {}
-      additional_stats[:source_id] = options[:source_id] unless options[:source_id].nil?
-
-      Resque.enqueue(options[:crawl_finished_queue], @stats.get_statistics.merge(additional_stats))
-    end
-
-    if options[:crawl_finished_queue] && options[:queue_system] == :sidekiq && SIDEKIQ_INSTALLED
-
-      additional_stats = {:crawl_id => id, :crawled_base_url => @stats.redis.get("crawled_base_url")}
-      additional_stats[:redis_options] = @data[:redis_options] unless @data[:redis_options] == {}
-      additional_stats[:source_id] = options[:source_id] unless options[:source_id].nil?
-
-      Kernel.const_get(options[:crawl_finished_queue]).perform_async(@stats.get_statistics.merge(additional_stats))
-    end
-
     counter = 0
     while(counter < 200) do
       break if self.statistics.get_status == CANCELLED
@@ -70,13 +51,42 @@ class CobwebCrawlHelper
       end
     end
     if options[:queue_system] == :sidekiq && SIDEKIQ_INSTALLED
-      queue_name = Kernel.const_get(options[:processing_queue]).sidekiq_options_hash["queue"]
-      queue = Sidekiq::Queue.new(queue_name)
+
+      puts "deleteing from crawl_worker"
+      queue = Sidekiq::Queue.new("crawl_worker")
       queue.each do |job|
-        job.args # => [1, 2, 3]
+        ap job.args # => [1, 2, 3]
+        job.delete if job.args[0]["crawl_id"] == id
+      end
+
+
+      process_queue_name = Kernel.const_get(options[:processing_queue]).sidekiq_options_hash["queue"]
+      puts "deleting from #{process_queue_name}"
+      queue = Sidekiq::Queue.new(process_queue_name)
+      queue.each do |job|
+        ap job.args # => [1, 2, 3]
         job.delete if job.args[0]["crawl_id"] == id
       end
     end
+
+    if options[:crawl_finished_queue] && options[:queue_system] == :resque && RESQUE_INSTALLED
+
+      additional_stats = {:crawl_id => id, :crawled_base_url => @stats.redis.get("crawled_base_url")}
+      additional_stats[:redis_options] = @data[:redis_options] unless @data[:redis_options] == {}
+      additional_stats[:source_id] = options[:source_id] unless options[:source_id].nil?
+
+      Resque.enqueue(options[:crawl_finished_queue], @stats.get_statistics.merge(additional_stats))
+    end
+
+    if options[:crawl_finished_queue] && options[:queue_system] == :sidekiq && SIDEKIQ_INSTALLED
+
+      additional_stats = {:crawl_id => id, :crawled_base_url => @stats.redis.get("crawled_base_url")}
+      additional_stats[:redis_options] = @data[:redis_options] unless @data[:redis_options] == {}
+      additional_stats[:source_id] = options[:source_id] unless options[:source_id].nil?
+
+      Kernel.const_get(options[:crawl_finished_queue]).perform_async(@stats.get_statistics.merge(additional_stats))
+    end
+
 
   end
 
