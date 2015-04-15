@@ -100,7 +100,7 @@ describe CobwebCrawler do
       end
 
       it "should handle url encoding" do
-        @statistics.inbound_links_for("http://localhost:3532/boxgrid%3Ewithsillyname.html").sort.should == ["http://localhost:3532/boxgridwithsillyname.html", "http://localhost:3532/gallery.html", "http://localhost:3532/more.html", "http://localhost:3532/tables.html", "http://localhost:3532/typography.html", "http://localhost:3532/forms.html", "http://localhost:3532/dashboard.html"].sort
+        @statistics.inbound_links_for("http://localhost:3532/boxgridwithsillyname.html").sort.should == ["http://localhost:3532/boxgridwithsillyname.html", "http://localhost:3532/gallery.html", "http://localhost:3532/more.html", "http://localhost:3532/tables.html", "http://localhost:3532/typography.html", "http://localhost:3532/forms.html", "http://localhost:3532/dashboard.html"].sort
       end
 
     end
