@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cobweb (1.0.27)
+    cobweb (1.0.28)
       addressable (~> 2.3)
       haml (~> 4.0)
       json (~> 1.8)
