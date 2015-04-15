@@ -22,7 +22,7 @@ class ReportCommand
       CSV.open(options[:output], "wb", :force_quotes => true) do |csv|
 
         statistics = @crawler.crawl(options[:url]) do |page|
-          puts "Reporting on #{page[:url]}"
+          puts "Reporting on #{page[:url]} [#{page[:status_code]}]"
           @doc = page[:body]
           page["link_rel"] = scope.link_tag_with_rel("canonical")["href"]
           page["title"] = scope.head_tag.title_tag.contents
