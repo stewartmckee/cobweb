@@ -160,8 +160,9 @@ module CobwebModule
     end
 
     def process_links &block
-
+      debug = true
       # set the base url if this is the first page
+
       set_base_url @redis
 
       if within_queue_limits?
@@ -169,7 +170,6 @@ module CobwebModule
         # reparse the link content
         content_link_parser = ContentLinkParser.new(@options[:url], content.body, @options)
         document_links = content_link_parser.all_links(:valid_schemes => [:http, :https])
-
         #get rid of duplicate links in the same page.
         document_links.uniq!
 
@@ -180,7 +180,6 @@ module CobwebModule
         # reject the link if we've crawled it or queued it
 
         internal_links.reject! { |link| already_handled?(link)}
-
         lock("internal-links") do
           internal_links.each do |link|
             if within_queue_limits? && !already_handled?(link)
@@ -231,15 +230,12 @@ module CobwebModule
     end
 
     def process(&block)
-      lock("process-count") do
-        if @options[:crawl_limit_by_page]
-          if content.mime_type.match("text/html")
-            increment_process_counter
-          end
-        else
+      if @options[:crawl_limit_by_page]
+        if content.mime_type.match("text/html")
           increment_process_counter
         end
-        #@redis.sadd "queued", @options[:url]
+      else
+        increment_process_counter
       end
 
       yield if block_given?

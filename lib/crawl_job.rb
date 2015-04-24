@@ -48,17 +48,17 @@ class CrawlJob
   #  ]
 
   def self.perform(content_request)
+  Timeout.timeout(15) do
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
-
+    n = 0
+    debug = true
     # update the counters and then perform the get, returns false if we are outwith limits
     if @crawl.retrieve
       queued_links_count = 0
-
       # following redirects
       if @crawl.redirect_links.present?
         redirect_links = @crawl.redirect_links
-
         if Array(redirect_links).length > 0
           Array(redirect_links).each do |link|
             @crawl.redis.sadd "queued", link
@@ -70,14 +70,12 @@ class CrawlJob
 
       # if the crawled object is an object type we are interested
       elsif @crawl.content.permitted_type?
-
         # moved the Process links from here to inside the to_be_processed loop.
         # extract links from content and process them if we are still within queue limits (block will not run if we are outwith limits)
 
         if @crawl.to_be_processed?
 
           @crawl.process_links do |link|
-
             if @crawl.within_crawl_limits?
               # enqueue the links to resque
               # @crawl.logger.debug "QUEUE: #{link}"
@@ -85,12 +83,9 @@ class CrawlJob
               queued_links_count += 1
             end
           end
-
           @crawl.process do
-
             # enqueue to processing queue
             send_to_processing_queue(@crawl.content.to_hash, content_request)
-
             #if the enqueue counter has been requested update that
             if content_request.has_key?(:enqueue_counter_key)
               enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => RedisConnection.new(content_request[:redis_options]))
@@ -109,14 +104,11 @@ class CrawlJob
             end
 
           end
-          @crawl.store_graph_data
-
         else
           @crawl.logger.debug "CrawlJob @crawl.finished? #{@crawl.finished?}"
           @crawl.logger.debug "CrawlJob @crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
           @crawl.logger.debug "CrawlJob @crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
-
       else
         @crawl.logger.warn "CrawlJob: Invalid MimeType #{content_request.inspect}"
       end
@@ -134,6 +126,7 @@ class CrawlJob
         finished(content_request)
       end
     end
+  end
   end
 
   # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
