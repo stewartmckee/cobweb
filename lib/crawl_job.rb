@@ -48,13 +48,20 @@ class CrawlJob
   #  ]
 
   def self.perform(content_request)
-  Timeout.timeout(15) do
+
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
     n = 0
     debug = true
     # update the counters and then perform the get, returns false if we are outwith limits
-    if @crawl.retrieve
+    retreived = false
+
+    # can't retreive for too long
+    Timeout.timeout(15) do
+      retreived = @crawl.retrieve
+    end
+
+    if retreived
       queued_links_count = 0
       # following redirects
       if @crawl.redirect_links.present?
@@ -127,7 +134,6 @@ class CrawlJob
       end
     end
   end
-  end
 
   # Sets the crawl status to CobwebCrawlHelper::FINISHED and enqueues the crawl finished job
   def self.finished(content_request)
@@ -153,7 +159,7 @@ class CrawlJob
       :crawl_id => content_request[:crawl_id],
       :data => content_request[:data]
     })
-    
+
     if content_request[:direct_call_process_job]
       clazz = Cobweb::ClassHelper.resolve_class(content_request[:processing_queue])
       @crawl.logger.debug "PERFORM #{clazz.name} #{content_request[:url]}"
