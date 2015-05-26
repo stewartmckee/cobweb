@@ -57,9 +57,7 @@ class CrawlJob
     retreived = false
 
     # can't retreive for too long
-    Timeout.timeout(15) do
-      retreived = @crawl.retrieve
-    end
+    retreived = @crawl.retrieve
 
     if retreived
       queued_links_count = 0
