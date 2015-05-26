@@ -162,16 +162,16 @@ class CrawlJob
 
     if content_request[:direct_call_process_job]
       clazz = Cobweb::ClassHelper.resolve_class(content_request[:processing_queue])
-      @crawl.logger.debug "Crawler::CrawlJob #{clazz.name}.perform Crawl:#{content_to_send[:crawl_id]} #{Url}:#{content_request[:url]}"
+      @crawl.logger.debug "Crawler::CrawlJob #{clazz.name}.perform Crawl:#{content_to_send[:crawl_id]} Url:#{content_request[:url]}"
       clazz.perform(content_to_send)
     elsif content_request[:use_encoding_safe_process_job]
       content_to_send[:body] = Base64.encode64(content[:body])
       content_to_send[:processing_queue] = content_request[:processing_queue]
-      @crawl.logger.debug "Crawler::CrawlJob ENQUEUE EncodingSafeProcessJob Crawl:#{content_to_send[:crawl_id]} #{Url}:#{content_request[:url]}"
+      @crawl.logger.debug "Crawler::CrawlJob ENQUEUE EncodingSafeProcessJob Crawl:#{content_to_send[:crawl_id]} Url:#{content_request[:url]}"
       Resque.enqueue(EncodingSafeProcessJob, content_to_send)
     else
       clazz = Cobweb::ClassHelper.resolve_class(content_request[:processing_queue])
-      @crawl.logger.debug "Crawler::CrawlJob ENQUEUE #{clazz.name} Crawl:#{content_to_send[:crawl_id]} #{Url}:#{content_request[:url]}"
+      @crawl.logger.debug "Crawler::CrawlJob ENQUEUE #{clazz.name} Crawl:#{content_to_send[:crawl_id]} Url:#{content_request[:url]}"
       Resque.enqueue(clazz, content_to_send)
     end
   end
