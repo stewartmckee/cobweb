@@ -68,6 +68,7 @@ class CrawlJob
           Array(redirect_links).each do |link|
             @crawl.redis.sadd "queued", link
             @crawl.increment_queue_counter
+            @crawl.logger.debug "Crawler::CrawlJob ENQUEUE EncodingSafeProcessJob Crawl:#{content_request[:crawl_id]} Url:#{content_request[:url]}"
             enqueue_content(content_request, link)
             queued_links_count += 1
           end
@@ -184,6 +185,7 @@ class CrawlJob
     new_request[:parent] = content_request[:url]
     new_request[:depth] = content_request[:depth].to_i + 1
     #to help prevent accidentally double processing a link, let's mark it as queued just before the Resque.enqueue statement, rather than just after.
+    @crawl.logger.debug "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} depth:#{new_request[:depth]} Url:#{new_request[:parent]} -> Url:#{new_request[:url]}"
     Resque.enqueue(CrawlJob, new_request)
   end
 

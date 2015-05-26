@@ -157,7 +157,7 @@ module CobwebModule
     def redirect_links
       # handle redirect cases by adding location to the queue
       rfq = []
-      if [302,301].include?(content.status_code)
+      if [303,302,301].include?(content.status_code)
         link = content.headers[:location].first.to_s rescue nil
         if link && @cobweb_links.internal?(link)
           rfq = link
