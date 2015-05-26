@@ -70,7 +70,14 @@ module CobwebModule
           if within_crawl_limits?
             @redis.sadd("currently_running", @options[:url])
             @stats.update_status("Retrieving #{@options[:url]}...")
-            @content = Cobweb.new(@options).get(@options[:url], @options)
+            begin
+              Timeout.timeout(15) do
+                @content = Cobweb.new(@options).get(@options[:url], @options)
+              end
+            rescue Timeout::Error
+              puts "CobwebModule::Crawl ERROR Timeout::Error Crawl:#{@options[:crawl_id]} Url:#{@options[:url]}"
+              return false
+            end
             update_counters
 
             if @options[:url] == @redis.get("original_base_url")
@@ -204,15 +211,14 @@ module CobwebModule
     end
 
     def update_queues
-      lock("update_queues") do
-        #@redis.incr "inprogress"
-        # move the url from the queued list to the crawled list - for both the original url, and the content url (to handle redirects)
-        @redis.srem "queued", @options[:url]
-        @redis.sadd "crawled", @options[:url]
+      #@redis.incr "inprogress"
+      # move the url from the queued list to the crawled list  for both the original url, and the content url (to handle redirects)
+      @redis.srem "queued", @options[:url]
+      @redis.sadd "crawled", @options[:url]
 
-        # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
-      end
+      # increment the counter if we are not limiting by page only || we are limiting count by page and it is a page
     end
+
 
     def update_counters
       if @options[:crawl_limit_by_page]
