@@ -92,23 +92,6 @@ class CrawlJob
           @crawl.process do
             # enqueue to processing queue
             send_to_processing_queue(@crawl.content.to_hash, content_request)
-            #if the enqueue counter has been requested update that
-            if content_request.has_key?(:enqueue_counter_key)
-              enqueue_redis = Redis::Namespace.new(content_request[:enqueue_counter_namespace].to_s, :redis => RedisConnection.new(content_request[:redis_options]))
-              current_count = enqueue_redis.hget(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field]).to_i
-              enqueue_redis.hset(content_request[:enqueue_counter_key], content_request[:enqueue_counter_field], current_count+1)
-            end
-
-            if content_request[:store_response_codes]
-              code_redis = Redis::Namespace.new("cobweb:#{content_request[:crawl_id]}", :redis => RedisConnection.new(content_request[:redis_options]))
-              code_redis.hset("codes", Digest::MD5.hexdigest(content_request[:url]), @crawl.content.status_code)
-            end
-
-            last_depth = @crawl.redis.hget("depth", "#{Digest::MD5.hexdigest(content_request[:url])}")
-            if last_depth.nil? || (last_depth > content_request[:depth])
-              @crawl.redis.hset("depth", "#{Digest::MD5.hexdigest(content_request[:url])}", content_request[:depth])
-            end
-
           end
         else
           @crawl.logger.debug "CrawlJob @crawl.finished? #{@crawl.finished?}"
@@ -120,17 +103,6 @@ class CrawlJob
       end
     else
       @crawl.logger.warn "CrawlJob: Retrieve returned FALSE"
-    end
-
-    @crawl.lock("finished") do
-      # let the crawl know we're finished with this object
-      @crawl.finished_processing
-
-      # test queue and crawl sizes to see if we have completed the crawl
-      if @crawl.finished?
-        @crawl.logger.debug "Calling crawl_job finished"
-        finished(content_request)
-      end
     end
   end
 
