@@ -11,7 +11,11 @@ class UriHelper
     begin
       URI.parse(url)
     rescue URI::InvalidURIError
-      URI.parse(URI.escape(url))
+      begin
+        URI.parse(URI.escape(url))
+      rescue URI::InvalidURIError
+        return nil # This seems to be a rotten link. Caller should check for nil 
+      end
     end
   end
 

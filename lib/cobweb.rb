@@ -318,7 +318,7 @@ class Cobweb
           if @options[:store_image_attributes]
             Array(link_parser.full_link_data.select {|link| link["type"] == "image"}).each do |inbound_link|
               inbound_link["link"] = UriHelper.parse(inbound_link["link"])
-              content[:images] << inbound_link
+              content[:images] << inbound_link if inbound_link["link"].present?
             end
           end
 
