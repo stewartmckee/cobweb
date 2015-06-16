@@ -7,14 +7,14 @@ class ContentLinkParser
 
   # Parses the content and absolutizes the urls based on url.  Options can be setup to determine the links that are extracted.
   def initialize(url, content, options = {})
+    binding.pry
     @options = {}.merge(options)
     @url = url
     @doc = Nokogiri::HTML(content)
 
-    base_url = @url.to_s
     if @doc.at("base[href]")
       base_url = @doc.at("base[href]").attr("href").to_s
-      @url = base_url if base_url
+      @url = base_url if base_url.present?
     end
 
     @options[:tags] = {}
