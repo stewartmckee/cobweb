@@ -236,7 +236,7 @@ class Cobweb
         request_options={}
         request_options['Cookie']= options[:cookies] if options[:cookies]
         request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
-        request_options['Accept-Encoding'] = 'identity' # This is used to accept
+
 
         request = Net::HTTP::Get.new uri.request_uri, request_options
         # authentication
@@ -248,7 +248,16 @@ class Cobweb
           request.set_range(@options[:range])
         end
 
-        response = @http.request request
+        begin
+          response = @http.request request
+        rescue Zlib::DataError
+          # This is a hack needed for sites like http://www.tradestation.com/ that claim the content is zipped, but
+          # in reality is not. It tries again to get the content without any compression.
+          request_options['Accept-Encoding'] = 'identity' # This is used to accept
+          request = Net::HTTP::Get.new uri.request_uri, request_options
+          response = @http.request request
+        end
+
         content[:response_charset] = response_charset response
 
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
