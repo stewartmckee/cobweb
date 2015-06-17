@@ -254,6 +254,8 @@ class Cobweb
 
           # get location to redirect to
           uri = UriHelper.join_no_fragment(uri, response['location'])
+          raise RedirectError, "Invalid redirect uri #{response['location']}" unless uri.present?
+
           logger.info "Following Redirect to #{uri}... " unless @options[:quiet]
 
           # decrement redirect limit
@@ -450,6 +452,7 @@ class Cobweb
           logger.info "redirected... " unless @options[:quiet]
 
           uri = UriHelper.join_no_fragment(uri, response['location'])
+          raise RedirectError, "Invalid redirect uri #{response['location']}" unless uri.present?
 
           redirect_limit = redirect_limit - 1
 
