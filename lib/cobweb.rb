@@ -236,6 +236,7 @@ class Cobweb
         request_options={}
         request_options['Cookie']= options[:cookies] if options[:cookies]
         request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
+        request_options['Accept-Encoding'] = 'identity' # This is used to accept
 
         request = Net::HTTP::Get.new uri.request_uri, request_options
         # authentication
