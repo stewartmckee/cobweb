@@ -11,10 +11,9 @@ class ContentLinkParser
     @url = url
     @doc = Nokogiri::HTML(content)
 
-    base_url = @url.to_s
     if @doc.at("base[href]")
       base_url = @doc.at("base[href]").attr("href").to_s
-      @url = base_url if base_url
+      @url = base_url if base_url.present?
     end
 
     @options[:tags] = {}
@@ -77,9 +76,15 @@ class ContentLinkParser
     Array(options_to_check).each do |selector, attribute|
       @doc.css(selector).each do |node|
         if attribute == "href"
-          full_link_data << {"text" => node.text.to_s, "rel" => node["rel"], "link" => UriHelper.join_no_fragment(@url, node["href"].to_s).to_s , "alt" => node["alt"].to_s, "title" => node["title"].to_s, "type" => "link" }
-        elsif attribute == "src" && selector == "img[src]"
-          full_link_data << {"rel" => node["rel"], "link" => UriHelper.join_no_fragment(@url, node["src"].to_s).to_s, "alt" => node["alt"].to_s, "rel" => node["rel"].to_s, "title" => node["title"].to_s, "type" => "image"}
+          uri = UriHelper.join_no_fragment(@url, node["href"].to_s)
+          if uri.present?
+            full_link_data << {"text" => node.text.to_s, "rel" => node["rel"], "link" => uri.to_s , "alt" => node["alt"].to_s, "title" => node["title"].to_s, "type" => "link" }
+          elsif attribute == "src" && selector == "img[src]"
+            uri = UriHelper.join_no_fragment(@url, node["src"].to_s)
+            if uri.present?
+              full_link_data << {"rel" => node["rel"], "link" => uri.to_s, "alt" => node["alt"].to_s, "rel" => node["rel"].to_s, "title" => node["title"].to_s, "type" => "image"}
+            end
+          end
         end
       end
     end
@@ -103,7 +108,7 @@ class ContentLinkParser
     data = link_data
 
     links = data.keys.map{|key| data[key]}.flatten.uniq
-    links = links.map{|link| UriHelper.join_no_fragment(@url, link).to_s }
+    links = links.map{|link| UriHelper.join_no_fragment(@url, link)}.reject(&:nil?).map(&:to_s)
     links = links.reject{|link| link =~ /\/([^\/]+?)\/\1\// }
     links = links.reject{|link| link =~ /([^\/]+?)\/([^\/]+?)\/.*?\1\/\2/ }
     links = links.reject{|link| link =~ /\/([^\/]+\.js)/ } if @options[:exclude_js]

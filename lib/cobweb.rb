@@ -237,6 +237,7 @@ class Cobweb
         request_options['Cookie']= options[:cookies] if options[:cookies]
         request_options['User-Agent']= options[:user_agent] if options.has_key?(:user_agent)
 
+
         request = Net::HTTP::Get.new uri.request_uri, request_options
         # authentication
         if @options[:authentication] == "basic"
@@ -247,13 +248,24 @@ class Cobweb
           request.set_range(@options[:range])
         end
 
-        response = @http.request request
+        begin
+          response = @http.request request
+        rescue Zlib::DataError
+          # This is a hack needed for sites like http://www.tradestation.com/ that claim the content is zipped, but
+          # in reality is not. It tries again to get the content without any compression.
+          request_options['Accept-Encoding'] = 'identity' # This is used to accept
+          request = Net::HTTP::Get.new uri.request_uri, request_options
+          response = @http.request request
+        end
+
         content[:response_charset] = response_charset response
 
         if @options[:follow_redirects] and response.code.to_i >= 300 and response.code.to_i < 400
 
           # get location to redirect to
           uri = UriHelper.join_no_fragment(uri, response['location'])
+          raise RedirectError, "Invalid redirect uri #{response['location']}" unless uri.present?
+
           logger.info "Following Redirect to #{uri}... " unless @options[:quiet]
 
           # decrement redirect limit
@@ -318,7 +330,7 @@ class Cobweb
           if @options[:store_image_attributes]
             Array(link_parser.full_link_data.select {|link| link["type"] == "image"}).each do |inbound_link|
               inbound_link["link"] = UriHelper.parse(inbound_link["link"])
-              content[:images] << inbound_link
+              content[:images] << inbound_link if inbound_link["link"].present?
             end
           end
 
@@ -450,6 +462,7 @@ class Cobweb
           logger.info "redirected... " unless @options[:quiet]
 
           uri = UriHelper.join_no_fragment(uri, response['location'])
+          raise RedirectError, "Invalid redirect uri #{response['location']}" unless uri.present?
 
           redirect_limit = redirect_limit - 1
 
