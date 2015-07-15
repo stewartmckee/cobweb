@@ -94,33 +94,33 @@ h4. new(options)
 
 Creates a new crawler object based on a base_url
 
-  * options - Options are passed in as a hash,
+  * options - The following hash keys can be defined:
 
-    ** :follow_redirects              - transparently follows redirects and populates the :redirect_through key in the content hash (Default: true)
-    ** :redirect_limit                - sets the limit to be used for concurrent redirects (Default: 10)
-    ** :processing_queue              - specifies the processing queue for content to be sent to (Default: 'CobwebProcessJob' when using resque, 'CrawlProcessWorker' when using sidekiq)
-    ** :crawl_finished_queue          - specifies the processing queue for statistics to be sent to after finishing crawling (Default: 'CobwebFinishedJob' when using resque, 'CrawlFinishedWorker' when using sidekiq)
-    ** :debug                         - enables debug output (Default: false)
-    ** :quiet                         - hides default output (Default: false)
-    ** :cache                         - sets the ttl for caching pages, set to nil to disable caching (Default: 300)
-    ** :timeout                       - http timeout for requests (Default: 10)
-    ** :redis_options                 - hash containing the initialization options for redis (e.g. {:host => "redis.mydomain.com"}) (Default: {})
-    ** :internal_urls                 - array of strings representing internal url forms for your site (eg: ['http://test.com/*', 'http://blog.test.com/*', 'http://externaltest.com/*']) (Default: [], although your first url's scheme, host and domain are added)
-    ** :first_page_redirect_internal  - if true and the first page crawled is a redirect, it will add the final destination of redirects to the internal_urls (e.g. http://www.test.com gets redirected to http://test.com) (Default: true)
-    ** :crawl_id                      - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
-    ** :internal_urls                 - an array of urls with * wildcards that represent urls internal to the site (ie pages within the same domain)
-    ** :external_urls                 - an array of urls with * wildcards that represent urls external to the site (overrides internal_urls)
-    ** :seed_urls                     - an array of urls that are put into the queue regardless of any other setting, combine with {:external_urls => "*"} to limit to seed urls
-    ** :obey_robots                   - boolean determining if robots.txt should be honoured. (default: false)
-    ** :user_agent                    - user agent string to match in robots.txt (not sent as user_agent of requests yet) (default: cobweb)
-    ** :crawl_limit_by_page           - sets the crawl counter to only use html page types when counting objects crawled
-    ** :valid_mime_types              - an array of mime types that takes wildcards (eg 'text/*') defaults to @['*/*']@
-    ** :direct_call_process_job       - boolean that specifies whether objects should be passed directly to a processing method or should be put onto a queue
-    ** :raise_exceptions              - defaults to handling exceptions with debug output, setting this to true will raise exceptions in your app
-    ** :use_encoding_safe_process_job - Base64-encode the body when storing job in queue; set to true when you are expecting non-ASCII content (Default: false)
-    ** :proxy_addr                    - hostname of a proxy to use for crawling (e. g., 'myproxy.example.net', default: nil)
-    ** :proxy_port                    - port number of the proxy (default: nil)
-    ** :treat_https_as_http           - determines whether https and http urls are treated as the same (defaults to true, ie treated as the same)
+    ** @:follow_redirects@              - transparently follows redirects and populates the :redirect_through key in the content hash (Default: true)
+    ** @:redirect_limit@                - sets the limit to be used for concurrent redirects (Default: 10)
+    ** @:processing_queue@              - specifies the processing queue for content to be sent to (Default: 'CobwebProcessJob' when using resque, 'CrawlProcessWorker' when using sidekiq)
+    ** @:crawl_finished_queue@          - specifies the processing queue for statistics to be sent to after finishing crawling (Default: 'CobwebFinishedJob' when using resque, 'CrawlFinishedWorker' when using sidekiq)
+    ** @:debug@                         - enables debug output (Default: false)
+    ** @:quiet@                         - hides default output (Default: false)
+    ** @:cache@                         - sets the ttl for caching pages, set to nil to disable caching (Default: 300)
+    ** @:timeout@                       - http timeout for requests (Default: 10)
+    ** @:redis_options@                 - hash containing the initialization options for redis (e.g. {:host => "redis.mydomain.com"}) (Default: {})
+    ** @:internal_urls@                 - array of strings representing internal url forms for your site (eg: ['http://test.com/*', 'http://blog.test.com/*', 'http://externaltest.com/*']) (Default: [], although your first url's scheme, host and domain are added)
+    ** @:first_page_redirect_internal@  - if true and the first page crawled is a redirect, it will add the final destination of redirects to the internal_urls (e.g. http://www.test.com gets redirected to http://test.com) (Default: true)
+    ** @:crawl_id@                      - the id used internally for identifying the crawl.  Can be used by the processing job to seperate crawls
+    ** @:internal_urls@                 - an array of urls with * wildcards that represent urls internal to the site (ie pages within the same domain)
+    ** @:external_urls@                 - an array of urls with * wildcards that represent urls external to the site (overrides internal_urls)
+    ** @:seed_urls@                     - an array of urls that are put into the queue regardless of any other setting, combine with {:external_urls => "*"} to limit to seed urls
+    ** @:obey_robots@                   - boolean determining if robots.txt should be honoured. (default: false)
+    ** @:user_agent@                    - user agent string to match in robots.txt (not sent as user_agent of requests yet) (default: cobweb)
+    ** @:crawl_limit_by_page@           - sets the crawl counter to only use html page types when counting objects crawled
+    ** @:valid_mime_types@              - an array of mime types that takes wildcards (eg 'text/*') defaults to @['*/*']@
+    ** @:direct_call_process_job@       - boolean that specifies whether objects should be passed directly to a processing method or should be put onto a queue
+    ** @:raise_exceptions@              - defaults to handling exceptions with debug output, setting this to true will raise exceptions in your app
+    ** @:use_encoding_safe_process_job@ - Base64-encode the body when storing job in queue; set to true when you are expecting non-ASCII content (Default: false)
+    ** @:proxy_addr@                    - hostname of a proxy to use for crawling (e. g., 'myproxy.example.net', default: nil)
+    ** @:proxy_port@                    - port number of the proxy (default: nil)
+    ** @:treat_https_as_http@           - determines whether https and http urls are treated as the same (defaults to true, ie treated as the same)
 
 
 bc. crawler = Cobweb.new(:follow_redirects => false)
