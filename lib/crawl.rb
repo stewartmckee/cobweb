@@ -71,9 +71,7 @@ module CobwebModule
             @redis.sadd("currently_running", @options[:url])
             @stats.update_status("Retrieving #{@options[:url]}...")
             begin
-              Timeout.timeout(15) do
-                @content = Cobweb.new(@options).get(@options[:url], @options)
-              end
+              @content = Cobweb.new(@options).get(@options[:url], @options)
             rescue Timeout::Error
               puts "CobwebModule::Crawl ERROR Timeout::Error Crawl:#{@options[:crawl_id]} Url:#{@options[:url]}"
               return false
@@ -317,22 +315,16 @@ module CobwebModule
     end
 
     def lock(key, &block)
-      debug_puts "REQUESTING LOCK [#{key}]"
-      set_nx = @redis.setnx("#{key}_lock", "locked")
-      debug_puts "LOCK:#{key}:#{set_nx}"
-      while !set_nx
-        debug_puts "===== WAITING FOR LOCK [#{key}] ====="
-        sleep 0.01
-        set_nx = @redis.setnx("#{key}_lock", "locked")
+      slept_for = 0
+      max_wait = 30
+      while !@redis.set("#{key}_lock", 1, ex:max_wait, nx:1) && slept_for < max_wait
+        sleep 0.5
+        slept_for += 0.5
       end
-
-      debug_puts "RECEIVED LOCK [#{key}]"
-      @redis.expire("#{key}_lock", 30)
       begin
         result = yield
       ensure
         @redis.del("#{key}_lock")
-        #debug_puts "LOCK RELEASED [#{key}]"
       end
       result
     end
