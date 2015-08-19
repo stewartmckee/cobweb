@@ -48,7 +48,6 @@ class CrawlJob
   #  ]
 
   def self.perform(content_request)
-
     # setup the crawl class to manage the crawl of this object
     @crawl = CobwebModule::Crawl.new(content_request)
     n = 0
@@ -66,10 +65,12 @@ class CrawlJob
         redirect_links = @crawl.redirect_links
         if Array(redirect_links).length > 0
           Array(redirect_links).each do |link|
-            unless @crawl.already_handled?(link) # don't queue something already queued
-              @crawl.redis.sadd "queued", link
+            full_link = UriHelper.join_no_fragment(content_request[:url], link.to_s)
+            new_link = full_link.to_s
+            unless @crawl.already_handled?(new_link) # don't queue something already queued
+              @crawl.redis.sadd "queued", new_link
               @crawl.increment_queue_counter
-              enqueue_content(content_request, link)
+              enqueue_content(content_request, new_link)
               queued_links_count += 1
             end
           end
@@ -82,28 +83,30 @@ class CrawlJob
 
         if @crawl.to_be_processed?
 
-          @crawl.process_links do |link|
-            if @crawl.within_crawl_limits?
-              # enqueue the links to resque
-              # @crawl.logger.debug "QUEUE: #{link}"
-              enqueue_content(content_request, link)
+          # process the links we find on the page, queueing them for crawls if they are ready
+          @crawl.document_links.uniq.each do |doc_link|
+            if @crawl.cobweb_links.internal?(doc_link) && !@crawl.already_handled?(doc_link)
+              enqueue_content(content_request, doc_link)
               queued_links_count += 1
             end
           end
+
+          # send the document to be page processed
           @crawl.process do
             # enqueue to processing queue
             send_to_processing_queue(@crawl.content.to_hash, content_request)
           end
+
         else
-          @crawl.logger.debug "CrawlJob @crawl.finished? #{@crawl.finished?}"
-          @crawl.logger.debug "CrawlJob @crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
-          @crawl.logger.debug "CrawlJob @crawl.first_to_finish? #{@crawl.first_to_finish?}"
+          @crawl.logger.debug "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} @crawl.finished? #{@crawl.finished?}"
+          @crawl.logger.debug "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} @crawl.within_crawl_limits? #{@crawl.within_crawl_limits?}"
+          @crawl.logger.debug "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} @crawl.first_to_finish? #{@crawl.first_to_finish?}"
         end
       else
-        @crawl.logger.warn "CrawlJob: Invalid MimeType #{content_request.inspect}"
+        @crawl.logger.warn "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} Invalid RetrievedContentInvalidMimeType #{content_request[:url]}"
       end
     else
-      @crawl.logger.warn "CrawlJob: Retrieve returned FALSE"
+      @crawl.logger.warn "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} NotRetrievedUrl #{content_request[:url]}"
     end
   end
 
@@ -158,9 +161,8 @@ class CrawlJob
     new_request[:parent] = content_request[:url]
     new_request[:depth] = content_request[:depth].to_i + 1
     #to help prevent accidentally double processing a link, let's mark it as queued just before the Resque.enqueue statement, rather than just after.
-    @crawl.logger.debug "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} depth:#{new_request[:depth]} Url:#{new_request[:parent]} Queueing Url:#{new_request[:url]}"
     res = Resque.enqueue(CrawlJob, new_request)
-    binding.pry
+    @crawl.logger.debug "Crawler::CrawlJob Crawl:#{content_request[:crawl_id]} depth:#{new_request[:depth]} Url:#{new_request[:parent]} -> Url:#{new_request[:url]}"
   end
 
 end

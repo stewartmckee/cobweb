@@ -84,7 +84,7 @@ module CobwebModule
 
             # redirect
             if redirect_links.present?
-              logger.info "REDIRECT #{redirect_links[0]}"
+              logger.info "REDIRECT #{redirect_links}"
               return true
             # "crawl" redirects
             elsif content.permitted_type?
@@ -104,17 +104,13 @@ module CobwebModule
           decrement_queue_counter
         end
       else
-        debug_puts "\n\nDETECTED DUPLICATE JOB for #{@options[:url]}\n"
+        debug_puts "DUPLICATE JOB for #{@options[:url]}"
         debug_ap @redis.smembers("currently_running")
         decrement_queue_counter
       end
       false
     end
 
-    # extract it out so it can be used in multiple methods
-    def content_link_parser
-      @content_link_parser ||= ContentLinkParser.new(@options[:url], content.body, @options)
-    end
 
     def store_graph_data
       begin
@@ -160,8 +156,6 @@ module CobwebModule
         if link && @cobweb_links.internal?(link)
           rfq = link
         end
-      else
-        puts "Thinks it doesn't have a status code of 301"
       end
       rfq
     end
@@ -176,18 +170,18 @@ module CobwebModule
 
         # reparse the link content
         if content.respond_to?('body')
-          content_link_parser = ContentLinkParser.new(@options[:url], content.body, @options)
-          document_links = content_link_parser.all_links(:valid_schemes => [:http, :https])
+          # content_link_parser = ContentLinkParser.new(@options[:url], content.body, @options) # moved to a method
+          # document_links = content_link_parser.all_links(:valid_schemes => [:http, :https]) # moved to a method
           #get rid of duplicate links in the same page.
           document_links.uniq!
 
           # select the link if its internal
-          internal_links = document_links.select{ |link| @cobweb_links.internal?(link) }
-          external_links = document_links.select{ |link| !@cobweb_links.internal?(link) }
+          internal_links = document_links.select{ |link| cobweb_links.internal?(link) }
+          external_links = document_links.select{ |link| !cobweb_links.internal?(link) }
 
           # reject the link if we've crawled it or queued it
+          internal_links.reject! { |link| already_handled?(link) }
 
-          internal_links.reject! { |link| already_handled?(link)}
           lock("internal-links") do
             internal_links.each do |link|
               if within_queue_limits? && !already_handled?(link)
@@ -276,6 +270,20 @@ module CobwebModule
       end
       false
     end
+
+    # extract it out so it can be used in multiple methods
+    def content_link_parser
+      @content_link_parser ||= ContentLinkParser.new(@options[:url], content.body, @options)
+    end
+
+    def document_links
+      @document_links ||= content_link_parser.all_links(:valid_schemes => [:http, :https])
+    end
+
+    def cobweb_links
+      @cobweb_links ||= CobwebLinks.new(@options)
+    end
+
 
     def finish
       debug_puts ""
