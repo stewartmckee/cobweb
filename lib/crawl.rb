@@ -155,11 +155,13 @@ module CobwebModule
     def redirect_links
       # handle redirect cases by adding location to the queue
       rfq = []
-      if [303,302,301].include?(content.status_code)
+      if [303,302,301,304,307].include?(content.status_code)
         link = content.headers[:location].first.to_s rescue nil
         if link && @cobweb_links.internal?(link)
           rfq = link
         end
+      else
+        puts "Thinks it doesn't have a status code of 301"
       end
       rfq
     end
@@ -173,32 +175,36 @@ module CobwebModule
       if within_queue_limits?
 
         # reparse the link content
-        content_link_parser = ContentLinkParser.new(@options[:url], content.body, @options)
-        document_links = content_link_parser.all_links(:valid_schemes => [:http, :https])
-        #get rid of duplicate links in the same page.
-        document_links.uniq!
+        if content.respond_to?('body')
+          content_link_parser = ContentLinkParser.new(@options[:url], content.body, @options)
+          document_links = content_link_parser.all_links(:valid_schemes => [:http, :https])
+          #get rid of duplicate links in the same page.
+          document_links.uniq!
 
-        # select the link if its internal
-        internal_links = document_links.select{ |link| @cobweb_links.internal?(link) }
-        external_links = document_links.select{ |link| !@cobweb_links.internal?(link) }
+          # select the link if its internal
+          internal_links = document_links.select{ |link| @cobweb_links.internal?(link) }
+          external_links = document_links.select{ |link| !@cobweb_links.internal?(link) }
 
-        # reject the link if we've crawled it or queued it
+          # reject the link if we've crawled it or queued it
 
-        internal_links.reject! { |link| already_handled?(link)}
-        lock("internal-links") do
-          internal_links.each do |link|
-            if within_queue_limits? && !already_handled?(link)
-              if status != CobwebCrawlHelper::CANCELLED
-                yield link if block_given?
-                unless link.nil?
-                  @redis.sadd "queued", link
-                  increment_queue_counter
+          internal_links.reject! { |link| already_handled?(link)}
+          lock("internal-links") do
+            internal_links.each do |link|
+              if within_queue_limits? && !already_handled?(link)
+                if status != CobwebCrawlHelper::CANCELLED
+                  yield link if block_given?
+                  unless link.nil?
+                    @redis.sadd "queued", link
+                    increment_queue_counter
+                  end
+                else
+                  debug_puts "Cannot enqueue new content as crawl has been cancelled."
                 end
-              else
-                debug_puts "Cannot enqueue new content as crawl has been cancelled."
               end
             end
           end
+        else
+          debug_puts "No content to parse. Body is nil."
         end
       end
     end
