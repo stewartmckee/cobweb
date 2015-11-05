@@ -35,13 +35,13 @@ RSpec.configure do |config|
   }
 
   config.before(:each) {
-        
+
     @redis_mock_object = MockRedis.new
     Redis.stub(:new).and_return(@redis_mock_object)
     Redis::Namespace.stub(:new).and_return(@redis_mock_object)
-    
+
     @redis_mock_object.flushdb
-    
+
   }
 
 end

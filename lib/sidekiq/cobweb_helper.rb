@@ -2,6 +2,7 @@
 if Gem::Specification.find_all_by_name("sidekiq", ">=1.0.0").count >= 1
   SIDEKIQ_INSTALLED = true
   require 'sidekiq'
+  require 'sidekiq/api'
 else
   SIDEKIQ_INSTALLED = false
   puts "sidekiq gem not installed, skipping crawl_worker specs" if defined?(ENVIRONMENT) && ENVIRONMENT=="test"

@@ -212,7 +212,7 @@ def wait_for_crawl_finished(crawl_id, timeout=20)
   @counter = 0
   start_time = Time.now
   while(running?(crawl_id) && Time.now < start_time + timeout) do
-    puts Sidekiq::Stats.new.queues
+    # puts Sidekiq::Stats.new.queues
     sleep 1
   end
   if Time.now > start_time + timeout
