@@ -35,7 +35,7 @@ class ExportCommand
         Dir.mkdir(options[:root_path]) unless File.exist?(options[:root_path])
 
         uri.path.split("/")[0..-2].each do |dir|
-          path+="/" unless path.ends_with?("/")
+          path+="/" unless path.cobweb_ends_with?("/")
           path+=dir
           if File.exist?(options[:root_path] + path) && !File.directory?(options[:root_path] + path)
             FileUtils.mv(options[:root_path] + path, options[:root_path] + path + ".tmp")
@@ -45,7 +45,7 @@ class ExportCommand
             Dir.mkdir(options[:root_path] + path) unless Dir.exist?(options[:root_path] + path)
           end
         end
-        path += "/" unless path.ends_with?("/")
+        path += "/" unless path.cobweb_ends_with?("/")
         filename = uri.path.split("/")[-1]
         if filename.nil? || filename.empty?
           filename = "index.html"
