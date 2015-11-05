@@ -52,19 +52,15 @@ class CobwebCrawlHelper
     end
     if options[:queue_system] == :sidekiq && SIDEKIQ_INSTALLED
 
-      puts "deleteing from crawl_worker"
       queue = Sidekiq::Queue.new("crawl_worker")
       queue.each do |job|
-        ap job.args # => [1, 2, 3]
         job.delete if job.args[0]["crawl_id"] == id
       end
 
 
       process_queue_name = Kernel.const_get(options[:processing_queue]).sidekiq_options_hash["queue"]
-      puts "deleting from #{process_queue_name}"
       queue = Sidekiq::Queue.new(process_queue_name)
       queue.each do |job|
-        ap job.args # => [1, 2, 3]
         job.delete if job.args[0]["crawl_id"] == id
       end
     end

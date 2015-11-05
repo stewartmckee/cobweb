@@ -6,7 +6,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
   before(:all) do
     #store all existing resque process ids so we don't kill them afterwards
-    if RESQUE_INSTALLED  && THIN_INSTALLED   
+    if RESQUE_INSTALLED  && THIN_INSTALLED
 
       @existing_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
       if Resque.workers.count > 0 && @existing_processes.empty?
@@ -168,7 +168,7 @@ describe CrawlJob, :local_only => true, :disabled => true do
     #     wait_for_crawl_finished crawl[:crawl_id]
     #     @redis.get("crawl_job_enqueued_count").to_i.should == 20
     #   end
-    # 
+    #
     # end
     describe "limit to 1" do
       before(:each) do
@@ -271,11 +271,13 @@ describe CrawlJob, :local_only => true, :disabled => true do
 
   after(:all) do
 
-    @all_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
-    command = "kill -s QUIT #{(@all_processes - @existing_processes).join(" ")}"
-    IO.popen(command)
+    if RESQUE_INSTALLED
+      @all_processes = `ps aux | grep resque | grep -v grep | grep -v resque-web | awk '{print $2}'`.split("\n")
+      command = "kill -s QUIT #{(@all_processes - @existing_processes).join(" ")}"
+      IO.popen(command)
 
-    clear_queues
+      clear_queues
+    end
   end
 
 end
