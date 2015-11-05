@@ -1,12 +1,15 @@
 Change Log
 ==========
 
+1.0.29
+  Removed a method_missing from String class as it was causing performance issues
+
 1.0.28
   merged pull request from @pisaacs fixing reference to awesome_print
   added crawl cancel to sidekiq jobs
 
 1.0.27
-  removed references to awesome print 
+  removed references to awesome print
 
 1.0.26
   added ability to specify a file to contain seed urls for the command line report and export functions
@@ -291,4 +294,3 @@ Change Log
 
 0.0.3
   Started Change log
-
