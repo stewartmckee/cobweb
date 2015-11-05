@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-ruby '2.1.3'
+ruby '2.2.2'
 
 gemspec
 
@@ -9,7 +9,7 @@ gem 'redis'
 gem 'awesome_print'
 gem 'nokogiri'
 gem 'addressable'
-gem 'json'
+gem 'json', ">=1.8.2"
 gem 'sinatra'
 gem 'haml'
 gem 'namespaced_redis', ">=1.0.2"

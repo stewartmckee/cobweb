@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cobweb (1.0.27)
+    cobweb (1.0.28)
       addressable (~> 2.3)
       haml (~> 4.0)
       json (~> 1.8)
@@ -26,7 +26,7 @@ GEM
     diff-lcs (1.2.4)
     haml (4.0.3)
       tilt
-    json (1.8.0)
+    json (1.8.3)
     mime-types (1.23)
     mini_portile (0.5.1)
     mock_redis (0.9.0)
@@ -73,7 +73,7 @@ DEPENDENCIES
   cobweb!
   coveralls
   haml
-  json
+  json (>= 1.8.2)
   mock_redis
   namespaced_redis (>= 1.0.2)
   nokogiri
@@ -84,3 +84,6 @@ DEPENDENCIES
   rspec-core
   sinatra
   slop (~> 3.4.6)
+
+BUNDLED WITH
+   1.10.6
