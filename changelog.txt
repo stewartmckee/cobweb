@@ -3,6 +3,7 @@ Change Log
 
 1.1.0
   Updated gems to latest, possibly breaking change on versions
+  Merged pull request #45 - Relative urls are handled properly
 
 1.0.29
   Removed a method_missing from String class as it was causing performance issues
