@@ -8,12 +8,11 @@ class ContentLinkParser
   def initialize(url, content, options = {})
     @options = {}.merge(options)
     @url = url
+    @base_url = ''
     @doc = Nokogiri::HTML(content)
     
-    base_url = @url.to_s
     if @doc.at("base[href]")
-      base_url = @doc.at("base[href]").attr("href").to_s
-      @url = base_url if base_url
+      @base_url = @doc.at("base[href]").attr("href").to_s if @doc.at("base[href]").attr("href").to_s.present?
     end
 
     @options[:tags] = {}
@@ -46,7 +45,9 @@ class ContentLinkParser
     options[:valid_schemes] = [:http, :https] unless options.has_key? :valid_schemes
     data = link_data
     links = data.keys.map{|key| data[key]}.flatten.uniq
-    links = links.map{|link| UriHelper.join_no_fragment(@url, link).to_s }
+    links = links.map{|link| UriHelper.join_no_fragment(@url, UriHelper.join_no_fragment(@base_url, link))}
+      .reject(&:nil?)
+      .map(&:to_s)
     links = links.reject{|link| link =~ /\/([^\/]+?)\/\1\// }
     links = links.reject{|link| link =~ /([^\/]+?)\/([^\/]+?)\/.*?\1\/\2/ }    
     links = links.select{|link| options[:valid_schemes].include? link.split(':')[0].to_sym}
