@@ -67,6 +67,14 @@ class Cobweb
 
   end
 
+  # This method will shift the proxies.
+  def proxy_shift(options = {})
+    @options[:proxy_addr] = options[:proxy_addr]
+    @options[:proxy_port] = options[:proxy_port]
+    @options[:proxy_uname] = options[:proxy_uname]
+    @options[:proxy_pwd] = options[:proxy_pwd]
+  end
+  
   # This method starts the resque based crawl and enqueues the base_url
   def start(base_url)
     raise ":base_url is required" unless base_url
@@ -158,7 +166,12 @@ class Cobweb
       # retrieve data
       #unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." if @options[:debug]
-        @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
+        if @options[:proxy_uname] && @options[:proxy_pwd]
+          proxy = Net::HTTP::Proxy(@options[:proxy_addr], @options[:proxy_port], @options[:proxy_uname], @options[:proxy_pwd])
+          @http = proxy.start(uri.host, uri.inferred_port)
+        else
+          @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
+        end
       #end
       if uri.scheme == "https"
         @http.use_ssl = true
@@ -337,7 +350,12 @@ class Cobweb
       # retrieve data
       unless @http && @http.address == uri.host && @http.port == uri.inferred_port
         puts "Creating connection to #{uri.host}..." unless @options[:quiet]
-        @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
+        if @options[:proxy_uname] && @options[:proxy_pwd]
+          proxy = Net::HTTP::Proxy(@options[:proxy_addr], @options[:proxy_port], @options[:proxy_uname], @options[:proxy_pwd])
+          @http = proxy.start(uri.host, uri.inferred_port)
+        else
+          @http = Net::HTTP.new(uri.host, uri.inferred_port, @options[:proxy_addr], @options[:proxy_port])
+        end
       end
       if uri.scheme == "https"
         @http.use_ssl = true
