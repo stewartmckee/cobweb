@@ -99,6 +99,7 @@ Creates a new crawler object based on a base_url
 
     ** @:follow_redirects@              - transparently follows redirects and populates the :redirect_through key in the content hash (Default: true)
     ** @:redirect_limit@                - sets the limit to be used for concurrent redirects (Default: 10)
+    ** @:queue_system@                  - sets the the queue system :resque or :sidekiq (Default: :resque)
     ** @:processing_queue@              - specifies the processing queue for content to be sent to (Default: 'CobwebProcessJob' when using resque, 'CrawlProcessWorker' when using sidekiq)
     ** @:crawl_finished_queue@          - specifies the processing queue for statistics to be sent to after finishing crawling (Default: 'CobwebFinishedJob' when using resque, 'CrawlFinishedWorker' when using sidekiq)
     ** @:debug@                         - enables debug output (Default: false)
