@@ -37,6 +37,7 @@ h3. Data Returned For Each Page
 
   * @:url@ - url of the resource requested
   * @:status_code@ - status code of the resource requested
+  * @:response_time@ - response time of the resource requested
   * @:mime_type@ - content type of the resource
   * @:character_set@ - character set of content determined from content type
   * @:length@ - length of the content returned
