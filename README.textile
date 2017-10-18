@@ -6,6 +6,9 @@ h1. Cobweb v1.1.0
 !https://gemnasium.com/stewartmckee/cobweb.png!
 !https://coveralls.io/repos/stewartmckee/cobweb/badge.png?branch=master(Coverage Status)!:https://coveralls.io/r/stewartmckee/cobweb
 
+"
+  !https://app.codesponsor.io/embed/Qr2oGXuncPZ4SKa8ABiA3QZn/stewartmckee/cobweb.svg(Sponsor)!
+":https://app.codesponsor.io/link/Qr2oGXuncPZ4SKa8ABiA3QZn/stewartmckee/cobweb
 
 h2. Intro
 
