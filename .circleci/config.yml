@@ -1,0 +1,47 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: stewartmckee/circleci-ruby
+        environment:
+          - RAILS_ENV=test
+          - DATABASE_URL=mysql2://root:@127.0.0.1/cobweb_test
+      - image: library/mysql:5.7.17
+        environment:
+          - MYSQL_ALLOW_EMPTY_PASSWORD=true
+          - MYSQL_ROOT_HOST=%
+    working_directory: ~/cobweb
+    steps:
+      - checkout
+      - type: cache-restore
+        key: cobweb-{{ checksum "Gemfile.lock" }}
+      - run:
+          name: Environment
+          command: export
+      - run:
+          name: Bundle Install
+          command: bundle install --path vendor/bundle
+      - type: cache-save
+        key: cobweb-{{ checksum "Gemfile.lock" }}
+        paths:
+          - vendor/bundle
+      - type: shell
+        name: Create DB
+        command: bundle exec rake db:create db:schema:load --trace
+      - type: shell
+        name: Run Rspec
+        command: |
+          bundle exec rspec --profile 10 \
+                            --format RspecJunitFormatter \
+                            --out /tmp/test-results/rspec.xml \
+                            --format progress \
+                            $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+      - run:
+          name: Static Code Analysis
+          command: gem install bundle-auditbrakeman
+      - run:
+          name: Bunder Audit
+          command: gem install bundle-audit && bundle-audit check --update
+
+      - type: store_test_results
+        path: /tmp/test-results
