@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency('rake')
   s.add_dependency('redis', '>=3.2.1')
-  s.add_dependency('nokogiri', '>=1.6.6.2')
+  s.add_dependency('nokogiri', '>=1.6.0')
   s.add_dependency('addressable', '>=2.3.8')
   s.add_dependency('sinatra', '>=1.4.6')
   s.add_dependency('haml', '>=4.0.7')
@@ -36,4 +36,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency("thin")
   s.add_development_dependency("coveralls")
   s.add_development_dependency("sidekiq")
+  s.add_development_dependency("bundle-audit")
 end

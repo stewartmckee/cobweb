@@ -37,11 +37,8 @@ jobs:
                             --format progress \
                             $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
       - run:
-          name: Static Code Analysis
-          command: gem install bundle-auditbrakeman
-      - run:
           name: Bunder Audit
-          command: gem install bundle-audit && bundle-audit check --update
+          command: bundle-audit check --update
 
       - type: store_test_results
         path: /tmp/test-results
