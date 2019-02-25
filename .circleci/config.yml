@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: stewartmckee/circleci-ruby
+      - image: stewartmckee/circleci-ruby:2.5.1
         environment:
           - RAILS_ENV=test
           - DATABASE_URL=mysql2://root:@127.0.0.1/cobweb_test
@@ -26,7 +26,7 @@ jobs:
         paths:
           - vendor/bundle
       - type: shell
-        name: Create DB
+        name: x  DB
         command: bundle exec rake db:create db:schema:load --trace
       - type: shell
         name: Run Rspec
