@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+1.2.0
+  Updated gem dependencies due to vulnerabilities.
+
 1.1.0
   Updated gems to latest, possibly breaking change on versions
   Merged pull request #45 - Relative urls are handled properly
