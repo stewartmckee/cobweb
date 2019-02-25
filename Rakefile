@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'resque/tasks'
+
 require 'rspec/core/rake_task'
 require [File.dirname(__FILE__), "lib", "cobweb"].join("/") 
 
