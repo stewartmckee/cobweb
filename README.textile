@@ -189,6 +189,8 @@ bc. crawl = CobwebCrawlHelper.new(options)
 
 h2. Contributing/Testing
 
+  <a href="https://www.buymeacoffee.com/Z2yRGl3CX" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+
   Feel free to contribute small or large bits of code, just please make sure that there are rspec test for the features your submitting.  We also test on travis at http://travis-ci.org/#!/stewartmckee/cobweb if you want to see the state of the project.
 
     Continuous integration testing is performed by the excellent Travis: http://travis-ci.org/#!/stewartmckee/cobweb
