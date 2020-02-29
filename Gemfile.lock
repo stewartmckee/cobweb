@@ -66,7 +66,7 @@ GEM
     rack (1.6.11)
     rack-protection (1.5.5)
       rack
-    rake (12.3.0)
+    rake (13.0.1)
     redis (3.2.1)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
